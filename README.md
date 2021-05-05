@@ -27,5 +27,5 @@ truncate pages from project
 ## Reduce Publish
 Call reduce and publish according to yaml configuration files
 ```
-  await codio.assignment.reducePublish(srcDir, yamConfigsDir)
+  await codio.assignment.reducePublish(courseId, srcDir, yamConfigsDir, changelog)
 ```

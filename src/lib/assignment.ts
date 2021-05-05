@@ -3,8 +3,17 @@ import path from 'path'
 import bent from 'bent'
 import FormData from 'form-data'
 import tar from 'tar'
-
+import glob from 'glob-promise'
+import YAML from 'yaml'
+import tools from './tools'
 import config from './config'
+import _ from 'lodash'
+
+type Yaml = {
+  assignment: string
+  paths: string[]
+  section: string | string[]
+}
 
 async function archiveTar(src: string): Promise<{ file: string; dir: string; }> {
   const dir = await fs.promises.mkdtemp('codio_export')
@@ -68,6 +77,43 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
   }
 }
 
+function validityState(ymls: Yaml[]) {
+  const assignmentIds: string[] = []
+  for(const yml of ymls) {
+    if (assignmentIds.includes(yml.assignment)) {
+      throw new Error(`assignement ${yml.assignment} defined twice`)
+    }
+    assignmentIds.push(yml.assignment)
+  }
+}
+
+async function loadYaml(yamlDir: string): Promise<Yaml[]> {
+  let res: Yaml[] = []
+  const files = await glob('*.y?ml', {cwd: yamlDir})
+  console.log(files)
+  for (var file of files) {
+    const ymlText = await fs.promises.readFile(path.join(yamlDir, file), {encoding: 'utf-8'})
+    let ymls: Yaml[] | Yaml = YAML.parse(ymlText)
+    if (!_.isArray(ymls)) {
+      ymls = [ymls]
+    }
+    res = res.concat(ymls)
+  }
+  validityState(res)
+  return res
+}
+
+async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string) {
+  const ymlCfg = await loadYaml(yamlDir)
+  for(const item of ymlCfg) {
+    console.log(`publishing ${JSON.stringify(item)}`)
+    const tmpDstDir = fs.mkdtempSync('publish_codio_reduce')
+    await tools.reduce(srcDir, tmpDstDir, item.section, item.paths)
+    await assignment.publish(courseId, item.assignment, tmpDstDir, changelog)
+    fs.rmdirSync(tmpDstDir, {recursive: true})
+  }
+}
+
 const assignment = {
   publish: async (courseId: string, assignmentId: string, projectPath: string, changelog: string) => {
     const {file, dir} = await archiveTar(projectPath)
@@ -75,6 +121,7 @@ const assignment = {
     fs.rmdirSync(dir, {recursive: true})
   },
   publishArchive,
+  reducePublish
 }
 
 export default assignment

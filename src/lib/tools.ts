@@ -5,6 +5,7 @@ import copy from 'recursive-copy'
 
 async function copyStripped(srcDir: string, bookStripped: Object, metadataStriped: Object, dstDir: string, paths: string[]) {
   paths.unshift('.guides/**')
+  paths.unshift('.github/**')
   await copy(srcDir, dstDir, {
     filter: paths,
     overwrite: true,

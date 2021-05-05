@@ -21,7 +21,7 @@ const token = await codio.auth(client_id, client_secret)
 ## Reduce (ex Books)
 truncate pages from project
 ```
-  await codio.tools.reduce(srcDir, dstDir, sections, exludePath)
+  await codio.tools.reduce(srcDir, dstDir, sections, paths)
 ```
 
 ## Reduce Publish

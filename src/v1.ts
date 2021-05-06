@@ -6,7 +6,7 @@ import assignment from './lib/assignment'
 export const v1 = {
   setDomain: (domain: string) => config.setDomain(domain),
   setAuthToken: (token: string) => config.setToken(token),
-  auth: async (clientId: string, secretId: string) => {
+  auth: async (clientId: string, secretId: string): Promise<string> => {
     const token = await auth(clientId, secretId, config.getDomain())
     v1.setAuthToken(token)
     return token

@@ -29,11 +29,11 @@ async function archiveTar(src: string): Promise<{ file: string; dir: string; }> 
   return {file, dir}
 }
 
-const sleep = async (seconds: number) => new Promise((resolve) => setTimeout(resolve, seconds * 1000))
+const sleep = async (seconds: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, seconds * 1000))
 
 const getJson = bent('json')
 
-async function publishArchive (courseId: string, assignmentId:string, archivePath: string, changelog: string) {
+async function publishArchive (courseId: string, assignmentId:string, archivePath: string, changelog: string): Promise<void> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -72,12 +72,13 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
     }
   } catch (error) {
     if (error.json) {
-      console.log(await error.json())
+      error = new Error(await error.json())
     }
+    throw error
   }
 }
 
-function validityState(ymls: Yaml[]) {
+function validityState(ymls: Yaml[]): void {
   const assignmentIds: string[] = []
   for(const yml of ymls) {
     if (assignmentIds.includes(yml.assignment)) {
@@ -103,7 +104,7 @@ async function loadYaml(yamlDir: string): Promise<Yaml[]> {
   return res
 }
 
-async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string) {
+async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string): Promise<void> {
   const ymlCfg = await loadYaml(yamlDir)
   for(const item of ymlCfg) {
     console.log(`publishing ${JSON.stringify(item)}`)
@@ -115,7 +116,7 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
 }
 
 const assignment = {
-  publish: async (courseId: string, assignmentId: string, projectPath: string, changelog: string) => {
+  publish: async (courseId: string, assignmentId: string, projectPath: string, changelog: string): Promise<void> => {
     const {file, dir} = await archiveTar(projectPath)
     await assignment.publishArchive(courseId, assignmentId, file, changelog)
     fs.rmdirSync(dir, {recursive: true})

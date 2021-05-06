@@ -3,7 +3,7 @@ import {promises as fs } from 'fs'
 import _ from 'lodash'
 import copy from 'recursive-copy'
 
-async function copyStripped(srcDir: string, bookStripped: Object, metadataStriped: Object, dstDir: string, paths: string[]) {
+async function copyStripped(srcDir: string, bookStripped: Object, metadataStriped: Object, dstDir: string, paths: string[]): Promise<void> {
   paths.unshift('.guides/**')
   paths.unshift('.github/**')
   await copy(srcDir, dstDir, {
@@ -30,7 +30,7 @@ function traverseBook(book: any, sections: string[]): any {
   return section
 }
 
-function getSectionIds(book: any) {
+function getSectionIds(book: any): string[] {
   let ids: string[] = []
   if (book['pageId']) {
     ids.push(`${book['pageId']}`)
@@ -66,7 +66,7 @@ function stripMetadata(metadata: any, book: any): string[] {
   return excludePaths
 }
 
-async function reduce(srcDir: string, dstDir: string, sections: string | string[], paths: string[]):Promise<void> {
+async function reduce(srcDir: string, dstDir: string, sections: string | string[], paths: string[]): Promise<void> {
   // const assessmentsJson = path.join(srcDir, '.guides', 'assessments.json')
   if (_.isString(sections)) {
     sections = [sections]

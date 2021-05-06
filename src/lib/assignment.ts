@@ -41,7 +41,7 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
     const token = config.getToken()
     const domain = config.getDomain()
     const authHeaders = {
-      'Authorization': 'Bearer ' + token
+      'Authorization': `Bearer ${token}`
     }
 
     const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)

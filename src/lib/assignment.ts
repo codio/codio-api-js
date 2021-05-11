@@ -62,13 +62,13 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
     for (let i = 0; i < 100; i++) { // 100 checks attempt
       await sleep(10)
       const status = await getJson(taskUrl, undefined, authHeaders)
+      console.log(status)
       if (status['done']) {
         if (status['error']) {
           throw new Error(status['error'])
         }
         break
       }
-      console.log(status)
     }
   } catch (error) {
     if (error.json) {
@@ -90,7 +90,7 @@ function validityState(ymls: Yaml[]): void {
 
 async function loadYaml(yamlDir: string): Promise<Yaml[]> {
   let res: Yaml[] = []
-  const files = await glob('*.y?ml', {cwd: yamlDir, nodir: true})
+  const files = await glob('*.+(yml|yaml)', {cwd: yamlDir, nodir: true})
   for (var file of files) {
     const ymlText = await fs.promises.readFile(path.join(yamlDir, file), {encoding: 'utf-8'})
     let ymls: Yaml[] | Yaml = YAML.parse(ymlText)

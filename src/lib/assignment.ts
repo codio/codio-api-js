@@ -68,7 +68,7 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
         }
         break
       }
-
+      console.log(status)
     }
   } catch (error) {
     if (error.json) {

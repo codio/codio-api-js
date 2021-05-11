@@ -110,6 +110,7 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
     const tmpDstDir = fs.mkdtempSync('/tmp/publish_codio_reduce')
     const paths = item.paths || []
     paths.push(`!${yamlDir}`) // exclude yaml directory from export
+    paths.push(`!${yamlDir}/**`) // exclude yaml directory from export
     await tools.reduce(srcDir, tmpDstDir, item.section, paths)
     await assignment.publish(courseId, item.assignment, tmpDstDir, changelog)
     fs.rmdirSync(tmpDstDir, {recursive: true})

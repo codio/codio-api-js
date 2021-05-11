@@ -5,7 +5,8 @@ import copy from 'recursive-copy'
 
 async function copyStripped(srcDir: string, bookStripped: Object, metadataStriped: Object, dstDir: string, paths: string[]): Promise<void> {
   paths.unshift('.guides/**')
-  paths.unshift('.github/**')
+  paths.unshift('!.github/**')
+  paths.unshift('!.github')
   await copy(srcDir, dstDir, {
     filter: paths,
     overwrite: true,
@@ -81,7 +82,6 @@ async function reduce(srcDir: string, dstDir: string, sections: string | string[
 
   const bookStripped = stripBook(book, sections)
   const excludePaths = stripMetadata(metadata, bookStripped)
-
   await copyStripped(srcDir, bookStripped, metadata, dstDir, paths.concat(excludePaths))
 }
 

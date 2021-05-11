@@ -16,7 +16,7 @@ type Yaml = {
 }
 
 async function archiveTar(src: string): Promise<{ file: string; dir: string; }> {
-  const dir = await fs.promises.mkdtemp('codio_export')
+  const dir = await fs.promises.mkdtemp('/tmp/codio_export')
   const file = path.join(dir, 'project.tar.gz')
   await tar.c(
     {
@@ -107,8 +107,10 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
   const ymlCfg = await loadYaml(yamlDir)
   for(const item of ymlCfg) {
     console.log(`publishing ${JSON.stringify(item)}`)
-    const tmpDstDir = fs.mkdtempSync('publish_codio_reduce')
-    await tools.reduce(srcDir, tmpDstDir, item.section, item.paths)
+    const tmpDstDir = fs.mkdtempSync('/tmp/publish_codio_reduce')
+    const paths = item.paths || []
+    paths.push(`!${yamlDir}`) // exclude yaml directory from export
+    await tools.reduce(srcDir, tmpDstDir, item.section, paths)
     await assignment.publish(courseId, item.assignment, tmpDstDir, changelog)
     fs.rmdirSync(tmpDstDir, {recursive: true})
   }

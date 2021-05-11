@@ -4,9 +4,9 @@ import _ from 'lodash'
 import copy from 'recursive-copy'
 
 async function copyStripped(srcDir: string, bookStripped: Object, metadataStriped: Object, dstDir: string, paths: string[]): Promise<void> {
-  paths.unshift('.guides/**')
-  paths.unshift('!.github/**')
-  paths.unshift('!.github')
+  paths.push('.guides/**')
+  paths.push('!.github/**')
+  paths.push('!.github')
   await copy(srcDir, dstDir, {
     filter: paths,
     overwrite: true,

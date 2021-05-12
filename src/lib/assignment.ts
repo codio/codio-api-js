@@ -83,7 +83,7 @@ function validityState(ymls: Yaml[]): void {
   const assignmentIds: string[] = []
   for(const yml of ymls) {
     if (assignmentIds.includes(yml.assignment)) {
-      throw new Error(`assignement ${yml.assignment} defined twice`)
+      throw new Error(`assignment ${yml.assignment} defined twice`)
     }
     assignmentIds.push(yml.assignment)
   }

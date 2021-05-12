@@ -10,7 +10,7 @@ codio.setDomain('codio.com') // codio.co.uk for UK domain, codio.com is default
 const token = await codio.auth(client_id, client_secret)
 ```
 
-## Publish Assignement
+## Publish Assignment
 ```
   await codio.assignment.publish(courseId, assignmentId, projectPath, changelog)
 

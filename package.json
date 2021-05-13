@@ -1,0 +1,32 @@
+{
+  "name": "codio-api-js",
+  "version": "0.0.9",
+  "description": "JS client to Codio API",
+  "repository": "https://github.com/codio/codio-api-js",
+  "author": "Max Kraev <maxim.kraev@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.2.4"
+  },
+  "dependencies": {
+    "@types/bent": "^7.3.2",
+    "@types/lodash": "^4.14.168",
+    "bent": "^7.3.12",
+    "form-data": "^4.0.0",
+    "glob-promise": "^4.1.0",
+    "lodash": "^4.17.21",
+    "querystring": "^0.2.1",
+    "recursive-copy": "^2.0.11",
+    "tar": "^6.1.0",
+    "yaml": "^1.10.2"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "files": [
+    "lib/"
+  ],
+  "types": "./lib/index.d.ts"
+}

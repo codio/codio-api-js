@@ -67,6 +67,9 @@ function stripBook(book: any, sections: string[][]): any {
   const children: any[] = []
   for (const sectionPath of sections ) {
     const section = traverseBook(book, sectionPath)
+    if (!section) {
+      throw new Error(`${section} not found`)
+    }
     children.push(section)
   }
   book.children = children

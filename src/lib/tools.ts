@@ -5,6 +5,9 @@ import copy from 'recursive-copy'
 
 async function copyStripped(srcDir: string, bookStripped: Object, metadataStriped: Object, dstDir: string, paths: string[]): Promise<void> {
   paths.push('.guides/**')
+  paths.push('.codio')
+  paths.push('.codio-menu')
+  paths.push('.settings')
   paths.push('!.github/**')
   paths.push('!.github')
   await copy(srcDir, dstDir, {
@@ -19,9 +22,23 @@ async function copyStripped(srcDir: string, bookStripped: Object, metadataStripe
   await fs.writeFile(metadataPath, JSON.stringify(metadataStriped, undefined, ' '))
 }
 
+// case-insensitive search for title
+function findSection(children: any[], title: string): any | undefined {
+  const capitalTitle = _.upperCase(title)
+  for(const item of children) {
+    if (_.upperCase(item.title) === capitalTitle) {
+      return item
+    }
+  }
+  return undefined
+}
+
 function traverseBook(book: any, sections: string[]): any {
   const sectionName = sections.shift()
-  const section = _.find(book.children, {title: sectionName})
+  if (!sectionName) {
+    return
+  }
+  const section = findSection(book.children, sectionName)
   if (!section) {
     throw new Error(`section "${sectionName}" is not found`)
   }
@@ -46,9 +63,16 @@ function getSectionIds(book: any): string[] {
   return ids
 }
 
-function stripBook(book: any, sections: string[]): any {
-  const section = traverseBook(book, sections)
-  book.children = [section]
+function stripBook(book: any, sections: string[][]): any {
+  const children: any[] = []
+  for (const sectionPath of sections ) {
+    const section = traverseBook(book, sectionPath)
+    if (!section) {
+      throw new Error(`${section} not found`)
+    }
+    children.push(section)
+  }
+  book.children = children
   return book
 }
 
@@ -60,18 +84,16 @@ function stripMetadata(metadata: any, book: any): string[] {
     if (ids.includes(section['id'])) {
       newSections.push(section)
     } else {
-      excludePaths.push(`!${section['content-file']}`)
+      if (section['content-file']) {
+        excludePaths.push(`!${section['content-file']}`)
+      }
     }
   }
   metadata.sections = newSections
   return excludePaths
 }
 
-async function reduce(srcDir: string, dstDir: string, sections: string | string[], paths: string[]): Promise<void> {
-  // const assessmentsJson = path.join(srcDir, '.guides', 'assessments.json')
-  if (_.isString(sections)) {
-    sections = [sections]
-  }
+async function reduce(srcDir: string, dstDir: string, sections: string[][], paths: string[]): Promise<void> {
   const bookJsonPath = path.join(srcDir, '.guides', 'book.json')
   const metadataPath = path.join(srcDir, '.guides', 'metadata.json')
 

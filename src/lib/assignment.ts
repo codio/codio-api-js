@@ -9,10 +9,17 @@ import tools from './tools'
 import config from './config'
 import _ from 'lodash'
 
+type YamlRaw = {
+  assignment: string
+  paths: string[] | undefined
+  section: string | string[]
+}
+
+
 type Yaml = {
   assignment: string
   paths: string[]
-  section: string | string[]
+  section: string[][]
 }
 
 async function archiveTar(src: string): Promise<{ file: string; dir: string; }> {
@@ -79,29 +86,42 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
   }
 }
 
-function validityState(ymls: Yaml[]): void {
-  const assignmentIds: string[] = []
+function validityState(ymls: YamlRaw[]): Yaml[] {
+  const map: Map<string, Yaml> = new Map()
   for(const yml of ymls) {
-    if (assignmentIds.includes(yml.assignment)) {
-      throw new Error(`assignment ${yml.assignment} defined twice`)
+    const section = _.isString(yml.section)? [yml.section] : yml.section
+    if (map.has(yml.assignment)) {
+      const item = map.get(yml.assignment)
+      if (!item) {
+        continue
+      }
+      item.section.push(section)
+      item.paths = item.paths.concat(yml.paths || [])
+    } else {
+      map.set(yml.assignment, {
+        assignment: yml.assignment,
+        paths: yml.paths || [],
+        section: [section]
+      })
     }
-    assignmentIds.push(yml.assignment)
   }
+
+  return Array.from(map.values())
 }
 
 async function loadYaml(yamlDir: string): Promise<Yaml[]> {
-  let res: Yaml[] = []
+  let res: YamlRaw[] = []
   const files = await glob('*.+(yml|yaml)', {cwd: yamlDir, nodir: true})
   for (var file of files) {
     const ymlText = await fs.promises.readFile(path.join(yamlDir, file), {encoding: 'utf-8'})
-    let ymls: Yaml[] | Yaml = YAML.parse(ymlText)
+    let ymls: YamlRaw[] = YAML.parse(ymlText)
     if (!_.isArray(ymls)) {
       ymls = [ymls]
     }
     res = res.concat(ymls)
   }
-  validityState(res)
-  return res
+
+  return validityState(res)
 }
 
 async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string): Promise<void> {

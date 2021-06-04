@@ -22,6 +22,12 @@ type Yaml = {
   section: string[][]
 }
 
+const excludePaths = [
+  '.git',
+  '.github',
+  '.gitignore',
+]
+
 async function archiveTar(src: string): Promise<{ file: string; dir: string; }> {
   const dir = await fs.promises.mkdtemp('/tmp/codio_export')
   const file = path.join(dir, 'project.tar.gz')
@@ -29,7 +35,15 @@ async function archiveTar(src: string): Promise<{ file: string; dir: string; }> 
     {
       gzip: true,
       file,
-      cwd: src
+      cwd: src,
+      filter: (path: string) => {
+        for (const exclude of excludePaths) {
+          if (_.startsWith(path, exclude)) {
+            return false
+          }
+        }
+        return true
+      }
     },
     ['./']
   )

@@ -6,6 +6,7 @@
   "author": "Max Kraev <maxim.kraev@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "@types/tar": "^4.0.4",
     "typescript": "^4.2.4"
   },
   "dependencies": {

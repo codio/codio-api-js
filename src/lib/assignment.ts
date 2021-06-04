@@ -6,7 +6,7 @@ import tar from 'tar'
 import glob from 'glob-promise'
 import YAML from 'yaml'
 import tools from './tools'
-import config from './config'
+import config, {excludePaths} from './config'
 import _ from 'lodash'
 
 type YamlRaw = {
@@ -15,18 +15,11 @@ type YamlRaw = {
   section: string | string[]
 }
 
-
 type Yaml = {
   assignment: string
   paths: string[]
   section: string[][]
 }
-
-const excludePaths = [
-  '.git',
-  '.github',
-  '.gitignore',
-]
 
 async function archiveTar(src: string): Promise<{ file: string; dir: string; }> {
   const dir = await fs.promises.mkdtemp('/tmp/codio_export')

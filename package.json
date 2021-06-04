@@ -1,11 +1,12 @@
 {
   "name": "codio-api-js",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "JS client to Codio API",
   "repository": "https://github.com/codio/codio-api-js",
   "author": "Max Kraev <maxim.kraev@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "@types/tar": "^4.0.4",
     "typescript": "^4.2.4"
   },
   "dependencies": {

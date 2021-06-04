@@ -2,6 +2,7 @@ import path from 'path'
 import {promises as fs } from 'fs'
 import _ from 'lodash'
 import copy from 'recursive-copy'
+import {excludePaths} from './config'
 
 async function copyStripped(srcDir: string, bookStripped: Object, metadataStriped: Object, dstDir: string, paths: string[]): Promise<void> {
   paths.push('.guides/**')
@@ -9,7 +10,9 @@ async function copyStripped(srcDir: string, bookStripped: Object, metadataStripe
   paths.push('.codio-menu')
   paths.push('.settings')
   paths.push('!.github/**')
-  paths.push('!.github')
+  for(const path of excludePaths) {
+    paths.push(`!${path}`)
+  }
   await copy(srcDir, dstDir, {
     filter: paths,
     overwrite: true,

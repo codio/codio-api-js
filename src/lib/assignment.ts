@@ -6,7 +6,7 @@ import tar from 'tar'
 import glob from 'glob-promise'
 import YAML from 'yaml'
 import tools from './tools'
-import config from './config'
+import config, {excludePaths} from './config'
 import _ from 'lodash'
 
 type YamlRaw = {
@@ -14,7 +14,6 @@ type YamlRaw = {
   paths: string[] | undefined
   section: string | string[]
 }
-
 
 type Yaml = {
   assignment: string
@@ -29,7 +28,15 @@ async function archiveTar(src: string): Promise<{ file: string; dir: string; }> 
     {
       gzip: true,
       file,
-      cwd: src
+      cwd: src,
+      filter: (path: string) => {
+        for (const exclude of excludePaths) {
+          if (_.startsWith(path, exclude)) {
+            return false
+          }
+        }
+        return true
+      }
     },
     ['./']
   )

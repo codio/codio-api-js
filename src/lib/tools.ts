@@ -111,7 +111,7 @@ async function reduce(srcDir: string, dstDir: string, sections: string[][], path
 }
 
 const tools = {
-  reduce
+  reduce,
 }
 
 export default tools

@@ -1,7 +1,9 @@
 import _, { has } from 'lodash'
 import crypto from 'crypto'
+import hash from 'object-hash'
 
 export const API_ID_TAG = 'CODIO_API_ID'
+export const API_HASH_TAG = 'CODIO_API_HASH'
 const FROM_LIBRARY_DUMMY = '<<<<<library-assessment>>>>>'
 
 function fixGuideance(json: any) {
@@ -136,6 +138,38 @@ export class Assessment {
     const hash = getHash(this)
     this.metadata.tags.set(API_ID_TAG, hash)
     return hash
+  }
+
+  getAssessmentHash(): string {
+    const object = this.export(false)
+    return hash(object)
+  }
+
+  export(withHash = true): string {
+    const tags: {name: string, value: string}[] = []
+    this.metadata.tags.forEach((value, name) => tags.push({name, value}))
+
+    if (withHash) {
+      tags.push({
+        name: API_HASH_TAG,
+        value: this.getAssessmentHash()
+      })
+    }
+
+    const object = {
+      details: this.details,
+      body: this.body,
+      metadata: {
+        files: this.metadata.files,
+        opened: this.metadata.opened,
+        layout: this.metadata.layout,
+        content: this.metadata.content,
+        pageTitle: this.metadata.pageTitle,
+        buttonText: this.metadata.buttonText,
+        tags,
+      }
+    }
+    return JSON.stringify(object)
   }
 
   constructor(json: any, metadata?: MetadataPage[]) {

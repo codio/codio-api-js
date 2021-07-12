@@ -26,7 +26,7 @@ export type Library = {
 const API_ID_TAG = 'CODIO_API_ID'
 
 async function getHash(assessment: Assessment) {
-  crypto.createHash('sha1').update(`${assessment.type}${assessment.name}`).digest('hex'); 
+  crypto.createHash('sha1').update(`${assessment.type}${assessment.details.name}`).digest('hex'); 
 }
 
 async function listLibraries(): Promise<Library[]> {
@@ -41,13 +41,12 @@ async function listLibraries(): Promise<Library[]> {
     }
 
     const res = await getJson(`https://octopus.${domain}/api/v1/assessment_library`, undefined, authHeaders)
-    console.log(res)
     const libraries: Library[] = []
-    for( const _ of res) {
+    for(const _ of res) {
       libraries.push({
-        name: res.name,
-        id: res.id,
-        createdBy: res.createdBy
+        name: _.name,
+        id: _.id,
+        createdBy: _.createdBy
       })
     }
     return libraries
@@ -65,12 +64,33 @@ async function updateOrAdd(libraryId: string, assessment: Assessment): Promise<v
 }
 
 async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
+  // read assessments
   const res: Assessment[] = []
   const assessmentsJson = await fs.promises.readFile(path.join(dir, '/.guides/assessments.json'), 
-  {encoding: 'utf8'})
+    {encoding: 'utf8'}) 
+
+  const metadataPath = path.join(dir, '.guides', 'metadata.json')
+  const metadataString = await fs.promises.readFile(metadataPath, { encoding: 'utf8'} )
+  const metadata = JSON.parse(metadataString)
+  const metadataPages: {page: string, data: any}[] = []
+  for( const data of metadata.sections) {
+    const path = data['content-file']
+    const page = await fs.promises.readFile(path, {encoding: 'utf8'})
+    metadataPages.push(
+      {
+        page,
+        data
+      }
+    )
+  }
+  
   const assessments: any[] = JSON.parse(assessmentsJson)
   for (const json of assessments) {
-    res.push(parse(json))
+    try {
+      res.push(parse(json, metadataPages))
+    } catch (_) {
+      console.log(`Skipping assessment ${_.message}`)
+    }
   }
   return res
 }
@@ -95,9 +115,7 @@ async function find(libraryId: string, tags = new Map()): Promise<Assessment> {
       'Authorization': `Bearer ${token}`
     }
 
-    const res = await getJson(`https://octopus.${domain}/api/v1/assessment_library/${libraryId}`, undefined, authHeaders)
-    console.log(res)
-    return res
+    return await getJson(`https://octopus.${domain}/api/v1/assessment_library/${libraryId}/assessment`, undefined, authHeaders)
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())

@@ -1,66 +1,186 @@
-export class Assessment {
-  name: string
-  type: string
-  tags: Map<string, string>
-  files: string[]
-  opened: {
-    type: string
-    panelNumber: number
-    content: string
-  }[]
-  showName: boolean
-  instructions: string
-  points: number
+import _ from 'lodash'
+import path from 'path'
+import fs from 'fs'
 
-  oneTimeTest: boolean
+const FROM_LIBRARY_DUMMY = '<<<<<library-assessment>>>>>'
 
-  bloomsObjectiveLevel: string
-  learningObjectives: string
-  guidance: string
-  showGuidanceAfterResponse: string
-
-  constructor(json: any) {
-    this.type = json.type
-    this.name = json.source.name
-    this.showName = json.source.showName
-    this.instructions = json.source.instructions
-    this.points = json.source.points
-
-    this.oneTimeTest = json.source.oneTimeTest
-
-    this.bloomsObjectiveLevel = json.source.bloomsObjectiveLevel
-    this.learningObjectives = json.source.learningObjectives
-    this.guidance = json.source.guidance
-    this.showGuidanceAfterResponse = json.source.showGuidanceAfterResponse
-
-    // tags
-    this.tags = new Map()
-    for (const tag of json.source.metadata.tags) {
-      this.tags.set(tag.name, tag.value)
+function fixGuideance(json: any) {
+  if (!_.isUndefined(json.source.showGuidanceAfterResponse)) {
+    // old format
+    return {
+      type: json.source.showGuidanceAfterResponse ? "Always": "Never"
     }
+  } 
+  return json.source.showGuidanceAfterResponseOption
+}
 
-    this.files = json.source.files
-    this.opened = json.source.opened
+function getContentForComplexAssessment(taskId: string, content: string): string {
+
+   const pattern = new RegExp('{.+\\|assessment}\\(' + taskId + '\\)\\n?', 'gm')
+   const result = content.replace(pattern, FROM_LIBRARY_DUMMY + '\n')
+   return result.replace(/{.+\|assessment}\(.+-[0-9]+\)\n?/gm, '')
+}
+
+function getButtonTextForComplexAssessment(taskId: string, type: string, content: string): string | undefined {
+  const pattern = new RegExp(
+    '{(.+?)\\|assessment}\\(' + taskId + '\\)\\n?',
+    'gm'
+  )
+  const match = pattern.exec(content)
+  return match ? match[1] : undefined
+}
+
+function findPage(taskId: string, metadata: MetadataPage[]): MetadataPage {
+  for(const { page, data } of metadata) {
+    if (page.match(taskId)) {
+      return {page, data}
+    }
+  }
+  throw new Error(`Assessment ${taskId} is not in use`)
+}
+
+export type MetadataPage = {
+  data: any,
+  page: string
+}
+
+type LayoutOpened = {
+  type: string
+  panelNumber: number
+  content: string
+}
+
+type Layout = {
+  layout: string | undefined
+  content: string | undefined
+  pageTitle: string  | undefined
+  buttonText: string | undefined
+}
+
+function extractLayout(json: any, metadata: MetadataPage[]): Layout {
+  if (!_.isUndefined(json.source.metadata.layout)) { 
+    // already has layout
+    return {
+      layout: json.source.metadata.layout,
+      content: json.source.metadata.content,
+      pageTitle: json.source.metadata.pageTitle,
+      buttonText: json.source.metadata.buttonText
+    } 
+  }
+
+  // parse layout
+  const { page, data } = findPage(json.taskId, metadata)
+
+  if (data.layout === '1-panel') {
+    // simple do not need alyout
+    return {
+      layout: undefined,
+      content: undefined,
+      pageTitle: undefined,
+      buttonText: undefined,
+    }
+  } 
+  return {
+    layout: data.layout,
+    content: getContentForComplexAssessment(json.taskId, page),
+    pageTitle: data.title,
+    buttonText: getButtonTextForComplexAssessment(json.taskId, json.type, page)
+  }
+}
+
+export class Assessment {
+  type = 'None'
+  assessmentId: string | undefined
+  
+  details: {
+    name: string
+    showName: boolean
+    instructions: string
+    showExpectedAnswer: boolean
+    guidance: string
+  }
+
+  metadata: {
+    opened: LayoutOpened[]
+    files: string[]
+    tags: Map<string, string>
+    layout: string | undefined
+    content: string | undefined
+    pageTitle: string | undefined
+    buttonText: string | undefined
+  }
+
+  private getTagsFromJson(json: any): Map<string,string> {
+    const tags = new Map<string,string>()
+    for (const tag of json) {
+      tags.set(tag.name, tag.value)
+    }
+    return tags
+  }
+
+  constructor(json: any, metadata?: MetadataPage[]) {
+    if (!metadata) {
+      this.assessmentId = json.assessmentId
+      this.details = json.details
+      
+      this.metadata = {
+        files: json.metadata.files,
+        opened: json.metadata.opened,
+        layout: json.metadata.layout,
+        content: json.metadata.content,
+        pageTitle: json.metadata.pageTitle,
+        buttonText: json.metadata.buttonText,
+        tags: this.getTagsFromJson(json.metadata.tags)
+      }
+    } else {
+      this.details = {
+        name: json.source.name,
+        showName: json.source.showName,
+        instructions: json.source.instructions,
+        showExpectedAnswer: json.source.showExpectedAnswer,
+        guidance: json.source.guidance
+      }
+      const tags = this.getTagsFromJson(json.source.metadata.tags)
+      tags.set('Learning Objectives', json.source.learningObjectives)
+      tags.set(`Bloom's level`, json.source.bloomsObjectiveLevel)
+      const {
+        layout,
+        content,
+        pageTitle,
+        buttonText
+      } = extractLayout(json, metadata)
+      this.metadata = {
+        tags,
+        layout, 
+        content,
+        pageTitle,
+        buttonText,
+        files: json.source.metadata.files,
+        opened: json.source.metadata.opened
+      }
+    }
   }
 }
 
 export class AssessmentParsons extends Assessment {
   initial: string
   options: string
-  constructor(json: any) {
-    super(json)
+  constructor(json: any, metadata?: MetadataPage[]) {
+    super(json, metadata)
     this.initial = json.source.initial
     this.options = json.source.options
   }
 }
 
+
 export class AssessmentAdvanced extends Assessment {
+  type = 'Advanced Code Test'
   command: string
   arePartialPointsAllowed: boolean
   timeoutSeconds: number
 
-  constructor(json: any) {
-    super(json)
+  constructor(json: any, metadata?: MetadataPage[]) {
+    super(json, metadata)
     this.command = json.source.command
     this.arePartialPointsAllowed = json.source.arePartialPointsAllowed
     this.timeoutSeconds = json.source.timeoutSeconds
@@ -77,8 +197,8 @@ export class AssessmentMultipleChoice extends Assessment{
   showExpectedAnswer: boolean
   incorrectPoints: number
 
-  constructor(json: any) {
-    super(json)
+  constructor(json: any, metadata?: MetadataPage[]) {
+    super(json, metadata)
     this.showExpectedAnswer = json.source.showExpectedAnswer
     this.multipleResponse = json.source.multipleResponse
     this.answers = json.source.answers 
@@ -96,8 +216,8 @@ export class AssessmentFillInTheBlanks extends Assessment {
     text: (string | number)[]
     regexPositions: number[]
   }
-  constructor(json: any) {
-    super(json)
+  constructor(json: any, metadata?: MetadataPage[]) {
+    super(json, metadata)
     this.text = json.source.text
     this.showExpectedAnswer = json.source.showExpectedAnswer
     this.showValues = json.source.showValues
@@ -106,50 +226,65 @@ export class AssessmentFillInTheBlanks extends Assessment {
 }
 
 export class AssessmentStandardCode extends Assessment {
-  command: string
-  preExecuteCommand: string
-  arePartialPointsAllowed: boolean
-  oneTimeTest: boolean
-  options: {
-    ignoreCase: boolean
-    ignoreWhitespaces: boolean
-    ignoreNewline: boolean
-    matchSubstring: boolean
-    timeout: number
+  type = 'Standard Code Test'
+  body: {
+    codeCompare: {
+      options: {
+        ignoreCase: boolean
+        ignoreWhitespaces: boolean
+        ignoreNewline: boolean
+        matchSubstring: boolean
+        timeout: number
+      }
+      command: string
+      preExecuteCommand: string
+      showGuidanceAfterResponseOption: {
+        type: string,
+        passedFrom: number | undefined
+      }
+      oneTimeTest: Boolean
+      sequence: {
+        arguments: string
+        input: string
+        output: string
+        showFeedback: boolean
+        feedback: string
+      }[]
+    }
   }
-  sequence: {
-    arguments: string
-    input: string
-    output: string
-    showFeedback: boolean
-    feedback: string
-  }[]
-  showExpectedAnswer: boolean
-  constructor(json: any) {
-    super(json)
-    this.command = json.source.command
-    this.preExecuteCommand = json.source.preExecuteCommand
-    this.arePartialPointsAllowed = json.source.arePartialPointsAllowed
-    this.oneTimeTest = json.source.oneTimeTest
-    this.options = json.source.options
-    this.showExpectedAnswer = json.source.showExpectedAnswer
-    this.sequence = json.source.sequence
+ 
+  constructor(json: any, metadata?: MetadataPage[]) {
+    super(json, metadata)
+    if (!metadata) {
+      this.body = json.body
+    } else {
+      this.body = {
+        codeCompare: {
+          options: json.source.options,
+          command: json.source.command,
+          preExecuteCommand: json.source.preExecuteCommand,
+          showGuidanceAfterResponseOption: fixGuideance(json.source.showGuidanceAfterResponseOption),
+          oneTimeTest: json.source.oneTimeTest,
+          sequence: json.source.sequence
+        }
+      }
+    }
   }
 }
 
 
-export function parse(json: any): Assessment {
+export function parse(json: any, metadataPages:  MetadataPage[]): Assessment {
   switch (json.type) {
     case 'test': 
-      return new AssessmentAdvanced(json)
+      return new AssessmentAdvanced(json, metadataPages)
     case 'multiple-choice':
-      return new AssessmentMultipleChoice(json)
+      return new AssessmentMultipleChoice(json, metadataPages)
     case 'fill-in-the-blanks':
-      return new AssessmentFillInTheBlanks(json)
+      return new AssessmentFillInTheBlanks(json, metadataPages)
     case 'code-output-compare': 
-      return new AssessmentStandardCode(json)
+      return new AssessmentStandardCode(json, metadataPages)
     case 'parsons-puzzle':
     default:
-      return new AssessmentParsons(json)
+      return new AssessmentParsons(json, metadataPages)
   }
 }

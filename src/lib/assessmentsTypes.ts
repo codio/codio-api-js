@@ -1,7 +1,7 @@
-import _ from 'lodash'
-import path from 'path'
-import fs from 'fs'
+import _, { has } from 'lodash'
+import crypto from 'crypto'
 
+export const API_ID_TAG = 'CODIO_API_ID'
 const FROM_LIBRARY_DUMMY = '<<<<<library-assessment>>>>>'
 
 function fixGuideance(json: any) {
@@ -88,6 +88,10 @@ function extractLayout(json: any, metadata: MetadataPage[]): Layout {
   }
 }
 
+function getHash(assessment: Assessment): string {
+  return crypto.createHash('sha1').update(`${assessment.type}${assessment.details.name}`).digest('hex'); 
+}
+
 export class Assessment {
   type = 'None'
   assessmentId: string | undefined
@@ -110,12 +114,28 @@ export class Assessment {
     buttonText: string | undefined
   }
 
+  body: any = {}
+
   private getTagsFromJson(json: any): Map<string,string> {
     const tags = new Map<string,string>()
     for (const tag of json) {
       tags.set(tag.name, tag.value)
     }
     return tags
+  }
+
+  getLibraryId(): string {
+    if (this.assessmentId) {
+      return this.assessmentId
+    } 
+
+    if (this.metadata.tags.has(API_ID_TAG)) {
+      return this.metadata.tags.get(API_ID_TAG) || ''
+    }
+
+    const hash = getHash(this)
+    this.metadata.tags.set(API_ID_TAG, hash)
+    return hash
   }
 
   constructor(json: any, metadata?: MetadataPage[]) {
@@ -130,7 +150,7 @@ export class Assessment {
         content: json.metadata.content,
         pageTitle: json.metadata.pageTitle,
         buttonText: json.metadata.buttonText,
-        tags: this.getTagsFromJson(json.metadata.tags)
+        tags: this.getTagsFromJson(json.source.metadata.tags)
       }
     } else {
       this.details = {
@@ -159,69 +179,160 @@ export class Assessment {
         opened: json.source.metadata.opened
       }
     }
+    this.getLibraryId()
   }
 }
 
 export class AssessmentParsons extends Assessment {
-  initial: string
-  options: string
+  type = 'Parsons Puzzle'
+  body: {
+    parsonsPuzzle: {
+      initial: string
+      options: string
+      grader: string
+      oneTimeTest: boolean
+      showGuidanceAfterResponseOption: {
+        type: string,
+        passedFrom: number | undefined
+      }
+    }
+  }
+  
   constructor(json: any, metadata?: MetadataPage[]) {
     super(json, metadata)
-    this.initial = json.source.initial
-    this.options = json.source.options
+    if (metadata) {
+      this.body = {
+        parsonsPuzzle: {
+          initial: json.source.initial,
+          options: json.source.options,
+          grader: json.source.grader,
+          showGuidanceAfterResponseOption: fixGuideance(json),
+          oneTimeTest: json.source.oneTimeTest
+        }
+      }
+    } else {
+      this.body = json.body
+    }
   }
 }
 
 
 export class AssessmentAdvanced extends Assessment {
   type = 'Advanced Code Test'
-  command: string
-  arePartialPointsAllowed: boolean
-  timeoutSeconds: number
+  body: {
+    codeTest: {
+      command: string
+      arePartialPointsAllowed: boolean
+      timeoutSeconds: number    
+      oneTimeTest: boolean
+      showGuidanceAfterResponseOption: {
+        type: string,
+        passedFrom: number | undefined
+      }
+    }
+  }
 
   constructor(json: any, metadata?: MetadataPage[]) {
     super(json, metadata)
-    this.command = json.source.command
-    this.arePartialPointsAllowed = json.source.arePartialPointsAllowed
-    this.timeoutSeconds = json.source.timeoutSeconds
+    if (metadata) {
+      this.body = {
+        codeTest: {
+          command: json.source.command,
+          timeoutSeconds: json.source.timeoutSeconds,
+          arePartialPointsAllowed: json.source.arePartialPointsAllowed,
+          oneTimeTest: json.source.oneTimeTest,
+          showGuidanceAfterResponseOption: fixGuideance(json)
+        }
+      }
+    } else {
+      this.body = json.body
+    }
   }
 }
 
 export class AssessmentMultipleChoice extends Assessment{
-  answers: {
-    _id: string
-    correct: boolean
-    answer: string
+  type= 'Multiple Choice'
+
+  body: {
+    multipleChoice: {
+      options: {
+        id: string
+        correct: boolean
+        answer: string  
+      }[]
+      isMultipleResponse: boolean
+      isRandomized: boolean
+      arePartialPointsAllowed: boolean,
+      showGuidanceAfterResponseOption: {
+        type: string,
+        passedFrom: number | undefined
+      }
+    }
   }
-  multipleResponse: boolean
-  showExpectedAnswer: boolean
-  incorrectPoints: number
+
 
   constructor(json: any, metadata?: MetadataPage[]) {
     super(json, metadata)
-    this.showExpectedAnswer = json.source.showExpectedAnswer
-    this.multipleResponse = json.source.multipleResponse
-    this.answers = json.source.answers 
-    this.incorrectPoints = json.source.incorrectPoints
-
+    if (metadata) {
+      const options = json.source.answers.forEach(_ => {
+        return {
+          id: _._id,
+          correct: _.correct,
+          answer: _.answer
+        }
+      })
+      this.body = {
+        multipleChoice: {
+          options,
+          isMultipleResponse: json.source.multipleResponse,
+          isRandomized: json.source.isRandomized,
+          arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
+          showGuidanceAfterResponseOption: fixGuideance(json),
+        }
+      }
+    } else {
+      this.body = json.body
+    }
   }
 }
 
 export class AssessmentFillInTheBlanks extends Assessment {
-  text: string
-  showExpectedAnswer: boolean
-  showValues: boolean
-  tokens: {
-    blank: string[]
-    text: (string | number)[]
-    regexPositions: number[]
+  type = 'Fill in the Blanks'
+
+  body: {
+    fillInBlanks: {
+      text: string
+      showValues: boolean
+      blanks: string[]
+      texts: string[]
+      distractors: string
+      arePartialPointsAllowed: boolean
+      showGuidanceAfterResponseOption: {
+        type: string,
+        passedFrom: number | undefined
+      }
+    }
   }
+
   constructor(json: any, metadata?: MetadataPage[]) {
     super(json, metadata)
-    this.text = json.source.text
-    this.showExpectedAnswer = json.source.showExpectedAnswer
-    this.showValues = json.source.showValues
-    this.tokens = json.source.tokens
+    if (metadata) {
+      const texts: string[] = json.source.tokens.text
+      texts.unshift('')
+      this.body = {
+        fillInBlanks: {
+          text: json.source.text,
+          showValues: json.source.showValues,
+          arePartialPointsAllowed: json.source.arePartialPointsAllowed,
+          blanks: json.source.tokens.blank,
+          texts: _.filter(texts, _.isString),
+          distractors: json.source.distractors,
+          showGuidanceAfterResponseOption: fixGuideance(json)
+        }
+      }
+    } else {
+      this.body = json.body
+    }
   }
 }
 
@@ -263,7 +374,7 @@ export class AssessmentStandardCode extends Assessment {
           options: json.source.options,
           command: json.source.command,
           preExecuteCommand: json.source.preExecuteCommand,
-          showGuidanceAfterResponseOption: fixGuideance(json.source.showGuidanceAfterResponseOption),
+          showGuidanceAfterResponseOption: fixGuideance(json),
           oneTimeTest: json.source.oneTimeTest,
           sequence: json.source.sequence
         }

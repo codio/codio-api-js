@@ -23,12 +23,6 @@ export type Library = {
   createdBy: string
 }
 
-const API_ID_TAG = 'CODIO_API_ID'
-
-async function getHash(assessment: Assessment) {
-  crypto.createHash('sha1').update(`${assessment.type}${assessment.details.name}`).digest('hex'); 
-}
-
 async function listLibraries(): Promise<Library[]> {
   if (!config) {
     throw new Error('No Config')
@@ -60,7 +54,7 @@ async function listLibraries(): Promise<Library[]> {
 }
 
 async function updateOrAdd(libraryId: string, assessment: Assessment): Promise<void> {
-  console.log(libraryId, assessment)
+  console.log(JSON.stringify(assessment, undefined, ' '))
 }
 
 async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
@@ -74,8 +68,8 @@ async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
   const metadata = JSON.parse(metadataString)
   const metadataPages: {page: string, data: any}[] = []
   for( const data of metadata.sections) {
-    const path = data['content-file']
-    const page = await fs.promises.readFile(path, {encoding: 'utf8'})
+    const filePath = path.join(dir, data['content-file'])
+    const page = await fs.promises.readFile(filePath, {encoding: 'utf8'})
     metadataPages.push(
       {
         page,

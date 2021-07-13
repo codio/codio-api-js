@@ -1,12 +1,21 @@
 import _, { has, takeRight } from 'lodash'
 import crypto from 'crypto'
 import hash from 'object-hash'
-import uuid from 'uuid'
+import { v4 } from 'uuid'
 
 export const API_ID_TAG = 'CODIO_API_ID'
 export const API_HASH_TAG = 'CODIO_API_HASH'
 
 const FROM_LIBRARY_DUMMY = '<<<<<library-assessment>>>>>'
+
+export const BLOOMS_LEVEL = {
+  '1': 'Level I - Remembering',
+  '2': 'Level II - Understanding',
+  '3': 'Level III - Applying',
+  '4': 'Level IV - Analyzing',
+  '5': 'Level V - Evaluating',
+  '6': 'Level VI - Creating'
+}
 
 function fixGuideance(json: any) {
   if (!_.isUndefined(json.source.showGuidanceAfterResponse)) {
@@ -93,7 +102,7 @@ function extractLayout(json: any, metadata: MetadataPage[]): Layout {
 }
 
 function getHash(): string {
-  return uuid.v4()
+  return v4()
 }
 
 export class Assessment {
@@ -128,6 +137,19 @@ export class Assessment {
     return tags
   }
 
+  private getTagsFromJsonApi(json: any): Map<string,string> {
+    console.log(json)
+    const array: [string, string][] = Object.entries(json)
+    return new Map(array);
+  }
+
+  async getBundle(): Promise<string | undefined> {
+    if (this.metadata.files.length === 0) {
+      return
+    }
+
+  }
+
   getId(): string {
     if (!this.metadata.tags.has(API_ID_TAG)) {
       this.metadata.tags.set(API_ID_TAG, getHash())
@@ -141,14 +163,11 @@ export class Assessment {
   }
 
   export(withHash = true): string {
-    const tags: {name: string, value: string}[] = []
-    this.metadata.tags.forEach((value, name) => tags.push({name, value}))
+    const tags: any = {}
+    this.metadata.tags.forEach((value, name) => tags[name] = value)
 
     if (withHash) {
-      tags.push({
-        name: API_HASH_TAG,
-        value: this.getAssessmentHash()
-      })
+      tags[API_HASH_TAG] = this.getAssessmentHash()
     }
 
     const object = {
@@ -171,7 +190,6 @@ export class Assessment {
     if (!metadata) {
       this.assessmentId = json.assessmentId
       this.details = json.details
-      
       this.metadata = {
         files: json.metadata.files,
         opened: json.metadata.opened,
@@ -179,7 +197,7 @@ export class Assessment {
         content: json.metadata.content,
         pageTitle: json.metadata.pageTitle,
         buttonText: json.metadata.buttonText,
-        tags: this.getTagsFromJson(json.source.metadata.tags)
+        tags: this.getTagsFromJsonApi(json.metadata.tags)
       }
     } else {
       this.details = {
@@ -191,7 +209,7 @@ export class Assessment {
       }
       const tags = this.getTagsFromJson(json.source.metadata.tags)
       tags.set('Learning Objectives', json.source.learningObjectives)
-      tags.set(`Bloom's level`, json.source.bloomsObjectiveLevel)
+      tags.set(`Bloom's level`, BLOOMS_LEVEL[json.source.bloomsObjectiveLevel])
       const {
         layout,
         content,
@@ -217,7 +235,7 @@ export class Assessment {
 export class AssessmentParsons extends Assessment {
   type = 'Parsons Puzzle'
   body: {
-    parsonsPuzzle: {
+    parsonPuzzle: {
       initial: string
       options: string
       grader: string
@@ -233,7 +251,7 @@ export class AssessmentParsons extends Assessment {
     super(json, metadata)
     if (metadata) {
       this.body = {
-        parsonsPuzzle: {
+        parsonPuzzle: {
           initial: json.source.initial,
           options: json.source.options,
           grader: json.source.grader,
@@ -281,6 +299,12 @@ export class AssessmentAdvanced extends Assessment {
   }
 }
 
+type MultipleChoiseOption = {
+  _id: string
+  correct: Boolean
+  answer: string
+}
+
 export class AssessmentMultipleChoice extends Assessment{
   type= 'Multiple Choice'
 
@@ -301,17 +325,17 @@ export class AssessmentMultipleChoice extends Assessment{
     }
   }
 
-
   constructor(json: any, metadata?: MetadataPage[]) {
     super(json, metadata)
     if (metadata) {
-      const options = json.source.answers.forEach(_ => {
+      const options = json.source.answers.map((rec: MultipleChoiseOption) => {
         return {
-          id: _._id,
-          correct: _.correct,
-          answer: _.answer
+          id: rec._id,
+          correct: rec.correct,
+          answer: rec.answer
         }
       })
+
       this.body = {
         multipleChoice: {
           options,
@@ -326,6 +350,46 @@ export class AssessmentMultipleChoice extends Assessment{
     }
   }
 }
+
+export class AssessmentFreeText extends Assessment{
+  type= 'Free Text'
+
+  body: {
+    freeText: {
+      previewType: string
+      oneTimeTest: boolean
+      arePartialPointsAllowed: boolean
+      rubrics: {
+        id: string
+        weight: number
+        message: string
+      }
+      showGuidanceAfterResponseOption: {
+        type: string,
+        passedFrom: number | undefined
+      }
+    }
+  }
+
+
+  constructor(json: any, metadata?: MetadataPage[]) {
+    super(json, metadata)
+    if (metadata) {
+      this.body = {
+        freeText: {
+          arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
+          showGuidanceAfterResponseOption: fixGuideance(json),
+          oneTimeTest: json.source.oneTimeTest,
+          rubrics: json.source.rubrics,
+          previewType: json.source.previewType
+        }
+      }
+    } else {
+      this.body = json.body
+    }
+  }
+}
+
 
 export class AssessmentFillInTheBlanks extends Assessment {
   type = 'Fill in the Blanks'
@@ -433,23 +497,21 @@ export function parse(json: any, metadataPages:  MetadataPage[]): Assessment {
 }
 
 export function parseApi(json: any): Assessment {
-  for (const tag of json.metadata.tags) {
-
-  }
-  //if (takeRight.name = '')
-  switch (json.type) {
-    case 'test': 
+  const type = json.metadata.tags['Assessment Type']
+  switch (type) {
+    case 'Advanced Code Test': 
       return new AssessmentAdvanced(json)
-    case 'multiple-choice':
+    case 'Multiple Choice':
       return new AssessmentMultipleChoice(json)
-    case 'fill-in-the-blanks':
+    case 'Fill in the Blanks':
       return new AssessmentFillInTheBlanks(json)
-    case 'code-output-compare': 
+    case 'Standard Code Test': 
       return new AssessmentStandardCode(json)
-    case 'parsons-puzzle':
+    case 'Parsons Puzzle':
       return new AssessmentParsons(json)
+      case 'Free Text':
+        return new AssessmentFreeText(json)
     default:
-      throw new Error('assessemnt type not found')
-  
+      throw new Error(`assessment type ${type} not found`)
   }
 }

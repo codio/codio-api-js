@@ -2,19 +2,10 @@ import fs from 'fs'
 import bent from 'bent'
 import path from 'path'
 import config from './config'
-import { Assessment, parse, API_ID_TAG, parseApi } from './assessmentsTypes'
+import { Assessment, parse, API_ID_TAG, parseApi, API_HASH_TAG } from './assessmentsTypes'
+import FormData from 'form-data'
 
 const getJson = bent('json')
-
-
-
-export type AssessmentParsons = {
-  
-}
-
-type APIAssessment = {
-  type: string
-}
 
 export type Library = {
   name: string
@@ -52,6 +43,43 @@ async function listLibraries(): Promise<Library[]> {
   }
 }
 
+async function publishAssessment(libraryId: string, assessment: Assessment, isNew: boolean): Promise<void> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  
+  try {
+    const token = config.getToken()
+    const domain = config.getDomain()
+    const authHeaders = {
+      'Authorization': `Bearer ${token}`
+    }
+    const api = bent(`https://octopus.${domain}`, isNew ? 'POST': 'PUT', 'json', 200)
+
+    const postData = new FormData();
+    postData.append('assessment', assessment.export())
+    console.log(assessment.export())
+    const archivePath = await assessment.getBundle()
+    if (archivePath) {
+      postData.append('bundle', fs.createReadStream(archivePath),  {
+        knownLength: fs.statSync(archivePath).size
+      })
+    }
+    const headers = Object.assign(postData.getHeaders(), authHeaders)
+    headers['Content-Length'] = postData.getLengthSync()
+    const assessmentId = isNew ? '' : `/${assessment.assessmentId}`
+    await api(`/api/v1/assessment_library/${libraryId}/assessment${assessmentId}`, postData, headers);
+
+  } catch (error) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      error = new Error(message)
+    }
+    throw error
+  }
+}
+
+
 async function updateOrAdd(libraryId: string, assessment: Assessment): Promise<void> {
 
   const search: Map<string, string> = new Map()
@@ -60,10 +88,18 @@ async function updateOrAdd(libraryId: string, assessment: Assessment): Promise<v
   const assessments = await find(libraryId, search)
   const isNew = (assessments.length == 0)
   if (isNew) {
-    console.log(` `)
+    console.log(`new ${assessment.details.name}`)
+    await publishAssessment(libraryId, assessment, true)
   } else {
+    console.log(`${assessment.details.name} exists`)
     const libraryAssessment = assessments[0]
-
+    const checksum = libraryAssessment.metadata.tags.get(API_HASH_TAG)
+    if (checksum !== assessment.getAssessmentHash()) {
+      console.log(`${assessment.details.name} updating`) 
+      await publishAssessment(libraryId, assessment, false)
+    } else {
+      console.log(`${assessment.details.name} unchanged`)
+    }
   }
 
   return
@@ -120,11 +156,19 @@ async function find(libraryId: string, tags = new Map()): Promise<Assessment[]> 
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
+    
+    const params = tags.size === 0 ? [] : Array.from(tags).reduce((obj, [key, value]) => (
+      Object.assign(obj, { [key]: value }) 
+    ), {})
 
-    const apiRes = await getJson(`https://octopus.${domain}/api/v1/assessment_library/${libraryId}/assessment`, undefined, authHeaders)
-    console.log(apiRes)
+    const urlParams = new URLSearchParams(params)
+    const url = `https://octopus.${domain}/api/v1/assessment_library/${libraryId}/assessment?${urlParams.toString()}`
+    const apiRes = await getJson(url, undefined, authHeaders)
+    if (!apiRes.assessments) {
+      return []
+    }
     const res: Assessment[] = []
-    for(const _ of apiRes) {
+    for(const _ of apiRes.assessments) {
       res.push(parseApi(_))
     }
     return res

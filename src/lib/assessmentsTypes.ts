@@ -1,9 +1,11 @@
-import _, { has } from 'lodash'
+import _, { has, takeRight } from 'lodash'
 import crypto from 'crypto'
 import hash from 'object-hash'
+import uuid from 'uuid'
 
 export const API_ID_TAG = 'CODIO_API_ID'
 export const API_HASH_TAG = 'CODIO_API_HASH'
+
 const FROM_LIBRARY_DUMMY = '<<<<<library-assessment>>>>>'
 
 function fixGuideance(json: any) {
@@ -90,8 +92,8 @@ function extractLayout(json: any, metadata: MetadataPage[]): Layout {
   }
 }
 
-function getHash(assessment: Assessment): string {
-  return crypto.createHash('sha1').update(`${assessment.type}${assessment.details.name}`).digest('hex'); 
+function getHash(): string {
+  return uuid.v4()
 }
 
 export class Assessment {
@@ -126,18 +128,11 @@ export class Assessment {
     return tags
   }
 
-  getLibraryId(): string {
-    if (this.assessmentId) {
-      return this.assessmentId
-    } 
-
-    if (this.metadata.tags.has(API_ID_TAG)) {
-      return this.metadata.tags.get(API_ID_TAG) || ''
+  getId(): string {
+    if (!this.metadata.tags.has(API_ID_TAG)) {
+      this.metadata.tags.set(API_ID_TAG, getHash())
     }
-
-    const hash = getHash(this)
-    this.metadata.tags.set(API_ID_TAG, hash)
-    return hash
+    return this.metadata.tags.get(API_ID_TAG) || ''
   }
 
   getAssessmentHash(): string {
@@ -213,7 +208,9 @@ export class Assessment {
         opened: json.source.metadata.opened
       }
     }
-    this.getLibraryId()
+
+    // assessment has id already => not new update
+    this.getId()
   }
 }
 
@@ -429,7 +426,30 @@ export function parse(json: any, metadataPages:  MetadataPage[]): Assessment {
     case 'code-output-compare': 
       return new AssessmentStandardCode(json, metadataPages)
     case 'parsons-puzzle':
-    default:
       return new AssessmentParsons(json, metadataPages)
+    default:
+      throw new Error('assessemnt type not found')
+  }
+}
+
+export function parseApi(json: any): Assessment {
+  for (const tag of json.metadata.tags) {
+
+  }
+  //if (takeRight.name = '')
+  switch (json.type) {
+    case 'test': 
+      return new AssessmentAdvanced(json)
+    case 'multiple-choice':
+      return new AssessmentMultipleChoice(json)
+    case 'fill-in-the-blanks':
+      return new AssessmentFillInTheBlanks(json)
+    case 'code-output-compare': 
+      return new AssessmentStandardCode(json)
+    case 'parsons-puzzle':
+      return new AssessmentParsons(json)
+    default:
+      throw new Error('assessemnt type not found')
+  
   }
 }

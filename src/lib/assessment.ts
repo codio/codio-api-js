@@ -2,8 +2,7 @@ import fs from 'fs'
 import bent from 'bent'
 import path from 'path'
 import config from './config'
-import crypto from 'crypto'
-import { Assessment, parse } from './assessmentsTypes'
+import { Assessment, parse, API_ID_TAG, parseApi } from './assessmentsTypes'
 
 const getJson = bent('json')
 
@@ -54,7 +53,20 @@ async function listLibraries(): Promise<Library[]> {
 }
 
 async function updateOrAdd(libraryId: string, assessment: Assessment): Promise<void> {
-  console.log(JSON.stringify(assessment, undefined, ' '))
+
+  const search: Map<string, string> = new Map()
+  search.set(API_ID_TAG, assessment.getId())
+
+  const assessments = await find(libraryId, search)
+  const isNew = (assessments.length == 0)
+  if (isNew) {
+    console.log(` `)
+  } else {
+    const libraryAssessment = assessments[0]
+
+  }
+
+  return
 }
 
 async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
@@ -98,7 +110,7 @@ async function fromCodioProject(libraryId: string, path: string): Promise<void> 
   }
 }
 
-async function find(libraryId: string, tags = new Map()): Promise<Assessment> {
+async function find(libraryId: string, tags = new Map()): Promise<Assessment[]> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -109,7 +121,13 @@ async function find(libraryId: string, tags = new Map()): Promise<Assessment> {
       'Authorization': `Bearer ${token}`
     }
 
-    return await getJson(`https://octopus.${domain}/api/v1/assessment_library/${libraryId}/assessment`, undefined, authHeaders)
+    const apiRes = await getJson(`https://octopus.${domain}/api/v1/assessment_library/${libraryId}/assessment`, undefined, authHeaders)
+    console.log(apiRes)
+    const res: Assessment[] = []
+    for(const _ of apiRes) {
+      res.push(parseApi(_))
+    }
+    return res
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())

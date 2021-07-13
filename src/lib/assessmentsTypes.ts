@@ -201,6 +201,10 @@ export class Assessment {
       tags[name] = value
     })
 
+    if (!checksum) {
+      tags[API_HASH_TAG] = this.getHash()
+    }
+
     const object = {
       details: this.details,
       body: this.body,

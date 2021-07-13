@@ -52,7 +52,6 @@ async function updateJSON(assessment: Assessment, base: string, isNew: boolean):
   for (const item of json) {
     if (item.taskId === assessment.taskId) {
       if (isNew) {
-        console.log(item)
         item.source.metadata.tags.push({
           name: API_ID_TAG,
           value: assessment.getId()

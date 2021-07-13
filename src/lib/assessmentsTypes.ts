@@ -387,6 +387,36 @@ export class AssessmentMultipleChoice extends Assessment{
   }
 }
 
+export class AssessmentFradeBook extends Assessment{
+  type= 'Grade Book'
+
+  body: {
+    gradeBook: {
+      arePartialPointsAllowed: boolean
+      rubrics: {
+        id: string
+        weight: number
+        message: string
+      }
+    }
+  }
+
+
+  constructor(json: any, metadata?: MetadataPage[]) {
+    super(json, metadata)
+    if (metadata) {
+      this.body = {
+        gradeBook: {
+          arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
+          rubrics: json.source.rubrics,
+        }
+      }
+    } else {
+      this.body = json.body
+    }
+  }
+}
+
 export class AssessmentFreeText extends Assessment{
   type= 'Free Text'
 
@@ -467,6 +497,42 @@ export class AssessmentFillInTheBlanks extends Assessment {
   }
 }
 
+export class AssessmentFreeTextAuto extends Assessment {
+  type = 'Free Text Autograde'
+
+  body: {
+    freeTextAuto: {
+      previewType: string
+      oneTimeTest: boolean
+      arePartialPointsAllowed: boolean
+      command: string
+      timeout: number
+      showGuidanceAfterResponseOption: {
+        type: string,
+        passedFrom: number | undefined
+      }
+    }
+  }
+
+  constructor(json: any, metadata?: MetadataPage[]) {
+    super(json, metadata)
+    if (metadata) {
+      this.body = {
+        freeTextAuto: {
+          arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
+          showGuidanceAfterResponseOption: fixGuideance(json),
+          oneTimeTest: json.source.oneTimeTest,
+          previewType: json.source.previewType,
+          command: json.source.command,
+          timeout: json.source.timeoutSeconds,
+        }
+      }
+    } else {
+      this.body = json.body
+    }
+  }
+}
+
 export class AssessmentStandardCode extends Assessment {
   type = 'Standard Code Test'
   body: {
@@ -527,6 +593,12 @@ export function parse(json: any, metadataPages:  MetadataPage[]): Assessment {
       return new AssessmentStandardCode(json, metadataPages)
     case 'parsons-puzzle':
       return new AssessmentParsons(json, metadataPages)
+    case 'free-text':
+      return new AssessmentFreeText(json, metadataPages)
+    case 'free-text-auto':
+      return new AssessmentFreeTextAuto(json, metadataPages)
+    case 'grade-book':
+      return new AssessmentFradeBook(json, metadataPages)
     default:
       throw new Error('assessemnt type not found')
   }
@@ -545,8 +617,12 @@ export function parseApi(json: any): Assessment {
       return new AssessmentStandardCode(json)
     case 'Parsons Puzzle':
       return new AssessmentParsons(json)
-      case 'Free Text':
-        return new AssessmentFreeText(json)
+    case 'Free Text':
+      return new AssessmentFreeText(json)
+    case 'Free Text Autograde':
+      return new AssessmentFreeTextAuto(json)
+    case 'Grade Book':
+      return new AssessmentFradeBook(json)
     default:
       throw new Error(`assessment type ${type} not found`)
   }

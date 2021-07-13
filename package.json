@@ -6,14 +6,14 @@
   "author": "Max Kraev <maxim.kraev@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "@types/bent": "^7.3.2",
+    "@types/lodash": "^4.14.168",
     "@types/object-hash": "^2.1.1",
     "@types/tar": "^4.0.4",
     "@types/uuid": "^8.3.1",
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@types/bent": "^7.3.2",
-    "@types/lodash": "^4.14.168",
     "bent": "^7.3.12",
     "form-data": "^4.0.0",
     "glob-promise": "^4.1.0",
@@ -21,6 +21,7 @@
     "object-hash": "^2.2.0",
     "querystring": "^0.2.1",
     "recursive-copy": "^2.0.11",
+    "simple-zstd": "^1.3.1",
     "tar": "^6.1.0",
     "uuid": "^8.3.2",
     "yaml": "^1.10.2"

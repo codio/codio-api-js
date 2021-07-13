@@ -4,7 +4,9 @@ import path from 'path'
 import config from './config'
 import { Assessment, parse, API_ID_TAG, parseApi, API_HASH_TAG } from './assessmentsTypes'
 import FormData from 'form-data'
-
+import { mapToObject } from './tools'
+import { encode } from 'querystring'
+import _ from 'lodash'
 const getJson = bent('json')
 
 export type Library = {
@@ -43,7 +45,36 @@ async function listLibraries(): Promise<Library[]> {
   }
 }
 
-async function publishAssessment(libraryId: string, assessment: Assessment, isNew: boolean): Promise<void> {
+async function updateJSON(assessment: Assessment, base: string, isNew: boolean): Promise<void> {
+  const filePath = path.join(base, '.guides', 'assessments.json')
+  const jsonString = await fs.promises.readFile(filePath, {encoding: 'utf8'})
+  const json = JSON.parse(jsonString)
+  for (const item of json) {
+    if (item.taskId === assessment.taskId) {
+      if (isNew) {
+        console.log(item)
+        item.source.metadata.tags.push({
+          name: API_ID_TAG,
+          value: assessment.getId()
+        })
+        item.source.metadata.tags.push({
+          name: API_HASH_TAG,
+          value: assessment.getHash()
+        })
+      } else {
+        for (const tag of item.source.metadata.tags) {
+          if (tag.name == API_HASH_TAG) {
+            tag.value = assessment.getHash()
+          }
+        }
+      }
+      break
+    }
+  }
+  await fs.promises.writeFile(filePath, JSON.stringify(json, undefined, ' '))
+}
+
+async function publishAssessment(libraryId: string, assessment: Assessment, isNew: boolean, base: string): Promise<void> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -58,8 +89,7 @@ async function publishAssessment(libraryId: string, assessment: Assessment, isNe
 
     const postData = new FormData();
     postData.append('assessment', assessment.export())
-    console.log(assessment.export())
-    const archivePath = await assessment.getBundle()
+    const archivePath = await assessment.getBundle(base)
     if (archivePath) {
       postData.append('bundle', fs.createReadStream(archivePath),  {
         knownLength: fs.statSync(archivePath).size
@@ -68,8 +98,8 @@ async function publishAssessment(libraryId: string, assessment: Assessment, isNe
     const headers = Object.assign(postData.getHeaders(), authHeaders)
     headers['Content-Length'] = postData.getLengthSync()
     const assessmentId = isNew ? '' : `/${assessment.assessmentId}`
-    await api(`/api/v1/assessment_library/${libraryId}/assessment${assessmentId}`, postData, headers);
-
+    await updateJSON(assessment, base, isNew)
+    await api(`/api/v1/assessment_library/${libraryId}/assessment${assessmentId}`, postData, headers)
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -80,7 +110,7 @@ async function publishAssessment(libraryId: string, assessment: Assessment, isNe
 }
 
 
-async function updateOrAdd(libraryId: string, assessment: Assessment): Promise<void> {
+async function updateOrAdd(libraryId: string, assessment: Assessment, base: string): Promise<void> {
 
   const search: Map<string, string> = new Map()
   search.set(API_ID_TAG, assessment.getId())
@@ -89,20 +119,21 @@ async function updateOrAdd(libraryId: string, assessment: Assessment): Promise<v
   const isNew = (assessments.length == 0)
   if (isNew) {
     console.log(`new ${assessment.details.name}`)
-    await publishAssessment(libraryId, assessment, true)
+    await publishAssessment(libraryId, assessment, true, base)
   } else {
     console.log(`${assessment.details.name} exists`)
     const libraryAssessment = assessments[0]
-    const checksum = libraryAssessment.metadata.tags.get(API_HASH_TAG)
-    if (checksum !== assessment.getAssessmentHash()) {
-      console.log(`${assessment.details.name} updating`) 
-      await publishAssessment(libraryId, assessment, false)
+    const checksumLibrary = libraryAssessment.metadata.tags.get(API_HASH_TAG)
+    const checksumProject = assessment.getHash()
+    if (checksumLibrary != checksumProject) {
+      console.log(`${assessment.details.name} updating 
+      new "${checksumProject}" old "${checksumLibrary}"`)
+      assessment.assessmentId = libraryAssessment.assessmentId
+      await publishAssessment(libraryId, assessment, false, base)
     } else {
       console.log(`${assessment.details.name} unchanged`)
     }
   }
-
-  return
 }
 
 async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
@@ -129,7 +160,9 @@ async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
   const assessments: any[] = JSON.parse(assessmentsJson)
   for (const json of assessments) {
     try {
-      res.push(parse(json, metadataPages))
+      const item = parse(json, metadataPages)
+      item.basePath = dir
+      res.push(item)
     } catch (_) {
       console.log(`Skipping assessment ${_.message}`)
     }
@@ -142,7 +175,11 @@ async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
 async function fromCodioProject(libraryId: string, path: string): Promise<void> {
   const assessments = await loadProjectAssessments(path)
   for(const _ of assessments) {
-    await updateOrAdd(libraryId, _)
+    try {
+      await updateOrAdd(libraryId, _, path)
+    } catch(_) {
+
+    }
   }
 }
 
@@ -157,9 +194,7 @@ async function find(libraryId: string, tags = new Map()): Promise<Assessment[]> 
       'Authorization': `Bearer ${token}`
     }
     
-    const params = tags.size === 0 ? [] : Array.from(tags).reduce((obj, [key, value]) => (
-      Object.assign(obj, { [key]: value }) 
-    ), {})
+    const params = mapToObject(tags)
 
     const urlParams = new URLSearchParams(params)
     const url = `https://octopus.${domain}/api/v1/assessment_library/${libraryId}/assessment?${urlParams.toString()}`

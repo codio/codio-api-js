@@ -1,7 +1,10 @@
-import _, { has, takeRight } from 'lodash'
-import crypto from 'crypto'
+import _ from 'lodash'
 import hash from 'object-hash'
 import { v4 } from 'uuid'
+import fs from 'fs'
+import crypto from 'crypto'
+import { createTar } from './tools'
+import path from 'path'
 
 export const API_ID_TAG = 'CODIO_API_ID'
 export const API_HASH_TAG = 'CODIO_API_HASH'
@@ -101,12 +104,10 @@ function extractLayout(json: any, metadata: MetadataPage[]): Layout {
   }
 }
 
-function getHash(): string {
-  return v4()
-}
-
 export class Assessment {
   type = 'None'
+  basePath = ''
+  taskId: string = 'none'
   assessmentId: string | undefined
   
   details: {
@@ -138,37 +139,67 @@ export class Assessment {
   }
 
   private getTagsFromJsonApi(json: any): Map<string,string> {
-    console.log(json)
     const array: [string, string][] = Object.entries(json)
     return new Map(array);
   }
 
-  async getBundle(): Promise<string | undefined> {
+  async getBundle(base: string): Promise<string | undefined> {
     if (this.metadata.files.length === 0) {
       return
     }
-
+    await createTar(base, this.metadata.files)
   }
 
   getId(): string {
     if (!this.metadata.tags.has(API_ID_TAG)) {
-      this.metadata.tags.set(API_ID_TAG, getHash())
+      this.metadata.tags.set(API_ID_TAG, v4())
     }
     return this.metadata.tags.get(API_ID_TAG) || ''
   }
 
-  getAssessmentHash(): string {
-    const object = this.export(false)
+  private loadFiles(basePath: string): any {
+    const hashes = this.metadata.files.map(filePath => {
+      try {
+        const fullPath = path.join(basePath, filePath)
+        const fileBuffer = fs.readFileSync(fullPath)
+        const hashSum = crypto.createHash('sha256')
+        hashSum.update(fileBuffer);
+        
+        const hex = hashSum.digest('hex')
+        return {
+          hex,
+          filePath
+       }
+      } catch(_) {
+        console.error(`Error Processing ${filePath} problem: ${_.message}`)
+        return {
+          hex: '',
+          filePath
+        }
+      }
+    })
+    const res = {}
+    for (const _ in hashes) {
+      res[_['filePath']] = _['hex']
+    }
+    return res
+  }
+
+  getHash(): string {
+    const object = this.export(true)
+    Object.assign('loadedFiles', this.loadFiles(this.basePath))
     return hash(object)
   }
 
-  export(withHash = true): string {
+  export(checksum = false): string {
     const tags: any = {}
-    this.metadata.tags.forEach((value, name) => tags[name] = value)
-
-    if (withHash) {
-      tags[API_HASH_TAG] = this.getAssessmentHash()
-    }
+    this.metadata.tags.forEach((value, name) => {
+      if (checksum && (name == API_HASH_TAG || name == API_ID_TAG)) {
+        // skip for hashing
+        return
+      }
+      tags[name] = value
+    })
 
     const object = {
       details: this.details,
@@ -225,6 +256,7 @@ export class Assessment {
         files: json.source.metadata.files,
         opened: json.source.metadata.opened
       }
+      this.taskId = json.taskId
     }
 
     // assessment has id already => not new update

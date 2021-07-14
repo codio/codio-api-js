@@ -5,8 +5,6 @@ import config from './config'
 import { Assessment, parse, API_ID_TAG, parseApi, API_HASH_TAG } from './assessmentsTypes'
 import FormData from 'form-data'
 import { mapToObject } from './tools'
-import { encode } from 'querystring'
-import _ from 'lodash'
 const getJson = bent('json')
 
 export type Library = {
@@ -39,7 +37,7 @@ async function listLibraries(): Promise<Library[]> {
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      error = new Error(message)
+      throw new Error(message)
     }
     throw error
   }
@@ -102,7 +100,7 @@ export async function publishAssessment(libraryId: string, assessment: Assessmen
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      error = new Error(message)
+      throw new Error(message)
     }
     throw error
   }
@@ -210,7 +208,7 @@ async function find(libraryId: string, tags = new Map()): Promise<Assessment[]> 
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      error = new Error(message)
+      throw new Error(message)
     }
     throw error
   }

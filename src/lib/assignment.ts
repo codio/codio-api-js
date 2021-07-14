@@ -87,7 +87,7 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      error = new Error(message)
+      throw new Error(message)
     }
     throw error
   }

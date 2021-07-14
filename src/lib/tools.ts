@@ -7,7 +7,7 @@ import tar from 'tar'
 import { ZSTDCompress } from 'simple-zstd'
 
 
-async function copyStripped(srcDir: string, bookStripped: Object, metadataStriped: Object, dstDir: string, paths: string[]): Promise<void> {
+async function copyStripped(srcDir: string, bookStripped: any, metadataStriped: any, dstDir: string, paths: string[]): Promise<void> {
   paths.push('.guides/**')
   paths.push('.codio')
   paths.push('.codio-menu')

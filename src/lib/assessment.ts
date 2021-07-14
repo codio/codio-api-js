@@ -73,7 +73,7 @@ async function updateJSON(assessment: Assessment, base: string, isNew: boolean):
   await fs.promises.writeFile(filePath, JSON.stringify(json, undefined, ' '))
 }
 
-async function publishAssessment(libraryId: string, assessment: Assessment, isNew: boolean, base: string): Promise<void> {
+export async function publishAssessment(libraryId: string, assessment: Assessment, isNew: boolean, base: string): Promise<void> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -166,6 +166,7 @@ async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
       console.log(`Skipping assessment ${_.message}`)
     }
   }
+  console.log(`Assessments found: ${res.length}`)
   return res
 }
 
@@ -177,7 +178,7 @@ async function fromCodioProject(libraryId: string, path: string): Promise<void> 
     try {
       await updateOrAdd(libraryId, _, path)
     } catch(_) {
-
+      console.error(_.message)
     }
   }
 }
@@ -219,7 +220,8 @@ const assessment = {
   listLibraries,
   find,
   updateOrAdd,
-  fromCodioProject
+  fromCodioProject,
+  publishAssessment,
 }
 
 export default assessment

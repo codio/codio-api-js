@@ -147,7 +147,6 @@ export async function createTar(basePath: string, paths: string[], excludePaths?
   .pipe(ZSTDCompress())
   .pipe(fs.createWriteStream(path.join(dir, 'archive.tar.zst')))
 
-  await fs.promises.rm(file)
   return zst
 }
 

@@ -10,3 +10,11 @@ jobs:
       run: yarn
     - name: Run ESLint
       run: yarn run lint
+
+    - name: Slack
+      uses: codio/codio-slack-action@master
+      with:
+        slack_hook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        message: "<https://github.com/${{ github.repository }}/actions/runs/${{github.run_id}}|${{ github.workflow }} release-proto-check> for ${{ github.repository }} by ${{ github.actor }} has ${{ job.status }} on branch ${{ github.ref }}"
+        success: ${{ job.status }}
+      if: always()

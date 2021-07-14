@@ -119,7 +119,7 @@ function validityState(ymls: YamlRaw[]): Yaml[] {
 async function loadYaml(yamlDir: string): Promise<Yaml[]> {
   let res: YamlRaw[] = []
   const files = await glob('*.+(yml|yaml)', {cwd: yamlDir, nodir: true})
-  for (var file of files) {
+  for (const file of files) {
     const ymlText = await fs.promises.readFile(path.join(yamlDir, file), {encoding: 'utf-8'})
     let ymls: YamlRaw[] = YAML.parse(ymlText)
     if (!_.isArray(ymls)) {

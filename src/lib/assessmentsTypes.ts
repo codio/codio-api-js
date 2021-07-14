@@ -107,7 +107,7 @@ function extractLayout(json: any, metadata: MetadataPage[]): Layout {
 export class Assessment {
   type = 'None'
   basePath = ''
-  taskId: string = 'none'
+  taskId = 'none'
   assessmentId: string | undefined
   
   details: {
@@ -337,7 +337,7 @@ export class AssessmentAdvanced extends Assessment {
 
 type MultipleChoiseOption = {
   _id: string
-  correct: Boolean
+  correct: boolean
   answer: string
 }
 
@@ -550,7 +550,7 @@ export class AssessmentStandardCode extends Assessment {
         type: string,
         passedFrom: number | undefined
       }
-      oneTimeTest: Boolean
+      oneTimeTest: boolean
       sequence: {
         arguments: string
         input: string

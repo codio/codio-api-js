@@ -30,7 +30,8 @@
     "yaml": "^1.10.2"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "eslint src"
   },
   "main": "./lib/index.js",
   "module": "./lib/index.js",

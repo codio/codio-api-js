@@ -142,11 +142,13 @@ export async function createTar(basePath: string, paths: string[], excludePaths?
     paths
   )
   const zst = path.join(dir, 'archive.tar.zst')
-  
-  fs.createReadStream(file)
-  .pipe(ZSTDCompress())
-  .pipe(fs.createWriteStream(path.join(dir, 'archive.tar.zst')))
-
+  await new Promise((resolve, reject) => {
+    fs.createReadStream(file)
+      .pipe(ZSTDCompress())
+      .pipe(fs.createWriteStream(path.join(dir, 'archive.tar.zst')))
+      .on('finish', resolve)
+      .on('error', reject)
+  })
   return zst
 }
 

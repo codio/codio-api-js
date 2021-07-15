@@ -5,6 +5,7 @@ import config from './config'
 import { Assessment, parse, API_ID_TAG, parseApi, API_HASH_TAG } from './assessmentsTypes'
 import FormData from 'form-data'
 import { mapToObject } from './tools'
+import _ from 'lodash'
 const getJson = bent('json')
 
 export type Library = {
@@ -87,10 +88,15 @@ export async function publishAssessment(libraryId: string, assessment: Assessmen
     const postData = new FormData();
     postData.append('assessment', assessment.export())
     const archivePath = await assessment.getBundle(base)
-    if (archivePath) {
-      postData.append('bundle', fs.createReadStream(archivePath),  {
-        knownLength: (await fs.promises.stat(archivePath)).size
-      })
+    if (!_.isUndefined(archivePath)) {
+      const { size } = await fs.promises.stat(archivePath)
+      if (size === 0) {
+        console.log(`empty bundle`)
+      } else {
+        postData.append('bundle', fs.createReadStream(archivePath),  {
+          knownLength: size
+        })
+      }
     }
     const headers = Object.assign(postData.getHeaders(), authHeaders)
     headers['Content-Length'] = await new Promise(resolve => postData.getLength((_, length) => resolve(length)))
@@ -100,8 +106,10 @@ export async function publishAssessment(libraryId: string, assessment: Assessmen
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
+      console.log(message)
       throw new Error(message)
     }
+    console.log(error)
     throw error
   }
 }

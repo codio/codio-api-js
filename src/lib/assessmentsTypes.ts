@@ -186,12 +186,12 @@ export class Assessment {
   }
 
   getHash(): string {
-    const object = this.export(true)
-    Object.assign('loadedFiles', this.loadFiles(this.basePath))
+    const object = this._export(true)
+    object['filesHash'] = this.loadFiles(this.basePath)
     return hash(object)
   }
 
-  export(checksum = false): string {
+  private _export(checksum = false): any {
     const tags: any = {}
     this.metadata.tags.forEach((value, name) => {
       if (checksum && (name == API_HASH_TAG || name == API_ID_TAG)) {
@@ -205,7 +205,7 @@ export class Assessment {
       tags[API_HASH_TAG] = this.getHash()
     }
 
-    const object = {
+    return {
       details: this.details,
       body: this.body,
       metadata: {
@@ -218,7 +218,10 @@ export class Assessment {
         tags,
       }
     }
-    return JSON.stringify(object)
+  }
+
+  export(checksum = false): string {
+    return JSON.stringify(this._export(checksum))
   }
 
   constructor(json: any, metadata?: MetadataPage[]) {

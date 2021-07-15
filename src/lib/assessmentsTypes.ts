@@ -147,7 +147,7 @@ export class Assessment {
     if (this.metadata.files.length === 0) {
       return
     }
-    await createTar(base, this.metadata.files)
+    return createTar(base, this.metadata.files)
   }
 
   getId(): string {

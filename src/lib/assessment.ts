@@ -89,11 +89,11 @@ export async function publishAssessment(libraryId: string, assessment: Assessmen
     const archivePath = await assessment.getBundle(base)
     if (archivePath) {
       postData.append('bundle', fs.createReadStream(archivePath),  {
-        knownLength: fs.statSync(archivePath).size
+        knownLength: (await fs.promises.stat(archivePath)).size
       })
     }
     const headers = Object.assign(postData.getHeaders(), authHeaders)
-    headers['Content-Length'] = postData.getLengthSync()
+    headers['Content-Length'] = await new Promise(resolve => postData.getLength((_, length) => resolve(length)))
     const assessmentId = isNew ? '' : `/${assessment.assessmentId}`
     await updateJSON(assessment, base, isNew)
     await api(`/api/v1/assessment_library/${libraryId}/assessment${assessmentId}`, postData, headers)

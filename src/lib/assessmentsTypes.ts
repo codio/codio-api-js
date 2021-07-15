@@ -162,7 +162,7 @@ export class Assessment {
       try {
         const fullPath = path.join(basePath, filePath)
         const fileBuffer = fs.readFileSync(fullPath)
-        const hashSum = crypto.createHash('sha256')
+        const hashSum = crypto.createHash('md5')
         hashSum.update(fileBuffer);
         
         const hex = hashSum.digest('hex')

@@ -73,6 +73,11 @@ async function updateJSON(assessment: Assessment, base: string, isNew: boolean):
 }
 
 export async function publishAssessment(libraryId: string, assessment: Assessment, isNew: boolean, base: string): Promise<void> {
+  libraryId = await getLibraryId(libraryId)
+  return _publishAssessment(libraryId, assessment, isNew, base)
+}
+
+async function _publishAssessment(libraryId: string, assessment: Assessment, isNew: boolean, base: string): Promise<void> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -114,9 +119,22 @@ export async function publishAssessment(libraryId: string, assessment: Assessmen
   }
 }
 
+//return id if name passed
+async function getLibraryId(name: string): Promise<string> {
+  const libraries = await listLibraries()
+  const item = _.find(libraries, {name})
+  if (_.isUndefined(item)) {
+    return name
+  }
+  return item.id
+}
 
-async function updateOrAdd(libraryId: string, assessment: Assessment, base: string): Promise<void> {
+export async function updateOrAdd(libraryId: string, assessment: Assessment, base: string): Promise<void> {
+  libraryId = await getLibraryId(libraryId)
+  return _updateOrAdd(libraryId, assessment, base)
+}
 
+async function _updateOrAdd(libraryId: string, assessment: Assessment, base: string): Promise<void> {
   const search: Map<string, string> = new Map()
   search.set(API_ID_TAG, assessment.getId())
 
@@ -124,7 +142,7 @@ async function updateOrAdd(libraryId: string, assessment: Assessment, base: stri
   const isNew = (assessments.length == 0)
   if (isNew) {
     console.log(`new ${assessment.details.name}`)
-    await publishAssessment(libraryId, assessment, true, base)
+    await _publishAssessment(libraryId, assessment, true, base)
   } else {
     console.log(`${assessment.details.name} exists`)
     const libraryAssessment = assessments[0]
@@ -134,7 +152,7 @@ async function updateOrAdd(libraryId: string, assessment: Assessment, base: stri
       console.log(`${assessment.details.name} updating 
       new "${checksumProject}" old "${checksumLibrary}"`)
       assessment.assessmentId = libraryAssessment.assessmentId
-      await publishAssessment(libraryId, assessment, false, base)
+      await _publishAssessment(libraryId, assessment, false, base)
     } else {
       console.log(`${assessment.details.name} unchanged`)
     }
@@ -179,10 +197,11 @@ async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
 
 
 async function fromCodioProject(libraryId: string, path: string): Promise<void> {
+  libraryId = await getLibraryId(libraryId)
   const assessments = await loadProjectAssessments(path)
   for(const _ of assessments) {
     try {
-      await updateOrAdd(libraryId, _, path)
+      await _updateOrAdd(libraryId, _, path)
     } catch(_) {
       console.error(_.message)
     }
@@ -190,6 +209,7 @@ async function fromCodioProject(libraryId: string, path: string): Promise<void> 
 }
 
 async function find(libraryId: string, tags = new Map()): Promise<Assessment[]> {
+  libraryId = await getLibraryId(libraryId)
   if (!config) {
     throw new Error('No Config')
   }

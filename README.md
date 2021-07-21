@@ -78,14 +78,14 @@ Returns an array of `Library` items
 
 Retunrs an array of `Assessment` items
 ```
-  const assessments = await codio.assessment.find('<libraryId>', searchTags: Map<string, string>)
+  const assessments = await codio.assessment.find('libraryId || name', searchTags: Map<string, string>)
 ```
 
 ### Synchronize assessments from library
 
 Publishes all assessments from the project in `project_path` to the library
 ```
-  await codio.assessment.fromCodioProject('libraryId', '<project_path>')
+  await codio.assessment.fromCodioProject('libraryId || name', '<project_path>')
 ```
 
 Please be aware on that this action will update assessment.json with new tags 

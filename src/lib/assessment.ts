@@ -44,28 +44,36 @@ async function listLibraries(): Promise<Library[]> {
   }
 }
 
-async function updateJSON(assessment: Assessment, base: string, isNew: boolean): Promise<void> {
+function updateTags(tags: {name: string, value: string}[], id: string, hash: string): void {
+  const idTag = _.find(tags, {name: API_ID_TAG})
+  if (_.isUndefined(idTag)) {
+    tags.push({
+      name: API_ID_TAG,
+      value: id
+    })
+  } else {
+    idTag.value = id
+  }
+  const hashTag = _.find(tags, {name: API_HASH_TAG})
+  if (_.isUndefined(hashTag)) {
+    tags.push({
+      name: API_HASH_TAG,
+      value: hash
+    })
+  } else {
+    hashTag.value = hash
+  }
+}
+
+async function updateJSON(assessment: Assessment, base: string): Promise<void> {
   const filePath = path.join(base, '.guides', 'assessments.json')
   const jsonString = await fs.promises.readFile(filePath, {encoding: 'utf8'})
   const json = JSON.parse(jsonString)
   for (const item of json) {
     if (item.taskId === assessment.taskId) {
-      if (isNew) {
-        item.source.metadata.tags.push({
-          name: API_ID_TAG,
-          value: assessment.getId()
-        })
-        item.source.metadata.tags.push({
-          name: API_HASH_TAG,
-          value: assessment.getHash()
-        })
-      } else {
-        for (const tag of item.source.metadata.tags) {
-          if (tag.name == API_HASH_TAG) {
-            tag.value = assessment.getHash()
-          }
-        }
-      }
+      const hash = assessment.getHash()
+      const id = assessment.getId()
+      updateTags(item.source.metadata.tags, id, hash)
       break
     }
   }
@@ -106,7 +114,7 @@ async function _publishAssessment(libraryId: string, assessment: Assessment, isN
     const headers = Object.assign(postData.getHeaders(), authHeaders)
     headers['Content-Length'] = await new Promise(resolve => postData.getLength((_, length) => resolve(length)))
     const assessmentId = isNew ? '' : `/${assessment.assessmentId}`
-    await updateJSON(assessment, base, isNew)
+    await updateJSON(assessment, base)
     await api(`/api/v1/assessment_library/${libraryId}/assessment${assessmentId}`, postData, headers)
   } catch (error) {
     if (error.json) {

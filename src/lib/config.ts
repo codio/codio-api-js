@@ -7,7 +7,7 @@ const VALID_DOMAINS=[
 ]
 
 class Config {
-  private domain: string = 'codio.com'
+  private domain = 'codio.com'
   private token: string | null = null
 
   public setDomain(domain: string): void {

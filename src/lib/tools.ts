@@ -1,10 +1,13 @@
 import path from 'path'
-import {promises as fs } from 'fs'
+import fs from 'fs'
 import _ from 'lodash'
 import copy from 'recursive-copy'
 import {excludePaths} from './config'
+import tar from 'tar'
+import { ZSTDCompress } from 'simple-zstd'
 
-async function copyStripped(srcDir: string, bookStripped: Object, metadataStriped: Object, dstDir: string, paths: string[]): Promise<void> {
+
+async function copyStripped(srcDir: string, bookStripped: any, metadataStriped: any, dstDir: string, paths: string[]): Promise<void> {
   paths.push('.guides/**')
   paths.push('.codio')
   paths.push('.codio-menu')
@@ -20,9 +23,9 @@ async function copyStripped(srcDir: string, bookStripped: Object, metadataStripe
   })
   const bookJsonPath = path.join(dstDir, '.guides', 'book.json')
   const metadataPath = path.join(dstDir, '.guides', 'metadata.json')
-  await fs.mkdir(path.join(srcDir, '.guides'), {recursive: true})
-  await fs.writeFile(bookJsonPath, JSON.stringify(bookStripped, undefined, ' '))
-  await fs.writeFile(metadataPath, JSON.stringify(metadataStriped, undefined, ' '))
+  await fs.promises.mkdir(path.join(srcDir, '.guides'), {recursive: true})
+  await fs.promises.writeFile(bookJsonPath, JSON.stringify(bookStripped, undefined, ' '))
+  await fs.promises.writeFile(metadataPath, JSON.stringify(metadataStriped, undefined, ' '))
 }
 
 // case-insensitive search for title
@@ -96,13 +99,13 @@ function stripMetadata(metadata: any, book: any): string[] {
   return excludePaths
 }
 
-async function reduce(srcDir: string, dstDir: string, sections: string[][], paths: string[]): Promise<void> {
+export async function reduce(srcDir: string, dstDir: string, sections: string[][], paths: string[]): Promise<void> {
   const bookJsonPath = path.join(srcDir, '.guides', 'book.json')
   const metadataPath = path.join(srcDir, '.guides', 'metadata.json')
 
-  const bookJson = await fs.readFile(bookJsonPath, { encoding: 'utf-8' })
+  const bookJson = await fs.promises.readFile(bookJsonPath, { encoding: 'utf-8' })
   const book = JSON.parse(bookJson)
-  const metadataJson = await fs.readFile(metadataPath, { encoding: 'utf-8' })
+  const metadataJson = await fs.promises.readFile(metadataPath, { encoding: 'utf-8' })
   const metadata = JSON.parse(metadataJson)
 
   const bookStripped = stripBook(book, sections)
@@ -110,8 +113,49 @@ async function reduce(srcDir: string, dstDir: string, sections: string[][], path
   await copyStripped(srcDir, bookStripped, metadata, dstDir, paths.concat(excludePaths))
 }
 
+export function mapToObject(map: Map<string, any>): any {
+  return map.size === 0 ? [] : 
+  Array.from(map).reduce((obj, [key, value]) => (
+    Object.assign(obj, { [key]: value }) 
+  ), {})
+}
+
+export async function createTar(basePath: string, paths: string[], excludePaths?: string[]) {
+  const dir = await fs.promises.mkdtemp('/tmp/codio_export')
+  const file = path.join(dir, 'archive.tar')
+  await tar.c(
+    {
+      file,
+      cwd: basePath,
+      filter: (path: string) => {
+        if (!excludePaths) {
+          return true
+        }
+        for (const exclude of excludePaths) {
+          if (_.startsWith(path, exclude)) {
+            return false
+          }
+        }
+        return true
+      }
+    },
+    paths
+  )
+  const zst = path.join(dir, 'archive.tar.zst')
+  await new Promise((resolve, reject) => {
+    fs.createReadStream(file)
+      .pipe(ZSTDCompress())
+      .pipe(fs.createWriteStream(path.join(dir, 'archive.tar.zst')))
+      .on('finish', resolve)
+      .on('error', reject)
+  })
+  return zst
+}
+
 const tools = {
-  reduce
+  reduce,
+  mapToObject,
+  createTar,
 }
 
 export default tools

@@ -2,6 +2,7 @@ import config from './lib/config'
 import { auth } from './lib/auth'
 import tools from './lib/tools'
 import assignment from './lib/assignment'
+import assessment from './lib/assessment'
 
 export const v1 = {
   setDomain: (_: string) => config.setDomain(_),
@@ -12,5 +13,6 @@ export const v1 = {
     return token
   },
   tools,
-  assignment
+  assignment,
+  assessment
 }

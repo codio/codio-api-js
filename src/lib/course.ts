@@ -1,4 +1,3 @@
-import querystring from 'querystring'
 import bent from 'bent'
 import config from './config'
 
@@ -59,7 +58,7 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
     const res = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students`, undefined, authHeaders)
     for (const progress of res) {
       if (progress.completion_date) {
-        var t = new Date(1970, 0, 1); // Epoch
+        const t = new Date(1970, 0, 1); // Epoch
         t.setSeconds(progress.completion_date.seconds);
         progress.completion_date = t
       }

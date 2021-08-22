@@ -119,10 +119,10 @@ returns `StudentProgress[]` object
 StudentProgress = {
   student_id: string
   student_email: string
-  seconds_spent: number,
-  grade: number,
-  status: string,
-  completion_date: Date
+  seconds_spent: number
+  grade: number
+  status: string
+  date: Date
 }
 ```
 

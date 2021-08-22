@@ -17,10 +17,13 @@ export type Course = {
 export type StudentProgress = {
   student_id: string
   student_email: string
-  seconds_spent: number,
-  grade: number,
-  status: string,
-  completion_date: Date
+  seconds_spent: number
+  grade: number
+  status: string
+  completion_date: {
+    seconds: number
+  }
+  date: Date
 }
 
 export async function info(courseId: string): Promise<Course> {
@@ -44,6 +47,13 @@ export async function info(courseId: string): Promise<Course> {
   }
 }
 
+function fixDate(progress: StudentProgress) {
+  if (progress.completion_date) {
+    const t = new Date(1970, 0, 1); // Epoch
+    t.setUTCSeconds(progress.completion_date.seconds);
+    progress.date = t
+  }
+}
 
 export async function assignmentStudentsProgress(courseId: string, assignmentId: string): Promise<StudentProgress[]> {
   if (!config) {
@@ -57,11 +67,7 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
     }
     const res = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students`, undefined, authHeaders)
     for (const progress of res) {
-      if (progress.completion_date) {
-        const t = new Date(1970, 0, 1); // Epoch
-        t.setSeconds(progress.completion_date.seconds);
-        progress.completion_date = t
-      }
+      fixDate(progress)
     }
     return res
   } catch (error) {

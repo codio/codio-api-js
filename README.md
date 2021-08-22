@@ -88,6 +88,44 @@ Publishes all assessments from the project in `project_path` to the library
   await codio.v1.assessment.fromCodioProject('libraryId || name', '<project_path>')
 ```
 
+### Get Course Info
+
+#### Course assignments
+
+return 
+
+```
+  await codio.v1.course.info(courseId)
+```
+return `Course` object
+```
+Course = {
+  id: string
+  name: string
+  assignments: Assignement[] 
+}
+ Assignement = {
+  id: string
+  name: string
+}
+```
+#### Course assignments student Progress
+
+```
+  await codio.v1.course.assignmentStudentsProgress(courseId, assignmentId)
+```
+returns `StudentProgress[]` object 
+```
+StudentProgress = {
+  student_id: string
+  student_email: string
+  seconds_spent: number,
+  grade: number,
+  status: string,
+  completion_date: Date
+}
+```
+
 Please be aware on that this action will update assessment.json with new tags 
 needed to keep connection between project assessment and library item. You will 
 need to commit the changes to avoid duplication the assessment

@@ -3,7 +3,7 @@ import config from './config'
 
 const getJson = bent('json')
 
-export type Assignement = {
+export type Assignment = {
   id: string
   name: string
 }
@@ -11,7 +11,7 @@ export type Assignement = {
 export type Course = {
   id: string
   name: string
-  assignments: Assignement[] 
+  assignments: Assignment[] 
 }
 
 export type StudentProgress = {

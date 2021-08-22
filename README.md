@@ -18,7 +18,7 @@ The token is saved inside the library all consequence calls will be made using t
 
 ## Publish Assignment
 This methods allow to publish the assignment either as archive (zip and tar.gz is supported)
-you need to specify `course Id : string`, `assignementId: string`, `changelog: string` and path to either project folder or archive
+you need to specify `course Id : string`, `assignmentId: string`, `changelog: string` and path to either project folder or archive
 ```
   await codio.v1.assignment.publish(courseId, assignmentId, projectPath, changelog)
 
@@ -102,9 +102,9 @@ return `Course` object
 Course = {
   id: string
   name: string
-  assignments: Assignement[] 
+  assignments: Assignment[] 
 }
- Assignement = {
+ Assignment = {
   id: string
   name: string
 }

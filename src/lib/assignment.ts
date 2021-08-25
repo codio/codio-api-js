@@ -60,7 +60,7 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
 
     const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)
 
-    const postData = new FormData();
+    const postData = new FormData()
     postData.append('changelog', changelog)
     postData.append('archive', fs.createReadStream(archivePath),  {
       knownLength: fs.statSync(archivePath).size
@@ -68,7 +68,7 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
     const headers = Object.assign(postData.getHeaders(), authHeaders)
     headers['Content-Length'] = await postData.getLengthSync()
     const res = await api(`/api/v1/courses/${courseId}/assignments/${assignmentId}/versions`,
-      postData, headers);
+      postData, headers)
     const taskUrl = res['taskUri']
     if (!taskUrl) {
       throw new Error('task Url not found')

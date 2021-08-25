@@ -122,7 +122,7 @@ StudentProgress = {
   seconds_spent: number
   grade: number
   status: string
-  date: Date
+  completion_date: Date
 }
 ```
 

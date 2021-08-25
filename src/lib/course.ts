@@ -21,10 +21,7 @@ export type StudentProgress = {
   seconds_spent: number
   grade: number
   status: string
-  completion_date: {
-    seconds: number
-  }
-  date: Date
+  completion_date: Date
 }
 
 export async function info(courseId: string): Promise<Course> {
@@ -61,7 +58,7 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
     const res = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students`, undefined, authHeaders)
     for (const progress of res) {
       if (progress.completion_date) {
-        progress.date = secondsToDate(progress.completion_date.seconds)
+        progress.completion_date = secondsToDate(progress.completion_date.seconds)
       }
     }
     return res

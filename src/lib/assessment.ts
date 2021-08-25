@@ -98,7 +98,7 @@ async function _publishAssessment(libraryId: string, assessment: Assessment, isN
     }
     const api = bent(`https://octopus.${domain}`, isNew ? 'POST': 'PUT', 'json', 200)
 
-    const postData = new FormData();
+    const postData = new FormData()
     postData.append('assessment', assessment.export())
     const archivePath = await assessment.getBundle(base)
     if (!_.isUndefined(archivePath)) {

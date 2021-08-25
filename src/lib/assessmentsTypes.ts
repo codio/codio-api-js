@@ -140,7 +140,7 @@ export class Assessment {
 
   private getTagsFromJsonApi(json: any): Map<string,string> {
     const array: [string, string][] = Object.entries(json)
-    return new Map(array);
+    return new Map(array)
   }
 
   async getBundle(base: string): Promise<string | undefined> {
@@ -163,7 +163,7 @@ export class Assessment {
         const fullPath = path.join(basePath, filePath)
         const fileBuffer = fs.readFileSync(fullPath)
         const hashSum = crypto.createHash('md5')
-        hashSum.update(fileBuffer);
+        hashSum.update(fileBuffer)
         
         const hex = hashSum.digest('hex')
         return {

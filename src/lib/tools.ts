@@ -152,10 +152,17 @@ export async function createTar(basePath: string, paths: string[], excludePaths?
   return zst
 }
 
+export function secondsToDate(seconds: number): Date {
+  const t = new Date(1970, 0, 1) // Epoch
+  t.setUTCSeconds(seconds)
+  return t
+}
+
 const tools = {
   reduce,
   mapToObject,
   createTar,
+  secondsToDate,
 }
 
 export default tools

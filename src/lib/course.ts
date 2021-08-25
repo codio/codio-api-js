@@ -1,5 +1,6 @@
 import bent from 'bent'
 import config from './config'
+import { secondsToDate } from './tools'
 
 const getJson = bent('json')
 
@@ -47,14 +48,6 @@ export async function info(courseId: string): Promise<Course> {
   }
 }
 
-function fixDate(progress: StudentProgress) {
-  if (progress.completion_date) {
-    const t = new Date(1970, 0, 1); // Epoch
-    t.setUTCSeconds(progress.completion_date.seconds);
-    progress.date = t
-  }
-}
-
 export async function assignmentStudentsProgress(courseId: string, assignmentId: string): Promise<StudentProgress[]> {
   if (!config) {
     throw new Error('No Config')
@@ -67,7 +60,9 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
     }
     const res = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students`, undefined, authHeaders)
     for (const progress of res) {
-      fixDate(progress)
+      if (progress.completion_date) {
+        progress.date = secondsToDate(progress.completion_date.seconds)
+      }
     }
     return res
   } catch (error) {

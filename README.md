@@ -131,3 +131,17 @@ needed to keep connection between project assessment and library item. You will
 need to commit the changes to avoid duplication the assessment
 
 Github action: https://github.com/codio/codio-assessments-publish-action
+
+#### Course assignments students projects
+
+Get students projects completed last day.
+```
+  const date = new Date()
+  date.setDate(date.getDate()-1)
+  date.setHours(0, 0, 0, 0)
+  await codio.v1.course.downloadStudentsAssignments(
+    courseId,
+    assignmentId,
+    studentProgress => studentProgress.completion_date && studentProgress.completion_date > date
+  )
+```

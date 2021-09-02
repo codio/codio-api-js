@@ -71,9 +71,79 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
   }
 }
 
+export async function waitDownloadTask(courseId: string, assignmentId: string, studentId: string, taskId: string): Promise<string> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+
+  try {
+    const token = config.getToken()
+    const domain = config.getDomain()
+    const authHeaders = {
+      'Authorization': `Bearer ${token}`
+    }
+    const archive = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students/${studentId}/download/${taskId}`, undefined, authHeaders)
+    if (!archive.done) {
+      await new Promise(resolve => setTimeout(resolve, 500))
+      return await waitDownloadTask(courseId, assignmentId, studentId, taskId)
+    } else {
+      return archive.url
+    }
+  } catch (error) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function downloadStudentAssignment(courseId: string, assignmentId: string, studentId: string): Promise<string> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  
+  try {
+    const token = config.getToken()
+    const domain = config.getDomain()
+    const authHeaders = {
+      'Authorization': `Bearer ${token}`
+    }
+    const taskId = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students/${studentId}/download`, undefined, authHeaders)
+    try {
+      // if not string then it is error object
+      const jsonRes = JSON.parse(taskId)
+      throw new Error(JSON.stringify(jsonRes))
+    } catch (err) {
+      // eslint:ignore no-empty
+    }
+    const archiveUrl = await waitDownloadTask(courseId, assignmentId, studentId, taskId)
+    return archiveUrl
+  } catch (error) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function downloadStudentsAssignments(courseId: string, assignmentId: string, filter: (s: StudentProgress) => boolean): Promise<string[]> {
+  let students = await assignmentStudentsProgress(courseId, assignmentId)
+  students = students.filter(filter)
+  console.log('students', students)
+  const urls = await Promise.all(students.map(student => {
+    return downloadStudentAssignment(courseId, assignmentId, student.student_id)
+  }))
+  return urls
+
+}
+
 const course = {
   assignmentStudentsProgress,
   info,
+  downloadStudentsAssignments,
+  downloadStudentAssignment
 }
 
 export default course

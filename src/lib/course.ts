@@ -86,9 +86,8 @@ export async function waitDownloadTask(courseId: string, assignmentId: string, s
     if (!archive.done) {
       await new Promise(resolve => setTimeout(resolve, 500))
       return await waitDownloadTask(courseId, assignmentId, studentId, taskId)
-    } else {
-      return archive.url
     }
+    return archive.url
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -110,15 +109,7 @@ export async function downloadStudentAssignment(courseId: string, assignmentId: 
       'Authorization': `Bearer ${token}`
     }
     const taskId = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students/${studentId}/download`, undefined, authHeaders)
-    try {
-      // if not string then it is error object
-      const jsonRes = JSON.parse(taskId)
-      throw new Error(JSON.stringify(jsonRes))
-    } catch (err) {
-      // eslint:ignore no-empty
-    }
-    const archiveUrl = await waitDownloadTask(courseId, assignmentId, studentId, taskId)
-    return archiveUrl
+    return await waitDownloadTask(courseId, assignmentId, studentId, taskId)
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -131,12 +122,10 @@ export async function downloadStudentAssignment(courseId: string, assignmentId: 
 export async function downloadStudentsAssignments(courseId: string, assignmentId: string, filter: (s: StudentProgress) => boolean): Promise<string[]> {
   let students = await assignmentStudentsProgress(courseId, assignmentId)
   students = students.filter(filter)
-  console.log('students', students)
   const urls = await Promise.all(students.map(student => {
     return downloadStudentAssignment(courseId, assignmentId, student.student_id)
   }))
   return urls
-
 }
 
 const course = {

@@ -71,21 +71,21 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
   }
 }
 
-export async function waitDownloadTask(courseId: string, assignmentId: string, studentId: string, taskId: string): Promise<string> {
+
+export async function waitDownloadTask(taskUrl: string): Promise<string> {
   if (!config) {
     throw new Error('No Config')
   }
 
   try {
     const token = config.getToken()
-    const domain = config.getDomain()
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
-    const archive = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students/${studentId}/download/${taskId}`, undefined, authHeaders)
+    const archive = await getJson(taskUrl, undefined, authHeaders)
     if (!archive.done) {
       await new Promise(resolve => setTimeout(resolve, 500))
-      return await waitDownloadTask(courseId, assignmentId, studentId, taskId)
+      return await waitDownloadTask(taskUrl)
     }
     return archive.url
   } catch (error) {
@@ -108,8 +108,12 @@ export async function downloadStudentAssignment(courseId: string, assignmentId: 
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
-    const taskId = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students/${studentId}/download`, undefined, authHeaders)
-    return await waitDownloadTask(courseId, assignmentId, studentId, taskId)
+    const res = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students/${studentId}/download`, undefined, authHeaders)
+    const taskUrl = res['taskUri']
+    if (!taskUrl) {
+      throw new Error('task Url not found')
+    }
+    return await waitDownloadTask(taskUrl)
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())

@@ -140,31 +140,18 @@ Github action: https://github.com/codio/codio-assessments-publish-action
 
 #### Course assignments students projects
 
-To download student's project
+Prepare students's project 
 you need to specify `course Id : string`, `assignmentId: string`, `studentId: string`
 
 ```
-  await codio.v1.course.downloadStudentAssignment(courseId, assignmentId, studentId)
+  await codio.v1.course.exportStudentAssignment(courseId, assignmentId, studentId)
 ```
 returns `archive url` string
 
-
-Get students projects completed last day.
-you need to specify `course Id : string`, `assignmentId: string`, `filterFunc: function`
-
-`filterFunc` is functio to filter students by studentProgress
+Or download student's project
+you need to specify `course Id : string`, `assignmentId: string`, `studentId: string`
 
 ```
-filterFunc: (sp: studentProgress) => boolean
+  await codio.v1.course.downloadStudentAssignment(courseId, assignmentId, studentId, filePath)
 ```
-
-```
-  const date = new Date()
-  date.setDate(date.getDate()-1)
-  date.setHours(0, 0, 0, 0)
-  await codio.v1.course.downloadStudentsAssignments(
-    courseId,
-    assignmentId,
-    studentProgress => studentProgress.completion_date && studentProgress.completion_date > date
-  )
-```
+downloads file to filePath

@@ -1,6 +1,11 @@
 import bent from 'bent'
+import https from 'https'
+import fs from 'fs'
+import path from 'path'
+
 import config from './config'
 import { secondsToDate } from './tools'
+
 
 const getJson = bent('json')
 
@@ -97,7 +102,7 @@ export async function waitDownloadTask(taskUrl: string): Promise<string> {
   }
 }
 
-export async function downloadStudentAssignment(courseId: string, assignmentId: string, studentId: string): Promise<string> {
+export async function exportStudentAssignment(courseId: string, assignmentId: string, studentId: string): Promise<string> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -123,19 +128,29 @@ export async function downloadStudentAssignment(courseId: string, assignmentId: 
   }
 }
 
-export async function downloadStudentsAssignments(courseId: string, assignmentId: string, filter: (s: StudentProgress) => boolean): Promise<string[]> {
-  let students = await assignmentStudentsProgress(courseId, assignmentId)
-  students = students.filter(filter)
-  const urls = await Promise.all(students.map(student => {
-    return downloadStudentAssignment(courseId, assignmentId, student.student_id)
-  }))
-  return urls
+export async function downloadStudentAssignment(courseId: string, assignmentId: string, studentId: string, filePath: string): Promise<void> {
+  const url = await exportStudentAssignment(courseId, assignmentId, studentId)
+  const file = fs.createWriteStream(filePath)
+  return new Promise((resolve, reject) => {
+    https.get(url, (response) => {
+        response.pipe(file)
+        file.on('finish', () => {
+            file.close()
+            resolve()
+        })
+    }).on('error', (err) => {
+        fs.unlink(filePath, e => {
+            reject(e && e.message)
+        })
+        reject(err.message)
+    })
+  })
 }
 
 const course = {
   assignmentStudentsProgress,
   info,
-  downloadStudentsAssignments,
+  exportStudentAssignment,
   downloadStudentAssignment
 }
 

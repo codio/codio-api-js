@@ -88,6 +88,12 @@ Publishes all assessments from the project in `project_path` to the library
   await codio.v1.assessment.fromCodioProject('libraryId || name', '<project_path>')
 ```
 
+Please be aware on that this action will update assessment.json with new tags 
+needed to keep connection between project assessment and library item. You will 
+need to commit the changes to avoid duplication the assessment
+
+Github action: https://github.com/codio/codio-assessments-publish-action
+
 ### Get Course Info
 
 #### Course assignments
@@ -134,14 +140,18 @@ Github action: https://github.com/codio/codio-assessments-publish-action
 
 #### Course assignments students projects
 
-Get students projects completed last day.
+Prepare students's project 
+you need to specify `course Id : string`, `assignmentId: string`, `studentId: string`
+
 ```
-  const date = new Date()
-  date.setDate(date.getDate()-1)
-  date.setHours(0, 0, 0, 0)
-  await codio.v1.course.downloadStudentsAssignments(
-    courseId,
-    assignmentId,
-    studentProgress => studentProgress.completion_date && studentProgress.completion_date > date
-  )
+  await codio.v1.course.exportStudentAssignment(courseId, assignmentId, studentId)
 ```
+returns `archive url` string
+
+Or download student's project
+you need to specify `course Id : string`, `assignmentId: string`, `studentId: string`
+
+```
+  await codio.v1.course.downloadStudentAssignment(courseId, assignmentId, studentId, filePath)
+```
+downloads file to filePath

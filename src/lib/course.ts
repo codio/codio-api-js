@@ -1,7 +1,6 @@
 import bent from 'bent'
 import https from 'https'
 import fs from 'fs'
-import path from 'path'
 
 import config from './config'
 import { secondsToDate } from './tools'

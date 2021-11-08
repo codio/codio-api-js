@@ -1,4 +1,6 @@
 const VALID_DOMAINS=[
+  'codio.test:15598',
+  'codio.test:15594',
   'codio.com',
   'codio.co.uk',
   'codiodev.com',

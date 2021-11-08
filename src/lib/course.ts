@@ -39,7 +39,7 @@ export async function info(courseId: string): Promise<Course> {
       'Authorization': `Bearer ${token}`
     }
 
-    return getJson(`https://octopus.${domain}/api/v1/courses/${courseId}`, undefined, authHeaders)
+    return getJson(`http://${domain}/api/v1/courses/${courseId}`, undefined, authHeaders)
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())

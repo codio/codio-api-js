@@ -595,8 +595,6 @@ function getMaxAttemptsCount(json: any) {
   return 0
 }
 
-
-
 export function parse(json: any, metadataPages:  MetadataPage[]): Assessment {
   switch (json.type) {
     case 'test': 

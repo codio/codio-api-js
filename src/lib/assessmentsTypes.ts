@@ -572,7 +572,7 @@ export class AssessmentStandardCode extends Assessment {
 }
 
 function getMaxAttemptsCount(json: any) {
-  if (!_.isUndefined(json.source.maxAttemptsCount)) {
+  if (json.source.maxAttemptsCount) {
     return json.source.maxAttemptsCount
   }
   if (json.source.oneTimeTest ||

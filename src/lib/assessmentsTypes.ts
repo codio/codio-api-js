@@ -291,7 +291,7 @@ export class AssessmentParsons extends Assessment {
           options: json.source.options,
           grader: json.source.grader,
           showGuidanceAfterResponseOption: fixGuideance(json),
-          maxAttemptsCount: json.source.maxAttemptsCount
+          maxAttemptsCount: getmaxAttemptsCount(json)
         }
       }
     } else {
@@ -324,7 +324,7 @@ export class AssessmentAdvanced extends Assessment {
           command: json.source.command,
           timeoutSeconds: json.source.timeoutSeconds,
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,
-          maxAttemptsCount: json.source.maxAttemptsCount,
+          maxAttemptsCount: getmaxAttemptsCount(json),
           showGuidanceAfterResponseOption: fixGuideance(json)
         }
       }
@@ -379,7 +379,7 @@ export class AssessmentMultipleChoice extends Assessment{
           isRandomized: json.source.isRandomized,
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
           showGuidanceAfterResponseOption: fixGuideance(json),
-          maxAttemptsCount: json.source.maxAttemptsCount
+          maxAttemptsCount: getmaxAttemptsCount(json)
         }
       }
     } else {
@@ -446,7 +446,7 @@ export class AssessmentFreeText extends Assessment{
         freeText: {
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
           showGuidanceAfterResponseOption: fixGuideance(json),
-          maxAttemptsCount: json.source.maxAttemptsCount,
+          maxAttemptsCount: getmaxAttemptsCount(json),
           rubrics: json.source.rubrics,
           previewType: json.source.previewType
         }
@@ -490,7 +490,7 @@ export class AssessmentFillInTheBlanks extends Assessment {
           blanks: json.source.tokens.blank,
           texts: _.filter(texts, _.isString),
           distractors: json.source.distractors,
-          maxAttemptsCount: json.source.maxAttemptsCount,
+          maxAttemptsCount: getmaxAttemptsCount(json),
           showGuidanceAfterResponseOption: fixGuideance(json)
         }
       }
@@ -524,7 +524,7 @@ export class AssessmentFreeTextAuto extends Assessment {
         freeTextAuto: {
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
           showGuidanceAfterResponseOption: fixGuideance(json),
-          maxAttemptsCount: json.source.maxAttemptsCount,
+          maxAttemptsCount: getmaxAttemptsCount(json),
           previewType: json.source.previewType,
           command: json.source.command,
           timeout: json.source.timeoutSeconds,
@@ -575,13 +575,26 @@ export class AssessmentStandardCode extends Assessment {
           command: json.source.command,
           preExecuteCommand: json.source.preExecuteCommand,
           showGuidanceAfterResponseOption: fixGuideance(json),
-          maxAttemptsCount: json.source.maxAttemptsCount,
+          maxAttemptsCount: getmaxAttemptsCount(json),
           sequence: json.source.sequence
         }
       }
     }
   }
 }
+
+function getmaxAttemptsCount(json: any) {
+  if (!_.isUndefined(json.source.maxAttemptsCount)) {
+    return json.source.maxAttemptsCount
+  }
+  if (json.source.oneTimeTest ||
+      json.type === 'multiple-choice' ||
+      json.type === 'fill-in-the-blanks') {
+    return 1
+  }
+  return 0
+}
+
 
 
 export function parse(json: any, metadataPages:  MetadataPage[]): Assessment {

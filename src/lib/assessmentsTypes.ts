@@ -20,7 +20,7 @@ export const BLOOMS_LEVEL = {
   '6': 'Level VI - Creating'
 }
 
-function fixGuideance(json: any) {
+function fixGuidance(json: any) {
   if (!_.isUndefined(json.source.showGuidanceAfterResponse)) {
     // old format
     return {
@@ -290,8 +290,8 @@ export class AssessmentParsons extends Assessment {
           initial: json.source.initial,
           options: json.source.options,
           grader: json.source.grader,
-          showGuidanceAfterResponseOption: fixGuideance(json),
-          maxAttemptsCount: getmaxAttemptsCount(json)
+          showGuidanceAfterResponseOption: fixGuidance(json),
+          maxAttemptsCount: getMaxAttemptsCount(json)
         }
       }
     } else {
@@ -324,8 +324,8 @@ export class AssessmentAdvanced extends Assessment {
           command: json.source.command,
           timeoutSeconds: json.source.timeoutSeconds,
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,
-          maxAttemptsCount: getmaxAttemptsCount(json),
-          showGuidanceAfterResponseOption: fixGuideance(json)
+          maxAttemptsCount: getMaxAttemptsCount(json),
+          showGuidanceAfterResponseOption: fixGuidance(json)
         }
       }
     } else {
@@ -378,8 +378,8 @@ export class AssessmentMultipleChoice extends Assessment{
           isMultipleResponse: json.source.multipleResponse,
           isRandomized: json.source.isRandomized,
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
-          showGuidanceAfterResponseOption: fixGuideance(json),
-          maxAttemptsCount: getmaxAttemptsCount(json)
+          showGuidanceAfterResponseOption: fixGuidance(json),
+          maxAttemptsCount: getMaxAttemptsCount(json)
         }
       }
     } else {
@@ -445,8 +445,8 @@ export class AssessmentFreeText extends Assessment{
       this.body = {
         freeText: {
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
-          showGuidanceAfterResponseOption: fixGuideance(json),
-          maxAttemptsCount: getmaxAttemptsCount(json),
+          showGuidanceAfterResponseOption: fixGuidance(json),
+          maxAttemptsCount: getMaxAttemptsCount(json),
           rubrics: json.source.rubrics,
           previewType: json.source.previewType
         }
@@ -490,8 +490,8 @@ export class AssessmentFillInTheBlanks extends Assessment {
           blanks: json.source.tokens.blank,
           texts: _.filter(texts, _.isString),
           distractors: json.source.distractors,
-          maxAttemptsCount: getmaxAttemptsCount(json),
-          showGuidanceAfterResponseOption: fixGuideance(json)
+          maxAttemptsCount: getMaxAttemptsCount(json),
+          showGuidanceAfterResponseOption: fixGuidance(json)
         }
       }
     } else {
@@ -523,8 +523,8 @@ export class AssessmentFreeTextAuto extends Assessment {
       this.body = {
         freeTextAuto: {
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
-          showGuidanceAfterResponseOption: fixGuideance(json),
-          maxAttemptsCount: getmaxAttemptsCount(json),
+          showGuidanceAfterResponseOption: fixGuidance(json),
+          maxAttemptsCount: getMaxAttemptsCount(json),
           previewType: json.source.previewType,
           command: json.source.command,
           timeout: json.source.timeoutSeconds,
@@ -574,8 +574,8 @@ export class AssessmentStandardCode extends Assessment {
           options: json.source.options,
           command: json.source.command,
           preExecuteCommand: json.source.preExecuteCommand,
-          showGuidanceAfterResponseOption: fixGuideance(json),
-          maxAttemptsCount: getmaxAttemptsCount(json),
+          showGuidanceAfterResponseOption: fixGuidance(json),
+          maxAttemptsCount: getMaxAttemptsCount(json),
           sequence: json.source.sequence
         }
       }
@@ -583,7 +583,7 @@ export class AssessmentStandardCode extends Assessment {
   }
 }
 
-function getmaxAttemptsCount(json: any) {
+function getMaxAttemptsCount(json: any) {
   if (!_.isUndefined(json.source.maxAttemptsCount)) {
     return json.source.maxAttemptsCount
   }

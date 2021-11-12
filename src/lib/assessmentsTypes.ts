@@ -116,6 +116,7 @@ export class Assessment {
     instructions: string
     showExpectedAnswer: boolean
     guidance: string
+    maxAttemptsCount: number
   }
 
   metadata: {
@@ -239,7 +240,8 @@ export class Assessment {
         showName: json.source.showName,
         instructions: json.source.instructions,
         showExpectedAnswer: json.source.showExpectedAnswer,
-        guidance: json.source.guidance
+        guidance: json.source.guidance,
+        maxAttemptsCount: getMaxAttemptsCount(json)
       }
       const tags = this.getTagsFromJson(json.source.metadata.tags)
       tags.set('Learning Objectives', json.source.learningObjectives)
@@ -274,7 +276,6 @@ export class AssessmentParsons extends Assessment {
       initial: string
       options: string
       grader: string
-      maxAttemptsCount: number
       showGuidanceAfterResponseOption: {
         type: string
         passedFrom: number | undefined
@@ -291,7 +292,6 @@ export class AssessmentParsons extends Assessment {
           options: json.source.options,
           grader: json.source.grader,
           showGuidanceAfterResponseOption: fixGuidance(json),
-          maxAttemptsCount: getMaxAttemptsCount(json)
         }
       }
     } else {
@@ -308,7 +308,6 @@ export class AssessmentAdvanced extends Assessment {
       command: string
       arePartialPointsAllowed: boolean
       timeoutSeconds: number
-      maxAttemptsCount: number
       showGuidanceAfterResponseOption: {
         type: string,
         passedFrom: number | undefined
@@ -324,7 +323,6 @@ export class AssessmentAdvanced extends Assessment {
           command: json.source.command,
           timeoutSeconds: json.source.timeoutSeconds,
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,
-          maxAttemptsCount: getMaxAttemptsCount(json),
           showGuidanceAfterResponseOption: fixGuidance(json)
         }
       }
@@ -353,7 +351,6 @@ export class AssessmentMultipleChoice extends Assessment{
       isMultipleResponse: boolean
       isRandomized: boolean
       arePartialPointsAllowed: boolean
-      maxAttemptsCount: number
       showGuidanceAfterResponseOption: {
         type: string,
         passedFrom: number | undefined
@@ -378,8 +375,7 @@ export class AssessmentMultipleChoice extends Assessment{
           isMultipleResponse: json.source.multipleResponse,
           isRandomized: json.source.isRandomized,
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
-          showGuidanceAfterResponseOption: fixGuidance(json),
-          maxAttemptsCount: getMaxAttemptsCount(json)
+          showGuidanceAfterResponseOption: fixGuidance(json)
         }
       }
     } else {
@@ -424,7 +420,6 @@ export class AssessmentFreeText extends Assessment{
   body: {
     freeText: {
       previewType: string
-      maxAttemptsCount: number
       arePartialPointsAllowed: boolean
       rubrics: {
         id: string
@@ -446,7 +441,6 @@ export class AssessmentFreeText extends Assessment{
         freeText: {
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
           showGuidanceAfterResponseOption: fixGuidance(json),
-          maxAttemptsCount: getMaxAttemptsCount(json),
           rubrics: json.source.rubrics,
           previewType: json.source.previewType
         }
@@ -469,7 +463,6 @@ export class AssessmentFillInTheBlanks extends Assessment {
       texts: string[]
       distractors: string
       arePartialPointsAllowed: boolean
-      maxAttemptsCount: number
       showGuidanceAfterResponseOption: {
         type: string,
         passedFrom: number | undefined
@@ -490,7 +483,6 @@ export class AssessmentFillInTheBlanks extends Assessment {
           blanks: json.source.tokens.blank,
           texts: _.filter(texts, _.isString),
           distractors: json.source.distractors,
-          maxAttemptsCount: getMaxAttemptsCount(json),
           showGuidanceAfterResponseOption: fixGuidance(json)
         }
       }
@@ -506,7 +498,6 @@ export class AssessmentFreeTextAuto extends Assessment {
   body: {
     freeTextAuto: {
       previewType: string
-      maxAttemptsCount: number
       arePartialPointsAllowed: boolean
       command: string
       timeout: number
@@ -524,7 +515,6 @@ export class AssessmentFreeTextAuto extends Assessment {
         freeTextAuto: {
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
           showGuidanceAfterResponseOption: fixGuidance(json),
-          maxAttemptsCount: getMaxAttemptsCount(json),
           previewType: json.source.previewType,
           command: json.source.command,
           timeout: json.source.timeoutSeconds,
@@ -553,7 +543,6 @@ export class AssessmentStandardCode extends Assessment {
         type: string,
         passedFrom: number | undefined
       }
-      maxAttemptsCount: number
       sequence: {
         arguments: string
         input: string
@@ -575,7 +564,6 @@ export class AssessmentStandardCode extends Assessment {
           command: json.source.command,
           preExecuteCommand: json.source.preExecuteCommand,
           showGuidanceAfterResponseOption: fixGuidance(json),
-          maxAttemptsCount: getMaxAttemptsCount(json),
           sequence: json.source.sequence
         }
       }

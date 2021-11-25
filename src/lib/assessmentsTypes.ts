@@ -20,7 +20,7 @@ export const BLOOMS_LEVEL = {
   '6': 'Level VI - Creating'
 }
 
-function fixGuideance(json: any) {
+function fixGuidance(json: any) {
   if (!_.isUndefined(json.source.showGuidanceAfterResponse)) {
     // old format
     return {
@@ -116,6 +116,7 @@ export class Assessment {
     instructions: string
     showExpectedAnswer: boolean
     guidance: string
+    maxAttemptsCount: number
   }
 
   metadata: {
@@ -164,7 +165,7 @@ export class Assessment {
         const fileBuffer = fs.readFileSync(fullPath)
         const hashSum = crypto.createHash('md5')
         hashSum.update(fileBuffer)
-        
+
         const hex = hashSum.digest('hex')
         return {
           hex,
@@ -239,7 +240,8 @@ export class Assessment {
         showName: json.source.showName,
         instructions: json.source.instructions,
         showExpectedAnswer: json.source.showExpectedAnswer,
-        guidance: json.source.guidance
+        guidance: json.source.guidance,
+        maxAttemptsCount: getMaxAttemptsCount(json)
       }
       const tags = this.getTagsFromJson(json.source.metadata.tags)
       tags.set('Learning Objectives', json.source.learningObjectives)
@@ -274,9 +276,8 @@ export class AssessmentParsons extends Assessment {
       initial: string
       options: string
       grader: string
-      oneTimeTest: boolean
       showGuidanceAfterResponseOption: {
-        type: string,
+        type: string
         passedFrom: number | undefined
       }
     }
@@ -290,8 +291,7 @@ export class AssessmentParsons extends Assessment {
           initial: json.source.initial,
           options: json.source.options,
           grader: json.source.grader,
-          showGuidanceAfterResponseOption: fixGuideance(json),
-          oneTimeTest: json.source.oneTimeTest
+          showGuidanceAfterResponseOption: fixGuidance(json),
         }
       }
     } else {
@@ -307,8 +307,7 @@ export class AssessmentAdvanced extends Assessment {
     codeTest: {
       command: string
       arePartialPointsAllowed: boolean
-      timeoutSeconds: number    
-      oneTimeTest: boolean
+      timeoutSeconds: number
       showGuidanceAfterResponseOption: {
         type: string,
         passedFrom: number | undefined
@@ -324,8 +323,7 @@ export class AssessmentAdvanced extends Assessment {
           command: json.source.command,
           timeoutSeconds: json.source.timeoutSeconds,
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,
-          oneTimeTest: json.source.oneTimeTest,
-          showGuidanceAfterResponseOption: fixGuideance(json)
+          showGuidanceAfterResponseOption: fixGuidance(json)
         }
       }
     } else {
@@ -352,7 +350,7 @@ export class AssessmentMultipleChoice extends Assessment{
       }[]
       isMultipleResponse: boolean
       isRandomized: boolean
-      arePartialPointsAllowed: boolean,
+      arePartialPointsAllowed: boolean
       showGuidanceAfterResponseOption: {
         type: string,
         passedFrom: number | undefined
@@ -377,7 +375,7 @@ export class AssessmentMultipleChoice extends Assessment{
           isMultipleResponse: json.source.multipleResponse,
           isRandomized: json.source.isRandomized,
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
-          showGuidanceAfterResponseOption: fixGuideance(json),
+          showGuidanceAfterResponseOption: fixGuidance(json)
         }
       }
     } else {
@@ -386,7 +384,7 @@ export class AssessmentMultipleChoice extends Assessment{
   }
 }
 
-export class AssessmentFradeBook extends Assessment{
+export class AssessmentGradeBook extends Assessment{
   type= 'Grade Book'
 
   body: {
@@ -422,7 +420,6 @@ export class AssessmentFreeText extends Assessment{
   body: {
     freeText: {
       previewType: string
-      oneTimeTest: boolean
       arePartialPointsAllowed: boolean
       rubrics: {
         id: string
@@ -443,8 +440,7 @@ export class AssessmentFreeText extends Assessment{
       this.body = {
         freeText: {
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
-          showGuidanceAfterResponseOption: fixGuideance(json),
-          oneTimeTest: json.source.oneTimeTest,
+          showGuidanceAfterResponseOption: fixGuidance(json),
           rubrics: json.source.rubrics,
           previewType: json.source.previewType
         }
@@ -487,7 +483,7 @@ export class AssessmentFillInTheBlanks extends Assessment {
           blanks: json.source.tokens.blank,
           texts: _.filter(texts, _.isString),
           distractors: json.source.distractors,
-          showGuidanceAfterResponseOption: fixGuideance(json)
+          showGuidanceAfterResponseOption: fixGuidance(json)
         }
       }
     } else {
@@ -502,7 +498,6 @@ export class AssessmentFreeTextAuto extends Assessment {
   body: {
     freeTextAuto: {
       previewType: string
-      oneTimeTest: boolean
       arePartialPointsAllowed: boolean
       command: string
       timeout: number
@@ -519,8 +514,7 @@ export class AssessmentFreeTextAuto extends Assessment {
       this.body = {
         freeTextAuto: {
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
-          showGuidanceAfterResponseOption: fixGuideance(json),
-          oneTimeTest: json.source.oneTimeTest,
+          showGuidanceAfterResponseOption: fixGuidance(json),
           previewType: json.source.previewType,
           command: json.source.command,
           timeout: json.source.timeoutSeconds,
@@ -549,7 +543,6 @@ export class AssessmentStandardCode extends Assessment {
         type: string,
         passedFrom: number | undefined
       }
-      oneTimeTest: boolean
       sequence: {
         arguments: string
         input: string
@@ -570,8 +563,7 @@ export class AssessmentStandardCode extends Assessment {
           options: json.source.options,
           command: json.source.command,
           preExecuteCommand: json.source.preExecuteCommand,
-          showGuidanceAfterResponseOption: fixGuideance(json),
-          oneTimeTest: json.source.oneTimeTest,
+          showGuidanceAfterResponseOption: fixGuidance(json),
           sequence: json.source.sequence
         }
       }
@@ -579,6 +571,17 @@ export class AssessmentStandardCode extends Assessment {
   }
 }
 
+function getMaxAttemptsCount(json: any) {
+  if (json.source.maxAttemptsCount) {
+    return json.source.maxAttemptsCount
+  }
+  if (json.source.oneTimeTest ||
+      json.type === 'multiple-choice' ||
+      json.type === 'fill-in-the-blanks') {
+    return 1
+  }
+  return 0
+}
 
 export function parse(json: any, metadataPages:  MetadataPage[]): Assessment {
   switch (json.type) {
@@ -597,7 +600,7 @@ export function parse(json: any, metadataPages:  MetadataPage[]): Assessment {
     case 'free-text-auto':
       return new AssessmentFreeTextAuto(json, metadataPages)
     case 'grade-book':
-      return new AssessmentFradeBook(json, metadataPages)
+      return new AssessmentGradeBook(json, metadataPages)
     default:
       throw new Error('assessemnt type not found')
   }
@@ -621,7 +624,7 @@ export function parseApi(json: any): Assessment {
     case 'Free Text Autograde':
       return new AssessmentFreeTextAuto(json)
     case 'Grade Book':
-      return new AssessmentFradeBook(json)
+      return new AssessmentGradeBook(json)
     default:
       throw new Error(`assessment type ${type} not found`)
   }

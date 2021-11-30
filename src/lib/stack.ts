@@ -111,7 +111,7 @@ export async function waitDownloadTask(taskUrl: string): Promise<string> {
         }
         const res = await getJson(taskUrl, undefined, authHeaders)
         console.log('waitDownloadTask', res)
-        if (res.status !== 'done' || res.status !== 'error') {
+        if (res.status !== 'done' && res.status !== 'error') {
             await new Promise(resolve => setTimeout(resolve, 500))
             return await waitDownloadTask(taskUrl)
         }

@@ -9,7 +9,7 @@ const stackId = 'a66f9cf1-b2db-4923-a2e6-5164dda2e678'
 // ANSIBLE or BASH
 const provisioner = 'BASH'
 const id = 'a66f9cf1-b2db-4923-a2e6-5164dda2e678'
-const content = 'ls\nexit 0'
+const content = '#!/bin/bash\nls -al\nexit 0'
 const bundlePath = null //'files/ruby.tar.gz'
 const message = 'new version message'
 

@@ -1,5 +1,4 @@
 import codio from '../index'
-import { API_HASH_TAG } from '../lib/assessmentsTypes'
 
 const client_id = '2iHS4bkAfuQdyRD7l3lVJ4n9' // your clientId here
 const secret_id = 'M96ke7mQs299L8KymPhXlNO4' // your secretId here

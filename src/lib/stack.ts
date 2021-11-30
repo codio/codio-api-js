@@ -53,7 +53,7 @@ export async function publish(
     content: string | null,
     archivePath: string | null,
     message: string
-): Promise<void> {
+): Promise<any> {
     if (!config) {
         throw new Error('No Config')
     }
@@ -89,7 +89,34 @@ export async function publish(
 
         const res = await api(`/api/v1/stacks/${stackId}/versions`, postData, headers)
         console.log('publish result', res)
+        return res
     } catch (error) {
+        if (error.json) {
+            const message = JSON.stringify(await error.json())
+            throw new Error(message)
+        }
+        throw error
+    }
+}
+
+export async function waitDownloadTask(taskUrl: string): Promise<string> {
+    if (!config) {
+        throw new Error('No Config')
+    }
+
+    try {
+        const token = config.getToken()
+        const authHeaders = {
+            'Authorization': `Bearer ${token}`
+        }
+        const res = await getJson(taskUrl, undefined, authHeaders)
+        console.log('waitDownloadTask', res)
+        if (res.status !== 'done' || res.status !== 'error') {
+            await new Promise(resolve => setTimeout(resolve, 500))
+            return await waitDownloadTask(taskUrl)
+        }
+        return res
+    } catch (error: any) {
         if (error.json) {
             const message = JSON.stringify(await error.json())
             throw new Error(message)
@@ -100,7 +127,8 @@ export async function publish(
 
 const stack = {
     info,
-    publish
+    publish,
+    waitDownloadTask
 }
   
 export default stack

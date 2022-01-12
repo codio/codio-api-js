@@ -36,7 +36,7 @@ export async function info(stackId: string): Promise<Stack> {
             'Authorization': `Bearer ${token}`
         }
 
-        return getJson(`http://${domain}/api/v1/stacks/${stackId}`, undefined, authHeaders)
+        return getJson(`https://octopus.${domain}/api/v1/stacks/${stackId}`, undefined, authHeaders)
     } catch (error) {
         if (error.json) {
             const message = JSON.stringify(await error.json())
@@ -65,7 +65,7 @@ export async function publish(
             'Authorization': `Bearer ${token}`
         }
 
-        const api = bent(`http://${domain}`, 'POST', 'json', 200)
+        const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)
         
         const postData = new FormData()
         if (provisioner !== null) {

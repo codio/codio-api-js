@@ -6,11 +6,15 @@ const secret_id = 'M96ke7mQs299L8KymPhXlNO4' // your secretId here
 const stackId = 'a66f9cf1-b2db-4923-a2e6-5164dda2e678'
 // const stackId = '00112233-4455-6677-8899-aabbccddeeff'
 // ANSIBLE or BASH
-const provisioner = 'BASH'
+const provisioner = 'ansible'
 const id = 'a66f9cf1-b2db-4923-a2e6-5164dda2e678'
-const content = '#!/bin/bash\nls -al\nexit 0'
-const bundlePath = null //'files/ruby.tar.gz'
-const message = 'new version message'
+// const id = 'c335de9e-4744-4f28-ba3b-0f6420e3e324'
+// const test_id = 'not_exist'
+// const content = null
+const content = '#!/bin/bash\necho "content"\nls -al\nexit 0'
+// const bundlePath = 'files/ruby.tar.gz'
+const bundlePath = null
+const message = 'only content check'
 
 const main = async () => {
     try {
@@ -28,7 +32,7 @@ const main = async () => {
         let taskUri = res.taskUri
         taskUri = taskUri.replace('https://octopus.codio.test', 'http://codio.test:15594')
         console.log('taskUri', taskUri)
-        const taskRes = await codio.v1.stack.waitDownloadTask(taskUri)
+        const taskRes = await codio.v1.stack.waitTask(taskUri)
         console.log('taskRes', taskRes)
     } catch (error: any) {
         if (error.json) {

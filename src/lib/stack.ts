@@ -49,7 +49,7 @@ export async function info(stackId: string): Promise<Stack> {
 export async function publish(
     stackId: string,
     id: string | null,
-    provisioner: string,
+    provisioner: string | null,
     content: string | null,
     archivePath: string | null,
     message: string
@@ -68,7 +68,9 @@ export async function publish(
         const api = bent(`http://${domain}`, 'POST', 'json', 200)
         
         const postData = new FormData()
-        postData.append('provisioner', provisioner)
+        if (provisioner !== null) {
+            postData.append('provisioner', provisioner)
+        }
         if (archivePath !== null) {
             postData.append('files', fs.createReadStream(archivePath), {
                 knownLength: fs.statSync(archivePath).size
@@ -86,6 +88,7 @@ export async function publish(
         headers['Content-Length'] = await postData.getLengthSync()
         
         console.log('headers', headers)
+        console.log('data', postData)
 
         const res = await api(`/api/v1/stacks/${stackId}/versions`, postData, headers)
         console.log('publish result', res)
@@ -99,7 +102,7 @@ export async function publish(
     }
 }
 
-export async function waitDownloadTask(taskUrl: string): Promise<string> {
+export async function waitTask(taskUrl: string): Promise<string> {
     if (!config) {
         throw new Error('No Config')
     }
@@ -110,10 +113,10 @@ export async function waitDownloadTask(taskUrl: string): Promise<string> {
             'Authorization': `Bearer ${token}`
         }
         const res = await getJson(taskUrl, undefined, authHeaders)
-        console.log('waitDownloadTask', res)
+        console.log('waitTask', res)
         if (res.status !== 'done' && res.status !== 'error') {
             await new Promise(resolve => setTimeout(resolve, 500))
-            return await waitDownloadTask(taskUrl)
+            return await waitTask(taskUrl)
         }
         return res
     } catch (error: any) {
@@ -128,7 +131,7 @@ export async function waitDownloadTask(taskUrl: string): Promise<string> {
 const stack = {
     info,
     publish,
-    waitDownloadTask
+    waitTask
 }
   
 export default stack

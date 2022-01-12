@@ -49,7 +49,7 @@ export async function info(stackId: string): Promise<Stack> {
 export async function publish(
     stackId: string,
     id: string | null,
-    provisioner: string | null,
+    provisioner: string,
     content: string | null,
     archivePath: string | null,
     message: string
@@ -68,9 +68,7 @@ export async function publish(
         const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)
         
         const postData = new FormData()
-        if (provisioner !== null) {
-            postData.append('provisioner', provisioner)
-        }
+        postData.append('provisioner', provisioner)
         if (archivePath !== null) {
             postData.append('files', fs.createReadStream(archivePath), {
                 knownLength: fs.statSync(archivePath).size

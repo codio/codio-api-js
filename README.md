@@ -155,3 +155,25 @@ you need to specify `course Id : string`, `assignmentId: string`, `studentId: st
   await codio.v1.course.downloadStudentAssignment(courseId, assignmentId, studentId, filePath)
 ```
 downloads file to filePath
+
+## Publish Stack
+This methods allow to publish the assignment either as archive (zip and tar.gz is supported)
+you need to specify 
+`stackId : string` - stack to add new published version to,
+`id: string | null` - stack id or stack version id to use as base,
+`provisioner: string` - one of `ansible` or `bash` to detect which file to use `provision.sh` or `provision.yaml`,
+`content: string | null` - content of `provision.yaml` or `provision.sh` file which overrides stored in archive if set,
+`archivePath: string | null` - path to archive with files to use during provision,
+`message: string` - published version changelog
+
+```
+  await codio.v1.stack.publish(
+    stackId,
+    id,
+    provisioner,
+    content,
+    archivePath,
+    message
+  )
+
+```

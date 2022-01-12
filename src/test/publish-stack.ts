@@ -1,7 +1,10 @@
+import dotenv = require('dotenv')
+dotenv.config()
+
 import codio from '../index'
 
-const client_id = '2iHS4bkAfuQdyRD7l3lVJ4n9' // your clientId here
-const secret_id = 'M96ke7mQs299L8KymPhXlNO4' // your secretId here
+const client_id = process.env.CLIENT_ID // your clientId here
+const secret_id = process.env.SECRET_ID // your secretId here
 
 const stackId = 'a66f9cf1-b2db-4923-a2e6-5164dda2e678'
 // const stackId = '00112233-4455-6677-8899-aabbccddeeff'

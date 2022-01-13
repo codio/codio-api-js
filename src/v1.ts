@@ -4,6 +4,7 @@ import tools from './lib/tools'
 import assignment from './lib/assignment'
 import assessment from './lib/assessment'
 import course from './lib/course'
+import stack from './lib/stack'
 
 export const v1 = {
   setDomain: (_: string) => config.setDomain(_),
@@ -16,5 +17,6 @@ export const v1 = {
   tools,
   assignment,
   assessment,
-  course
+  course,
+  stack
 }

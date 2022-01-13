@@ -470,6 +470,11 @@ doctrine@^3.0.0:
   dependencies:
     esutils "^2.0.2"
 
+dotenv@^11.0.0:
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-11.0.0.tgz#ee37feddf8ada6d348a79e198312d4a8abfd1c1e"
+  integrity sha512-Fp/b504Y5W+e+FpCxTFMUZ7ZEQkQYF0rx+KZtmwixJxGQbLHrhCwo3FjZgNC8vIfrSi29PABNbMoCGD9YoiXbQ==
+
 duplex-maker@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/duplex-maker/-/duplex-maker-1.0.0.tgz#1604f8b943cb0063a6d3e1fe42aa65113a79da4a"

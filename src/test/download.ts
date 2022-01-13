@@ -1,7 +1,10 @@
+import dotenv = require('dotenv')
+dotenv.config()
+
 import codio from '../index'
 
-const client_id = '4feHINvS79b52leUMTVFSHIc' // your clientId here
-const secret_id = 'sZFC621N6NK3w83kd2yQEd4V' // your secretId here
+const client_id = process.env.CLIENT_ID || '' // your clientId here
+const secret_id = process.env.SECRET_ID || '' // your secretId here
 
 const courseId = 'd7fee75a4a26d1d1ea1de91b3bb8e072' // your course here
 const assignmentId = '5aa20de4744c10d1a2d4130608bc95f9' // your assignment here

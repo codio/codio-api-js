@@ -146,11 +146,79 @@ export async function downloadStudentAssignment(courseId: string, assignmentId: 
   })
 }
 
+export async function exportStudentCSV(courseId: string, studentId: string): Promise<string> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const token = config.getToken()
+    const domain = config.getDomain()
+    const authHeaders = {
+      'Authorization': `Bearer ${token}`
+    }
+    return await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/students/${studentId}/export/csv`, undefined, authHeaders)
+  } catch (error) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function exportAssignmentCSV(courseId: string, assignmentId: string): Promise<string> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const token = config.getToken()
+    const domain = config.getDomain()
+    const authHeaders = {
+      'Authorization': `Bearer ${token}`
+    }
+    return await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/export/csv`, undefined, authHeaders)
+  } catch (error) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function exportAssessmentsData(courseId: string, assignmentIds: string): Promise<string> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const token = config.getToken()
+    const domain = config.getDomain()
+    const authHeaders = {
+      'Authorization': `Bearer ${token}`
+    }
+    const res = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/export/assessments/csv?assignmentIds=${assignmentIds}`, undefined, authHeaders)
+    const taskUrl = res['taskUri']
+    if (!taskUrl) {
+      throw new Error('task Url not found')
+    }
+    return await waitDownloadTask(taskUrl)
+  } catch (error) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
 const course = {
   assignmentStudentsProgress,
   info,
   exportStudentAssignment,
-  downloadStudentAssignment
+  downloadStudentAssignment,
+  exportStudentCSV,
+  exportAssignmentCSV,
+  exportAssessmentsData
 }
 
 export default course

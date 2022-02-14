@@ -16,7 +16,7 @@ export type Assignment = {
 export type Course = {
   id: string
   name: string
-  assignments: Assignment[] 
+  assignments: Assignment[]
 }
 
 export type StudentProgress = {
@@ -129,19 +129,38 @@ export async function exportStudentAssignment(courseId: string, assignmentId: st
 
 export async function downloadStudentAssignment(courseId: string, assignmentId: string, studentId: string, filePath: string): Promise<void> {
   const url = await exportStudentAssignment(courseId, assignmentId, studentId)
+  return download(filePath, url)
+}
+
+export async function downloadStudentCSV(courseId: string, studentId: string, filePath: string): Promise<void> {
+  const url = await exportStudentCSV(courseId, studentId)
+  return download(filePath, url)
+}
+
+export async function downloadAssignmentCSV(courseId: string, assignmentId: string, filePath: string): Promise<void> {
+  const url = await exportAssignmentCSV(courseId, assignmentId)
+  return download(filePath, url)
+}
+
+export async function downloadAssessmentsData(courseId: string, assignmentIds: string, filePath: string): Promise<void> {
+  const url = await exportAssessmentsData(courseId, assignmentIds)
+  return download(filePath, url)
+}
+
+async function download(filePath: string, url: string): Promise<void> {
   const file = fs.createWriteStream(filePath)
   return new Promise((resolve, reject) => {
     https.get(url, (response) => {
-        response.pipe(file)
-        file.on('finish', () => {
-            file.close()
-            resolve()
-        })
+      response.pipe(file)
+      file.on('finish', () => {
+        file.close()
+        resolve()
+      })
     }).on('error', (err) => {
-        fs.unlink(filePath, e => {
-            reject(e && e.message)
-        })
-        reject(err.message)
+      fs.unlink(filePath, e => {
+        reject(e && e.message)
+      })
+      reject(err.message)
     })
   })
 }
@@ -218,7 +237,10 @@ const course = {
   downloadStudentAssignment,
   exportStudentCSV,
   exportAssignmentCSV,
-  exportAssessmentsData
+  exportAssessmentsData,
+  downloadStudentCSV,
+  downloadAssignmentCSV,
+  downloadAssessmentsData
 }
 
 export default course

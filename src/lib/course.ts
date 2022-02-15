@@ -142,8 +142,8 @@ export async function downloadAssignmentCSV(courseId: string, assignmentId: stri
   return download(filePath, url)
 }
 
-export async function downloadAssessmentsData(courseId: string, assignmentIds: string, filePath: string): Promise<void> {
-  const url = await exportAssessmentsData(courseId, assignmentIds)
+export async function downloadAssessmentData(courseId: string, assignmentIds: string, filePath: string): Promise<void> {
+  const url = await exportAssessmentData(courseId, assignmentIds)
   return download(filePath, url)
 }
 
@@ -205,7 +205,7 @@ export async function exportAssignmentCSV(courseId: string, assignmentId: string
   }
 }
 
-export async function exportAssessmentsData(courseId: string, assignmentIds: string): Promise<string> {
+export async function exportAssessmentData(courseId: string, assignmentIds: string): Promise<string> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -237,10 +237,10 @@ const course = {
   downloadStudentAssignment,
   exportStudentCSV,
   exportAssignmentCSV,
-  exportAssessmentsData,
+  exportAssessmentData,
   downloadStudentCSV,
   downloadAssignmentCSV,
-  downloadAssessmentsData
+  downloadAssessmentData
 }
 
 export default course

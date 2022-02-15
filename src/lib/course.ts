@@ -91,6 +91,9 @@ export async function waitDownloadTask(taskUrl: string): Promise<string> {
       await new Promise(resolve => setTimeout(resolve, 500))
       return await waitDownloadTask(taskUrl)
     }
+    if (archive.error) {
+      throw new Error(`Task ${archive.taskId} failed with an error`)
+    }
     return archive.url
   } catch (error) {
     if (error.json) {
@@ -148,6 +151,9 @@ export async function downloadAssessmentData(courseId: string, assignmentIds: st
 }
 
 async function download(filePath: string, url: string): Promise<void> {
+  if (!url) {
+    throw new Error('Url Not Found');
+  }
   const file = fs.createWriteStream(filePath)
   return new Promise((resolve, reject) => {
     https.get(url, (response) => {

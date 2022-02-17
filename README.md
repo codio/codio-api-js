@@ -156,6 +156,48 @@ you need to specify `course Id : string`, `assignmentId: string`, `studentId: st
 ```
 downloads file to filePath
 
+#### Export student CSV
+
+Returns url string:
+```
+await codio.course.exportStudentCSV(courseId, studentId)
+```
+
+Download exported student CSV data to filePath:
+```
+await codio.course.downloadStudentCSV(courseId, studentId, filePath)
+```
+
+#### Export assignment CSV
+
+Returns url string:
+```
+await codio.course.exportAssignmentCSV(courseId, assignmentId)
+```
+
+Download exported assignment CSV data to filePath:
+```
+await codio.course.downloadAssignmentCSV(courseId, assignmentId, filePath)
+```
+
+#### Export Assessment Data
+
+Export all assessment results for selected assignments in the course.
+
+The following data is exported to a .csv file for download
+(or into a .zip file containing individual csv files if multiple assignments selected).
+
+Returns archive url string:
+```
+await codio.course.exportAssessmentData(courseId, assignmentIds)
+```
+
+To download exported data you need to specify course Id : string, assignmentIds: string (comma-separated list of assignmentIds)
+```
+await codio.course.downloadAssessmentData(courseId, assignmentIds, filePath)
+```
+downloads file to filePath
+
 ## Publish Stack
 This methods allow to publish the stack 
 you need to specify 

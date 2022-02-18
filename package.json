@@ -1,6 +1,6 @@
 {
   "name": "codio-api-js",
-  "version": "0.4.1",
+  "version": "0.5.1",
   "description": "JS client to Codio API",
   "repository": "https://github.com/codio/codio-api-js",
   "author": "Max Kraev <maxim.kraev@gmail.com>",

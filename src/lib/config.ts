@@ -35,8 +35,4 @@ const config = new Config()
 
 export default config
 
-export const excludePaths = [
-  '.git',
-  '.github',
-  '.gitignore',
-]
+export const excludePaths = []

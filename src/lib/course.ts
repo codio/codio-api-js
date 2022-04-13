@@ -261,35 +261,7 @@ async function updateAssignmentSettings(courseId: string, assignmentId:string, j
     const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)
     const result = await api(`/api/v1/courses/${courseId}/assignments/${assignmentId}/settings`,
         jsonParams, authHeaders)
-    console.log("status:", result)
-  } catch (error) {
-    if (error.json) {
-      const message = JSON.stringify(await error.json())
-      throw new Error(message)
-    }
-    throw error
-  }
-}
-
-async function updateAssignmentPenalty(
-    courseId: string,
-    assignmentId:string,
-    action:string,
-    jsonFilePath:string
-): Promise<void> {
-  if (!config) {
-    throw new Error('No Config')
-  }
-  try {
-    const token = config.getToken()
-    const domain = config.getDomain()
-    const authHeaders = {'Authorization': `Bearer ${token}`}
-    const jsonString = await fs.promises.readFile(jsonFilePath, {encoding: 'utf8'})
-    const jsonParams = JSON.parse(jsonString)
-    const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)
-    const result = await api(`/api/v1/courses/${courseId}/assignments/${assignmentId}/penalty/${action}`,
-        jsonParams, authHeaders)
-    console.log("status:", result)
+    console.log(result)
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -310,8 +282,7 @@ const course = {
   downloadStudentCSV,
   downloadAssignmentCSV,
   downloadAssessmentData,
-  updateAssignmentSettings,
-  updateAssignmentPenalty
+  updateAssignmentSettings
 }
 
 export default course

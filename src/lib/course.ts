@@ -28,18 +28,21 @@ export type StudentProgress = {
   completion_date: Date
 }
 
+function getApiV1Url(): string {
+  return `https://octopus.${config.getDomain()}/api/v1/`
+}
+
 export async function info(courseId: string): Promise<Course> {
   if (!config) {
     throw new Error('No Config')
   }
   try {
     const token = config.getToken()
-    const domain = config.getDomain()
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
 
-    return getJson(`https://octopus.${domain}/api/v1/courses/${courseId}`, undefined, authHeaders)
+    return getJson(`${getApiV1Url()}/courses/${courseId}`, undefined, authHeaders)
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -55,11 +58,10 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
   }
   try {
     const token = config.getToken()
-    const domain = config.getDomain()
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
-    const res = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students`, undefined, authHeaders)
+    const res = await getJson(`${getApiV1Url()}/courses/${courseId}/assignments/${assignmentId}/students`, undefined, authHeaders)
     for (const progress of res) {
       if (progress.completion_date) {
         progress.completion_date = secondsToDate(progress.completion_date.seconds)
@@ -74,7 +76,6 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
     throw error
   }
 }
-
 
 export async function waitDownloadTask(taskUrl: string): Promise<string> {
   if (!config) {
@@ -111,11 +112,10 @@ export async function exportStudentAssignment(courseId: string, assignmentId: st
   
   try {
     const token = config.getToken()
-    const domain = config.getDomain()
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
-    const res = await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/students/${studentId}/download`, undefined, authHeaders)
+    const res = await getJson(`${getApiV1Url()}/courses/${courseId}/assignments/${assignmentId}/students/${studentId}/download`, undefined, authHeaders)
     const taskUrl = res['taskUri']
     if (!taskUrl) {
       throw new Error('task Url not found')
@@ -177,12 +177,11 @@ export async function exportStudentCSV(courseId: string, studentId: string): Pro
   }
   try {
     const token = config.getToken()
-    const domain = config.getDomain()
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
     return await getJson(
-        `https://octopus.${domain}/api/v1/courses/${courseId}/students/${studentId}/export/csv`,
+        `${getApiV1Url()}/courses/${courseId}/students/${studentId}/export/csv`,
         undefined,
         authHeaders
     )
@@ -201,12 +200,11 @@ export async function exportAssignmentCSV(courseId: string, assignmentId: string
   }
   try {
     const token = config.getToken()
-    const domain = config.getDomain()
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
     return await getJson(
-        `https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/export/csv`,
+        `${getApiV1Url()}/courses/${courseId}/assignments/${assignmentId}/export/csv`,
         undefined,
         authHeaders
     )
@@ -225,12 +223,11 @@ export async function exportAssessmentData(courseId: string, assignmentIds: stri
   }
   try {
     const token = config.getToken()
-    const domain = config.getDomain()
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
     const res = await getJson(
-        `https://octopus.${domain}/api/v1/courses/${courseId}/export/assessments/csv?assignmentIds=${assignmentIds}`,
+        `${getApiV1Url()}/courses/${courseId}/export/assessments/csv?assignmentIds=${assignmentIds}`,
         undefined,
         authHeaders
     )
@@ -254,12 +251,11 @@ async function updateAssignmentSettings(courseId: string, assignmentId:string, j
   }
   try {
     const token = config.getToken()
-    const domain = config.getDomain()
     const authHeaders = {'Authorization': `Bearer ${token}`}
     const jsonString = await fs.promises.readFile(jsonFilePath, {encoding: 'utf8'})
     const jsonParams = JSON.parse(jsonString)
-    const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)
-    const result = await api(`/api/v1/courses/${courseId}/assignments/${assignmentId}/settings`,
+    const api = bent(`${getApiV1Url()}`, 'POST', 'json', 200)
+    const result = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
         jsonParams, authHeaders)
     console.log(result)
   } catch (error) {

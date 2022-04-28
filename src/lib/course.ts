@@ -49,6 +49,28 @@ export async function info(courseId: string): Promise<Course> {
   }
 }
 
+export async function findOneByName(courseName: string): Promise<Course> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const token = config.getToken()
+    const domain = config.getDomain()
+    const authHeaders = {
+      'Authorization': `Bearer ${token}`
+    }
+    const params = {name: courseName}
+    const urlParams = new URLSearchParams(params)
+    return getJson(`https://octopus.${domain}/api/v1/courses?${urlParams.toString()}`, undefined, authHeaders)
+  } catch (error) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
 export async function assignmentStudentsProgress(courseId: string, assignmentId: string): Promise<StudentProgress[]> {
   if (!config) {
     throw new Error('No Config')
@@ -246,7 +268,8 @@ const course = {
   exportAssessmentData,
   downloadStudentCSV,
   downloadAssignmentCSV,
-  downloadAssessmentData
+  downloadAssessmentData,
+  findOneByName
 }
 
 export default course

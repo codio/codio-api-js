@@ -17,7 +17,7 @@ const main = async () => {
         codio.v1.setDomain('test2-codio.com')
         await codio.v1.auth(client_id, secret_id)
         await codio.v1.course.downloadStudentAssignment(courseId, assignmentId, studentId, filePath)
-    } catch (error) {
+    } catch (error: any) {
         if (error.json) {
             console.log(await error.json())
         } else {

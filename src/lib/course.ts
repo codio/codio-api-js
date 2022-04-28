@@ -40,7 +40,7 @@ export async function info(courseId: string): Promise<Course> {
     }
 
     return getJson(`https://octopus.${domain}/api/v1/courses/${courseId}`, undefined, authHeaders)
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -62,7 +62,7 @@ export async function findOneByName(courseName: string): Promise<Course> {
     const params = {name: courseName}
     const urlParams = new URLSearchParams(params)
     return getJson(`https://octopus.${domain}/api/v1/courses?${urlParams.toString()}`, undefined, authHeaders)
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -88,7 +88,7 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
       }
     }
     return res
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -117,7 +117,7 @@ export async function waitDownloadTask(taskUrl: string): Promise<string> {
       throw new Error(`Task ${archive.taskId} failed with an error`)
     }
     return archive.url
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -143,7 +143,7 @@ export async function exportStudentAssignment(courseId: string, assignmentId: st
       throw new Error('task Url not found')
     }
     return await waitDownloadTask(taskUrl)
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -204,7 +204,7 @@ export async function exportStudentCSV(courseId: string, studentId: string): Pro
       'Authorization': `Bearer ${token}`
     }
     return await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/students/${studentId}/export/csv`, undefined, authHeaders)
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -224,7 +224,7 @@ export async function exportAssignmentCSV(courseId: string, assignmentId: string
       'Authorization': `Bearer ${token}`
     }
     return await getJson(`https://octopus.${domain}/api/v1/courses/${courseId}/assignments/${assignmentId}/export/csv`, undefined, authHeaders)
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -249,7 +249,7 @@ export async function exportAssessmentData(courseId: string, assignmentIds: stri
       throw new Error('task Url not found')
     }
     return await waitDownloadTask(taskUrl)
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)

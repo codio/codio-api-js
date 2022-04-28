@@ -171,8 +171,8 @@ export class Assessment {
           hex,
           filePath
        }
-      } catch(_) {
-        console.error(`Error Processing ${filePath} problem: ${_.message}`)
+      } catch(error: any) {
+        console.error(`Error Processing ${filePath} problem: ${error.message}`)
         return {
           hex: '',
           filePath

@@ -37,7 +37,7 @@ export async function info(stackId: string): Promise<Stack> {
         }
 
         return getJson(`https://octopus.${domain}/api/v1/stacks/${stackId}`, undefined, authHeaders)
-    } catch (error) {
+    } catch (error: any) {
         if (error.json) {
             const message = JSON.stringify(await error.json())
             throw new Error(message)
@@ -91,7 +91,7 @@ export async function publish(
         const res = await api(`/api/v1/stacks/${stackId}/versions`, postData, headers)
         console.log('publish result', res)
         return res
-    } catch (error) {
+    } catch (error: any) {
         if (error.json) {
             const message = JSON.stringify(await error.json())
             throw new Error(message)

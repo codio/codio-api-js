@@ -19,7 +19,7 @@ const main = async () => {
 
         const courseWithUnits = await codio.v1.course.findOneByName(courseName)
         console.log('course by name', courseWithUnits)
-        for (const unit of courseWithUnits.units) {
+        for (const unit of courseWithUnits.modules) {
             console.log('unit', unit.id, unit.name)
             for (const assignment of unit.assignments) {
                 console.log('assignment', assignment.id, assignment.name)

@@ -28,7 +28,7 @@ export type Course = {
 export type CourseWithUnits = {
   id: string,
   name: string,
-  units: Module[]
+  modules: Module[]
 }
 
 export type StudentProgress = {

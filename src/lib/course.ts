@@ -245,7 +245,7 @@ export async function exportAssessmentData(courseId: string, assignmentIds: stri
   }
 }
 
-async function updateAssignmentSettings(courseId: string, assignmentId:string, jsonFilePath:string): Promise<void> {
+export async function updateAssignmentSettings(courseId: string, assignmentId:string, jsonFilePath:string): Promise<void> {
   if (!config) {
     throw new Error('No Config')
   }

@@ -115,6 +115,32 @@ Course = {
   name: string
 }
 ```
+
+### Course info by name
+
+return
+
+```
+  await codio.v1.course.findOneByName(courseName)
+```
+return `CourseWithModules` object
+```
+CourseWithModules = {
+  id: string,
+  name: string,
+  modules: Module[]
+}
+Module = {
+  id: string,
+  name: string,
+  assignments: Assignment[]
+}
+Assignment = {
+  id: string,
+  name: string
+}
+```
+
 #### Course assignments student Progress
 
 ```

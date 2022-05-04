@@ -25,7 +25,7 @@ export type Course = {
   assignments: Assignment[]
 }
 
-export type CourseWithUnits = {
+export type CourseWithModules = {
   id: string,
   name: string,
   modules: Module[]
@@ -64,7 +64,7 @@ export async function info(courseId: string): Promise<Course> {
   }
 }
 
-export async function findOneByName(courseName: string): Promise<CourseWithUnits> {
+export async function findOneByName(courseName: string): Promise<CourseWithModules> {
   if (!config) {
     throw new Error('No Config')
   }

@@ -15,7 +15,7 @@ export type Assignment = {
 
 export type Module = {
   id: string,
-  name: String,
+  name: string,
   assignments: Assignment[]
 }
 

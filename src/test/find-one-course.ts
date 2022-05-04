@@ -14,7 +14,7 @@ const main = async () => {
         codio.v1.setDomain('test1-codio.com')
         const authRes = await codio.v1.auth(client_id, secret_id)
         console.log('authed', authRes)
-        let courseInfo = await codio.v1.course.info(courseId)
+        const courseInfo = await codio.v1.course.info(courseId)
         console.log('course by id', courseInfo)
 
         const courseWithUnits = await codio.v1.course.findOneByName(courseName)

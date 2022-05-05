@@ -8,15 +8,18 @@ import YAML from 'yaml'
 import tools from './tools'
 import config, {excludePaths} from './config'
 import _ from 'lodash'
+import {Module} from './course'
 
 type YamlRaw = {
-  assignment: string
+  assignment: string | undefined
+  assignmentName: string | undefined
   paths: string[] | undefined
   section: string | string[]
 }
 
 type Yaml = {
-  assignment: string
+  assignment: string | undefined
+  assignmentName: string | undefined
   paths: string[]
   section: string[][]
 }
@@ -97,16 +100,21 @@ function validityState(ymls: YamlRaw[]): Yaml[] {
   const map: Map<string, Yaml> = new Map()
   for(const yml of ymls) {
     const section = _.isString(yml.section)? [yml.section] : yml.section
-    if (map.has(yml.assignment)) {
-      const item = map.get(yml.assignment)
+    const assignmentId = yml.assignment || yml.assignmentName
+    if (assignmentId === undefined) {
+      throw new Error('assignment and assignmentName does not exist')
+    }
+    if (map.has(assignmentId)) {
+      const item = map.get(assignmentId)
       if (!item) {
         continue
       }
       item.section.push(section)
       item.paths = item.paths.concat(yml.paths || [])
     } else {
-      map.set(yml.assignment, {
+      map.set(assignmentId, {
         assignment: yml.assignment,
+        assignmentName: yml.assignmentName,
         paths: yml.paths || [],
         section: [section]
       })
@@ -131,7 +139,7 @@ async function loadYaml(yamlDir: string): Promise<Yaml[]> {
   return validityState(res)
 }
 
-async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string): Promise<void> {
+async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string, courseModules: undefined | Module[]): Promise<void> {
   const ymlCfg = await loadYaml(yamlDir)
   for(const item of ymlCfg) {
     console.log(`publishing ${JSON.stringify(item)}`)
@@ -139,8 +147,26 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
     const paths = item.paths || []
     paths.push(`!${yamlDir}`) // exclude yaml directory from export
     paths.push(`!${yamlDir}/**`) // exclude yaml directory from export
+    
+    let assignmentId
+    if (item.assignmentName && courseModules !== undefined) {
+      for (const module of courseModules) {
+        for (const assignment of module.assignments) {
+          if (assignment.name === item.assignmentName) {
+            if (assignmentId) {
+              throw new Error(`many assignments in course with same name ${item.assignmentName}`)
+            } else {
+              assignmentId = assignment.id
+            }
+          }
+        }
+      }
+    } else {
+      assignmentId = item.assignment
+    }
+    
     await tools.reduce(srcDir, tmpDstDir, item.section, paths)
-    await assignment.publish(courseId, item.assignment, tmpDstDir, changelog)
+    await assignment.publish(courseId, assignmentId, tmpDstDir, changelog)
     fs.rmdirSync(tmpDstDir, {recursive: true})
   }
 }

@@ -43,6 +43,7 @@ Similar to reduce but publishes generated projects as assignments.
 ```
 `yamlConfig` Directory shoudl contain yaml files in the next format:
 `assignment` - id of the assignment to publish
+`assignmentName` - or name of the assignment to publish
 `section` - section name or array of paths to the section
 `paths` - an array of files that needs to be exported, `.guides` is exported fully to all assignments
 
@@ -53,6 +54,9 @@ Similar to reduce but publishes generated projects as assignments.
   
 - assignment: <assignment Id>
   section:  Section 3
+
+- assignmentName: <assignment name>
+  section: Section 1
 
 ```
 
@@ -103,9 +107,9 @@ return
 ```
   await codio.v1.course.info(courseId)
 ```
-return `Course` object
+return `Module[]` object
 ```
-Course = {
+Module = {
   id: string
   name: string
   assignments: Assignment[] 

@@ -5,8 +5,8 @@ import FormData from 'form-data'
 import tar from 'tar'
 import glob from 'glob-promise'
 import YAML from 'yaml'
-import tools from './tools'
-import config, {excludePaths} from './config'
+import tools, { getApiV1Url } from './tools'
+import config, { excludePaths } from './config'
 import _ from 'lodash'
 
 type YamlRaw = {
@@ -20,6 +20,43 @@ type Yaml = {
   paths: string[]
   section: string[][]
 }
+
+export type Penalty = {
+  id: number
+  datetime: Date
+  percent: number
+  message: string
+}
+
+type PenaltyRaw = {
+  id: number
+  datetime: string
+  percent: number
+  message: string
+}
+
+export type AssignmentSettings = {
+  enableResetAssignmentByStudent?: boolean
+  disableDownloadByStudent?: boolean
+  visibilityOnDisabled?: string, // "READ_ONLY", "NO_ACCESS",
+  visibilityOnCompleted?: string, // "READ_ONLY_RESUBMIT", "READ_ONLY", "NO_ACCESS",
+  startTime?: Date | null,
+  endTime?: Date | null,
+  action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE", 
+  penalties?: Penalty[]
+}
+
+type AssignmentSettingsRaw = {
+  enableResetAssignmentByStudent?: boolean
+  disableDownloadByStudent?: boolean
+  visibilityOnDisabled?: string, // "READ_ONLY", "NO_ACCESS",
+  visibilityOnCompleted?: string, // "READ_ONLY_RESUBMIT", "READ_ONLY", "NO_ACCESS",
+  startTime?: string,
+  endTime?: string,
+  action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE", 
+  penalties?: PenaltyRaw[]
+}
+
 
 async function archiveTar(src: string): Promise<{ file: string; dir: string; }> {
   const dir = await fs.promises.mkdtemp('/tmp/codio_export')
@@ -53,12 +90,11 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
   }
   try {
     const token = config.getToken()
-    const domain = config.getDomain()
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
 
-    const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)
+    const api = bent(getApiV1Url(), 'POST', 'json', 200)
 
     const postData = new FormData()
     postData.append('changelog', changelog)
@@ -66,7 +102,7 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
       knownLength: fs.statSync(archivePath).size
     })
     const headers = Object.assign(postData.getHeaders(), authHeaders)
-    headers['Content-Length'] = await postData.getLengthSync()
+    headers['Content-Length'] = postData.getLengthSync()
     const res = await api(`/api/v1/courses/${courseId}/assignments/${assignmentId}/versions`,
       postData, headers)
     const taskUrl = res['taskUri']
@@ -145,6 +181,93 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
   }
 }
 
+export async function getSettings(courseId: string, assignmentId:string): Promise<AssignmentSettings> {
+  return updateSettings(courseId, assignmentId, {})
+}
+
+function convertDateToLocal(date: string | undefined): Date | null {
+  if (!date) {
+    return null
+  }
+  
+ return new Date(date)
+}
+
+function toRawSettings(settings: AssignmentSettings): AssignmentSettingsRaw {
+  const res = {} as AssignmentSettingsRaw
+  if (settings.enableResetAssignmentByStudent !== undefined) {
+    res.enableResetAssignmentByStudent = settings.enableResetAssignmentByStudent
+  }
+  if (settings.disableDownloadByStudent !== undefined) {
+    res.disableDownloadByStudent = settings.disableDownloadByStudent
+  }
+  if (settings.visibilityOnDisabled !== undefined) {
+    res.visibilityOnDisabled = settings.visibilityOnDisabled
+  }
+  if (settings.visibilityOnCompleted !== undefined) {
+    res.visibilityOnCompleted = settings.visibilityOnCompleted
+  }
+  if (settings.startTime !== undefined) {
+    res.startTime = settings.startTime ? settings.startTime.toISOString() : ''
+  }
+  if (settings.endTime !== undefined) {
+    res.endTime = settings.endTime ? settings.endTime.toISOString() : ''
+  }
+  
+  if (settings.action !== undefined) {
+    res.action = settings.action
+  }
+  if (settings.penalties !== undefined) {
+    res.penalties = _.map(settings.penalties, _ => {
+      return {
+        id: _.id,
+        datetime: _.datetime.toISOString(),
+        percent: _.percent,
+        message: _.message,
+      }
+    })
+  }
+  return res
+}
+
+export async function updateSettings(courseId: string, assignmentId: string, settings: AssignmentSettings): Promise<AssignmentSettings> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const token = config.getToken()
+    const authHeaders = {'Authorization': `Bearer ${token}`}
+    
+    const api = bent(getApiV1Url(), 'POST', 'json', 200)
+
+    const res = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
+        toRawSettings(settings), authHeaders) as AssignmentSettingsRaw
+    return {
+      enableResetAssignmentByStudent: res.enableResetAssignmentByStudent,
+      disableDownloadByStudent: res.disableDownloadByStudent,
+      visibilityOnDisabled: res.visibilityOnDisabled,
+      visibilityOnCompleted: res.visibilityOnCompleted,
+      startTime: convertDateToLocal(res.startTime),
+      endTime: convertDateToLocal(res.endTime),
+      action: res.action,
+      penalties: res.penalties? _.map(res.penalties, _ => {
+        return {
+          id: _.id,
+          datetime: new Date(_.datetime),
+          percent: _.percent,
+          message: _.message,
+        }
+      }) : undefined,
+    }
+  } catch (error) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
 const assignment = {
   publish: async (courseId: string, assignmentId: string, projectPath: string, changelog: string): Promise<void> => {
     const {file, dir} = await archiveTar(projectPath)
@@ -152,7 +275,9 @@ const assignment = {
     fs.rmdirSync(dir, {recursive: true})
   },
   publishArchive,
-  reducePublish
+  reducePublish,
+  updateSettings,
+  getSettings,
 }
 
 export default assignment

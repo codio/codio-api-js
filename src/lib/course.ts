@@ -41,7 +41,7 @@ export type StudentProgress = {
 }
 
 function getApiV1Url(): string {
-  return `https://octopus.${config.getDomain()}/api/v1/`
+  return `https://octopus.${config.getDomain()}/api/v1`
 }
 
 export async function info(courseId: string): Promise<Module[]> {

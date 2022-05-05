@@ -164,7 +164,9 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
     } else {
       assignmentId = item.assignment
     }
-    
+    if (!assignmentId) {
+      throw new Error(`assignment not found id=${item.assignment} name=${item.assignmentName}}`)
+    }
     await tools.reduce(srcDir, tmpDstDir, item.section, paths)
     await assignment.publish(courseId, assignmentId, tmpDstDir, changelog)
     fs.rmdirSync(tmpDstDir, {recursive: true})

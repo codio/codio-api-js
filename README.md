@@ -225,50 +225,43 @@ This method allow to update assignment settings.
 You need to specify
 `courseId : string` - course id,
 `assignmentId : string` - assignment id ,
-`filePath: string` - path to the file that contains the assignment settings in json format
-
-```
-await codio.course.updateAssignmentSettings(courseId, assignmentIds, filePath)
-```
+`settings: AssignmentSettings` - Settings, missed properties won't be updated
 
 Example of possible values:
-```
-{
-    "enableResetAssignmentByStudent": true,
-    "disableDownloadByStudent": true,
-    "visibilityOnDisabled": "READ_ONLY",
-    // "visibilityOnDisabled": "NO_ACCESS",
-    "visibilityOnCompleted": "READ_ONLY_RESUBMIT",
-    // "visibilityOnCompleted": "READ_ONLY",
-    // "visibilityOnCompleted": "NO_ACCESS",
-    "startTime": "2022-05-01T02:00:00+01:00",
-    // "startTime": "2022-03-01T02:00:00Z",
-    // "startTime": "",
-    // "endTime": "2022-05-09T07:00:00+00:00",
-    "endTime": "2022-06-15T07:00:00Z",
-    // "endTime": "",
-    "action": "COMPLETE",
-    // "action": "DISABLE",
-    // "action": "DISABLE_AND_COMPLETE", 
-    "penalties": [
-      {
-        "id": 1,
-        "datetime": "2022-05-11T08:00:00.419Z",
-        "percent": 1,
-        "message": "late penalty 1%"       
-      },
-      {
-        "id": 2,
-        "datetime": "2022-05-12T08:00:00Z",
-        "percent": 2,
-        "message": "2"
-      },
-      {
-        "id": 3,
-        "datetime": "2022-05-13T08:00:00+03:00",
-        "percent": 3,
-        "message": ""
-      }   
-    ]
+```javascript
+type AssignmentSettings = {
+  enableResetAssignmentByStudent?: boolean
+  disableDownloadByStudent?: boolean
+  visibilityOnDisabled?: string, // "READ_ONLY", "NO_ACCESS",
+  visibilityOnCompleted?: string, // "READ_ONLY_RESUBMIT", "READ_ONLY", "NO_ACCESS",
+  startTime?: Date | null,
+  endTime?: Date | null,
+  action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE", 
+  penalties?: Penalty[]
 }
+
+type Penalty = {
+  id: number
+  datetime: Date
+  percent: number
+  message: string
+}
+```
+
+
+Example: 
+```javascript
+  await codio.assignment.updateSettings('<course>', '<assignments>', {
+    enableResetAssignmentByStudent: false,
+    startTime: null,
+    endTime: new Date('2022-05-10T23:59:59+01:00'),
+    penalties: [
+      {
+        id: 1,
+        message: "Too Late!",
+        percent: 10,
+        datetime: new Date('2022-05-09T23:59:59+01:00'),
+      }
+    ]
+  }))
 ```

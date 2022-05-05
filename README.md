@@ -220,14 +220,15 @@ you need to specify
 
 ```
 
-## Update Assignment Settings
-This method allow to update assignment settings.
-You need to specify
+## Get Assignment Settings
 `courseId : string` - course id,
-`assignmentId : string` - assignment id ,
-`settings: AssignmentSettings` - Settings, missed properties won't be updated
+`assignmentId : string` - assignment id,
 
-Example of possible values:
+returns `AssignmentSettings` - Settings, missed properties won't be updated
+```javascript
+  const settings = await codio.assignment.getSettings('<course>', '<assignments>')
+```
+
 ```javascript
 type AssignmentSettings = {
   enableResetAssignmentByStudent?: boolean
@@ -247,6 +248,14 @@ type Penalty = {
   message: string
 }
 ```
+
+## Update Assignment Settings
+This method allow to update assignment settings.
+You need to specify
+`courseId : string` - course id,
+`assignmentId : string` - assignment id ,
+`settings: AssignmentSettings` - Settings, missed properties won't be updated
+
 
 
 Example: 

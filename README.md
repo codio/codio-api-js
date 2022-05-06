@@ -125,7 +125,7 @@ Module = {
 return
 
 ```
-  await codio.v1.course.findOneByName(courseName)
+  await codio.v1.course.findOneByName(courseName, withHiddenAssignments)
 ```
 return `CourseWithModules` object
 ```

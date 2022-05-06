@@ -64,7 +64,7 @@ export async function info(courseId: string): Promise<Module[]> {
   }
 }
 
-export async function findOneByName(courseName: string): Promise<CourseWithModules> {
+export async function findOneByName(courseName: string, withHiddenAssignments: boolean | undefined): Promise<CourseWithModules> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -73,7 +73,10 @@ export async function findOneByName(courseName: string): Promise<CourseWithModul
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
-    const params = {name: courseName}
+    const params = {
+      name: courseName,
+      withHiddenAssignments: withHiddenAssignments ? 'true' : 'false'
+    }
     const urlParams = new URLSearchParams(params)
     return getJson(`${getApiV1Url()}/courses?${urlParams.toString()}`, undefined, authHeaders)
   } catch (error: any) {

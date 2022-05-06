@@ -219,6 +219,7 @@ function toRawSettings(settings: AssignmentSettings): AssignmentSettingsRaw {
   }
   if (settings.penalties !== undefined) {
     res.penalties = _.map(settings.penalties, _ => {
+      validatePenalty(_)
       return {
         id: _.id,
         datetime: _.datetime.toISOString(),
@@ -228,6 +229,24 @@ function toRawSettings(settings: AssignmentSettings): AssignmentSettingsRaw {
     })
   }
   return res
+}
+
+function validatePenalty(penalty: Penalty) {
+  if (!_.isNumber(penalty.id) || !_.isFinite(penalty.id)) {
+    throw new Error("penalty id must be a number and present")
+  }
+
+  if (!_.isString(penalty.message)) {
+    throw new Error("penalty message must be a string and present")
+  }
+
+  if (!_.isNumber(penalty.percent) || penalty.percent < 0 || penalty.percent > 100) {
+    throw new Error("penalty percent must be a number between 0 qand 100")
+  }
+
+  if (!_.isDate(penalty.datetime)) {
+    throw new Error("penalty date must be a Date object")
+  }
 }
 
 export async function updateSettings(courseId: string, assignmentId: string, settings: AssignmentSettings): Promise<AssignmentSettings> {

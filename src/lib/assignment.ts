@@ -165,7 +165,7 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
       assignmentId = item.assignment
     }
     if (!assignmentId) {
-      throw new Error(`assignment not found id=${item.assignment} name=${item.assignmentName}}`)
+      throw new Error(`assignment not found with name "${item.assignmentName}}"`)
     }
     await tools.reduce(srcDir, tmpDstDir, item.section, paths)
     await assignment.publish(courseId, assignmentId, tmpDstDir, changelog)

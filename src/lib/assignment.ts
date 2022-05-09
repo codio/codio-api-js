@@ -237,7 +237,7 @@ function validatePenalty(penalty: Penalty) {
   }
 
   if (_.isNumber(penalty.percent) && penalty.percent >= 0 || penalty.percent <= 100) {
-    throw new Error("penalty percent must be a number between 0 qand 100")
+    throw new Error("penalty percent must be a number between 0 and 100")
   }
 
   if (!_.isDate(penalty.datetime)) {

@@ -274,3 +274,13 @@ Example:
     ]
   }))
 ```
+
+### Timezones:
+
+We recommend using [Luxon](https://moment.github.io/luxon/) to deal with time zones.
+```javascript
+const { DateTime } = require('luxon')
+
+DateTime.fromISO('2022-05-09T23:59:59').toJSDate() // to use local timezone
+DateTime.fromISO('2022-05-09T23:59:59', { zone: 'EST' }).toJSDate() // to use other timezone
+```

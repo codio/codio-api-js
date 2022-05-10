@@ -236,7 +236,7 @@ function validatePenalty(penalty: Penalty) {
     throw new Error("penalty id must be a number and present")
   }
 
-  if (_.isNumber(penalty.percent) && penalty.percent >= 0 || penalty.percent <= 100) {
+  if (_.isNumber(penalty.percent) && (penalty.percent < 0 || penalty.percent > 100)) {
     throw new Error("penalty percent must be a number between 0 and 100")
   }
 

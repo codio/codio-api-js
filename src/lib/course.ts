@@ -3,7 +3,7 @@ import https from 'https'
 import fs from 'fs'
 
 import config from './config'
-import { secondsToDate } from './tools'
+import { getApiV1Url, secondsToDate } from './tools'
 
 
 const getJson = bent('json')
@@ -26,10 +26,6 @@ export type StudentProgress = {
   grade: number
   status: string
   completion_date: Date
-}
-
-function getApiV1Url(): string {
-  return `https://octopus.${config.getDomain()}/api/v1`
 }
 
 export async function info(courseId: string): Promise<Course> {
@@ -245,28 +241,6 @@ export async function exportAssessmentData(courseId: string, assignmentIds: stri
   }
 }
 
-export async function updateAssignmentSettings(courseId: string, assignmentId:string, jsonFilePath:string): Promise<void> {
-  if (!config) {
-    throw new Error('No Config')
-  }
-  try {
-    const token = config.getToken()
-    const authHeaders = {'Authorization': `Bearer ${token}`}
-    const jsonString = await fs.promises.readFile(jsonFilePath, {encoding: 'utf8'})
-    const jsonParams = JSON.parse(jsonString)
-    const api = bent(`${getApiV1Url()}`, 'POST', 'json', 200)
-    const result = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
-        jsonParams, authHeaders)
-    console.log(result)
-  } catch (error) {
-    if (error.json) {
-      const message = JSON.stringify(await error.json())
-      throw new Error(message)
-    }
-    throw error
-  }
-}
-
 const course = {
   assignmentStudentsProgress,
   info,
@@ -278,7 +252,6 @@ const course = {
   downloadStudentCSV,
   downloadAssignmentCSV,
   downloadAssessmentData,
-  updateAssignmentSettings
 }
 
 export default course

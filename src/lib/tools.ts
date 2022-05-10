@@ -5,6 +5,7 @@ import copy from 'recursive-copy'
 import {excludePaths} from './config'
 import tar from 'tar'
 import { ZSTDCompress } from 'simple-zstd'
+import config from './config'
 
 
 async function copyStripped(srcDir: string, bookStripped: any, metadataStriped: any, dstDir: string, paths: string[]): Promise<void> {
@@ -156,6 +157,10 @@ export function secondsToDate(seconds: number): Date {
   const t = new Date(1970, 0, 1) // Epoch
   t.setUTCSeconds(seconds)
   return t
+}
+
+export function getApiV1Url(): string {
+  return `https://octopus.${config.getDomain()}/api/v1`
 }
 
 const tools = {

@@ -1,6 +1,7 @@
 import bent from 'bent'
 import https from 'https'
 import fs from 'fs'
+import _ from 'lodash'
 
 import config from './config'
 import { getApiV1Url, secondsToDate } from './tools'
@@ -23,6 +24,7 @@ export type Course = {
   id: string
   name: string
   modules: Module[]
+  assignments: Assignment[]
 }
 
 export type StudentProgress = {
@@ -32,6 +34,10 @@ export type StudentProgress = {
   grade: number
   status: string
   completion_date: Date
+}
+
+function flattenAsignments(course: Course) {
+  course.assignments = _.flatten(_.map(course.modules, 'assignments'))
 }
 
 export async function info(courseId: string): Promise<Course> {
@@ -44,7 +50,9 @@ export async function info(courseId: string): Promise<Course> {
       'Authorization': `Bearer ${token}`
     }
 
-    return getJson(`${getApiV1Url()}/courses/${courseId}`, undefined, authHeaders)
+    const course: Course = await getJson(`${getApiV1Url()}/courses/${courseId}`, undefined, authHeaders)
+    flattenAsignments(course)
+    return course
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -68,7 +76,9 @@ export async function findByName(courseName: string, withHiddenAssignments: bool
       withHiddenAssignments: withHiddenAssignments ? 'true' : 'false'
     }
     const urlParams = new URLSearchParams(params)
-    return getJson(`${getApiV1Url()}/courses?${urlParams.toString()}`, undefined, authHeaders)
+    const course = await getJson(`${getApiV1Url()}/courses?${urlParams.toString()}`, undefined, authHeaders)
+    flattenAsignments(course)
+    return course
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())

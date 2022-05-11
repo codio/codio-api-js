@@ -54,7 +54,7 @@ export async function info(courseId: string): Promise<Course> {
   }
 }
 
-export async function findOneByName(courseName: string, withHiddenAssignments: boolean | undefined): Promise<Course> {
+export async function findByName(courseName: string, withHiddenAssignments: boolean | undefined): Promise<Course> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -305,7 +305,7 @@ const course = {
   downloadAssignmentCSV,
   downloadAssessmentData,
   updateAssignmentSettings,
-  findOneByName
+  findByName
 }
 
 export default course

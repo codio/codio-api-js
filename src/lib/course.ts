@@ -3,7 +3,7 @@ import https from 'https'
 import fs from 'fs'
 
 import config from './config'
-import { secondsToDate } from './tools'
+import { getApiV1Url, secondsToDate } from './tools'
 
 
 const getJson = bent('json')

@@ -281,28 +281,6 @@ export async function exportAssessmentData(courseId: string, assignmentIds: stri
   }
 }
 
-export async function updateAssignmentSettings(courseId: string, assignmentId:string, jsonFilePath:string): Promise<void> {
-  if (!config) {
-    throw new Error('No Config')
-  }
-  try {
-    const token = config.getToken()
-    const authHeaders = {'Authorization': `Bearer ${token}`}
-    const jsonString = await fs.promises.readFile(jsonFilePath, {encoding: 'utf8'})
-    const jsonParams = JSON.parse(jsonString)
-    const api = bent(`${getApiV1Url()}`, 'POST', 'json', 200)
-    const result = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
-        jsonParams, authHeaders)
-    console.log(result)
-  } catch (error: any) {
-    if (error.json) {
-      const message = JSON.stringify(await error.json())
-      throw new Error(message)
-    }
-    throw error
-  }
-}
-
 const course = {
   assignmentStudentsProgress,
   info,
@@ -314,7 +292,6 @@ const course = {
   downloadStudentCSV,
   downloadAssignmentCSV,
   downloadAssessmentData,
-  updateAssignmentSettings,
   findByName
 }
 

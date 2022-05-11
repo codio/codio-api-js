@@ -8,7 +8,7 @@ import YAML from 'yaml'
 import tools, { getApiV1Url } from './tools'
 import config, { excludePaths } from './config'
 import _ from 'lodash'
-import {Module} from './course'
+import { Course } from './course'
 
 type YamlRaw = {
   assignment: string | undefined
@@ -175,8 +175,9 @@ async function loadYaml(yamlDir: string): Promise<Yaml[]> {
   return validityState(res)
 }
 
-async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string, courseModules: undefined | Module[]): Promise<void> {
+async function reducePublish(course: string | Course, srcDir: string, yamlDir: string, changelog: string): Promise<void> {
   const ymlCfg = await loadYaml(yamlDir)
+  const courseId = typeof course === 'string' ? course : course.id
   for(const item of ymlCfg) {
     console.log(`publishing ${JSON.stringify(item)}`)
     const tmpDstDir = fs.mkdtempSync('/tmp/publish_codio_reduce')
@@ -185,8 +186,8 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
     paths.push(`!${yamlDir}/**`) // exclude yaml directory from export
     
     let assignmentId
-    if (item.assignmentName && courseModules !== undefined) {
-      for (const module of courseModules) {
+    if (item.assignmentName && typeof course !== 'string') {
+      for (const module of course.modules) {
         for (const assignment of module.assignments) {
           if (assignment.name === item.assignmentName) {
             if (assignmentId) {

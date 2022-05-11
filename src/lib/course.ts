@@ -22,12 +22,6 @@ export type Module = {
 export type Course = {
   id: string
   name: string
-  assignments: Assignment[]
-}
-
-export type CourseWithModules = {
-  id: string,
-  name: string,
   modules: Module[]
 }
 
@@ -40,11 +34,7 @@ export type StudentProgress = {
   completion_date: Date
 }
 
-function getApiV1Url(): string {
-  return `https://octopus.${config.getDomain()}/api/v1`
-}
-
-export async function info(courseId: string): Promise<Module[]> {
+export async function info(courseId: string): Promise<Course> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -64,7 +54,7 @@ export async function info(courseId: string): Promise<Module[]> {
   }
 }
 
-export async function findOneByName(courseName: string, withHiddenAssignments: boolean | undefined): Promise<CourseWithModules> {
+export async function findOneByName(courseName: string, withHiddenAssignments: boolean | undefined): Promise<Course> {
   if (!config) {
     throw new Error('No Config')
   }

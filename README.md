@@ -107,15 +107,20 @@ return
 ```
   await codio.v1.course.info(courseId)
 ```
-return `Module[]` object
+return `Course` object
 ```
-Module = {
-  id: string
-  name: string
-  assignments: Assignment[] 
+Course = {
+  id: string,
+  name: string,
+  modules: Module[]
 }
- Assignment = {
-  id: string
+Module = {
+  id: string,
+  name: string,
+  assignments: Assignment[]
+}
+Assignment = {
+  id: string,
   name: string
 }
 ```
@@ -125,11 +130,11 @@ Module = {
 return
 
 ```
-  await codio.v1.course.findOneByName(courseName, withHiddenAssignments)
+  await codio.v1.course.findByName(courseName, withHiddenAssignments)
 ```
-return `CourseWithModules` object
+return `Course` object
 ```
-CourseWithModules = {
+Course = {
   id: string,
   name: string,
   modules: Module[]

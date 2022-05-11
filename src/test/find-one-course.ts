@@ -16,16 +16,16 @@ const main = async () => {
         console.log('authed', authRes)
         const courseInfo = await codio.v1.course.info(courseId)
         console.log('course by id', courseInfo)
-        for (const unit of courseInfo) {
+        for (const unit of courseInfo.modules) {
             console.log('unit', unit.id, unit.name)
             for (const assignment of unit.assignments) {
                 console.log('assignment', assignment.id, assignment.name)
             }
         }
 
-        const courseWithUnits = await codio.v1.course.findOneByName(courseName, true)
-        console.log('course by name', courseWithUnits)
-        for (const unit of courseWithUnits.modules) {
+        const courseInfoByName = await codio.v1.course.findOneByName(courseName, true)
+        console.log('course by name', courseInfoByName)
+        for (const unit of courseInfoByName.modules) {
             console.log('unit', unit.id, unit.name)
             for (const assignment of unit.assignments) {
                 console.log('assignment', assignment.id, assignment.name)

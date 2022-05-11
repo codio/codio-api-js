@@ -36,7 +36,7 @@ export type StudentProgress = {
   completion_date: Date
 }
 
-function flattenAsignments(course: Course) {
+function flattenAssignments(course: Course) {
   course.assignments = _.flatten(_.map(course.modules, 'assignments'))
 }
 
@@ -51,7 +51,7 @@ export async function info(courseId: string): Promise<Course> {
     }
 
     const course: Course = await getJson(`${getApiV1Url()}/courses/${courseId}`, undefined, authHeaders)
-    flattenAsignments(course)
+    flattenAssignments(course)
     return course
   } catch (error: any) {
     if (error.json) {
@@ -77,7 +77,7 @@ export async function findByName(courseName: string, withHiddenAssignments: bool
     }
     const urlParams = new URLSearchParams(params)
     const course = await getJson(`${getApiV1Url()}/courses?${urlParams.toString()}`, undefined, authHeaders)
-    flattenAsignments(course)
+    flattenAssignments(course)
     return course
   } catch (error: any) {
     if (error.json) {

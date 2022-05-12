@@ -8,7 +8,7 @@ import YAML from 'yaml'
 import tools, { getApiV1Url } from './tools'
 import config, { excludePaths } from './config'
 import _ from 'lodash'
-import { Course, info } from './course'
+import { info } from './course'
 
 type YamlRaw = {
   assignment: string | undefined

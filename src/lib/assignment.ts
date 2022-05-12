@@ -184,7 +184,7 @@ async function findNames(courseId: string, ymlCfg: Yaml[]) {
   const course = await info(courseId)
 
   for(const item of ymlCfg) {
-    if (item.assignmentName) {
+    if (!item.assignment && item.assignmentName) { // make id higher priority
       const assignments = _.filter(course.assignments, {name: item.assignmentName})
       if (assignments.length == 0) {
         throw new Error(`no assignments in course with name ${item.assignmentName} is found`)

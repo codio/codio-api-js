@@ -112,7 +112,8 @@ return `Course` object
 Course = {
   id: string,
   name: string,
-  modules: Module[]
+  modules: Module[],
+  assignments: Assignment[]
 }
 Module = {
   id: string,
@@ -137,7 +138,8 @@ return `Course` object
 Course = {
   id: string,
   name: string,
-  modules: Module[]
+  modules: Module[],
+  assignments: Assignment[]
 }
 Module = {
   id: string,

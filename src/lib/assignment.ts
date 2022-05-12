@@ -161,6 +161,35 @@ function validityState(ymls: YamlRaw[]): Yaml[] {
   return Array.from(map.values())
 }
 
+// after find names should regroup assignments by id
+function validateYmlCfg(ymls: Yaml[]): Yaml[] {
+  const map: Map<string, Yaml> = new Map()
+  for (const yml of ymls) {
+    const section = yml.section
+    const assignmentId = yml.assignment
+    if (assignmentId === undefined) {
+      throw new Error('assignment does not exist')
+    }
+    if (map.has(assignmentId)) {
+      const item = map.get(assignmentId)
+      if (!item) {
+        continue
+      }
+      item.section = item.section.concat(section)
+      item.paths = item.paths.concat(yml.paths || [])
+    } else {
+      map.set(assignmentId, {
+        assignment: yml.assignment,
+        assignmentName: yml.assignmentName,
+        paths: yml.paths || [],
+        section: section
+      })
+    }
+  }
+
+  return Array.from(map.values())
+}
+
 async function loadYaml(yamlDir: string): Promise<Yaml[]> {
   let res: YamlRaw[] = []
   const files = await glob('*.+(yml|yaml)', {cwd: yamlDir, nodir: true})
@@ -198,9 +227,10 @@ async function findNames(courseId: string, ymlCfg: Yaml[]) {
 }
 
 async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string): Promise<void> {
-  const ymlCfg = await loadYaml(yamlDir)
+  let ymlCfg = await loadYaml(yamlDir)
   
   await findNames(courseId, ymlCfg)
+  ymlCfg = validateYmlCfg(ymlCfg)
 
   for(const item of ymlCfg) {
     console.log(`publishing ${JSON.stringify(item)}`)

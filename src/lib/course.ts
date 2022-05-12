@@ -40,7 +40,7 @@ function flattenAssignments(course: Course) {
   course.assignments = _.flatten(_.map(course.modules, 'assignments'))
 }
 
-export async function info(courseId: string): Promise<Course> {
+export async function info(courseId: string, withHiddenAssignments = true): Promise<Course> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -49,8 +49,13 @@ export async function info(courseId: string): Promise<Course> {
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
+    
+    const params = {
+      withHiddenAssignments: withHiddenAssignments ? 'true' : 'false'
+    }
+    const urlParams = new URLSearchParams(params)
 
-    const course: Course = await getJson(`${getApiV1Url()}/courses/${courseId}`, undefined, authHeaders)
+    const course: Course = await getJson(`${getApiV1Url()}/courses/${courseId}?${urlParams.toString()}`, undefined, authHeaders)
     flattenAssignments(course)
     return course
   } catch (error: any) {

@@ -1,6 +1,7 @@
 import bent from 'bent'
 import https from 'https'
 import fs from 'fs'
+import _ from 'lodash'
 
 import config from './config'
 import { getApiV1Url, secondsToDate } from './tools'
@@ -23,6 +24,7 @@ export type Course = {
   id: string
   name: string
   modules: Module[]
+  assignments: Assignment[]
 }
 
 export type StudentProgress = {
@@ -32,6 +34,10 @@ export type StudentProgress = {
   grade: number
   status: string
   completion_date: Date
+}
+
+function flattenAssignments(course: Course) {
+  course.assignments = _.flatten(_.map(course.modules, 'assignments'))
 }
 
 export async function info(courseId: string): Promise<Course> {
@@ -44,7 +50,9 @@ export async function info(courseId: string): Promise<Course> {
       'Authorization': `Bearer ${token}`
     }
 
-    return getJson(`${getApiV1Url()}/courses/${courseId}`, undefined, authHeaders)
+    const course: Course = await getJson(`${getApiV1Url()}/courses/${courseId}`, undefined, authHeaders)
+    flattenAssignments(course)
+    return course
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -68,7 +76,9 @@ export async function findByName(courseName: string, withHiddenAssignments: bool
       withHiddenAssignments: withHiddenAssignments ? 'true' : 'false'
     }
     const urlParams = new URLSearchParams(params)
-    return getJson(`${getApiV1Url()}/courses?${urlParams.toString()}`, undefined, authHeaders)
+    const course = await getJson(`${getApiV1Url()}/courses?${urlParams.toString()}`, undefined, authHeaders)
+    flattenAssignments(course)
+    return course
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -271,28 +281,6 @@ export async function exportAssessmentData(courseId: string, assignmentIds: stri
   }
 }
 
-export async function updateAssignmentSettings(courseId: string, assignmentId:string, jsonFilePath:string): Promise<void> {
-  if (!config) {
-    throw new Error('No Config')
-  }
-  try {
-    const token = config.getToken()
-    const authHeaders = {'Authorization': `Bearer ${token}`}
-    const jsonString = await fs.promises.readFile(jsonFilePath, {encoding: 'utf8'})
-    const jsonParams = JSON.parse(jsonString)
-    const api = bent(`${getApiV1Url()}`, 'POST', 'json', 200)
-    const result = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
-        jsonParams, authHeaders)
-    console.log(result)
-  } catch (error: any) {
-    if (error.json) {
-      const message = JSON.stringify(await error.json())
-      throw new Error(message)
-    }
-    throw error
-  }
-}
-
 const course = {
   assignmentStudentsProgress,
   info,
@@ -304,7 +292,6 @@ const course = {
   downloadStudentCSV,
   downloadAssignmentCSV,
   downloadAssessmentData,
-  updateAssignmentSettings,
   findByName
 }
 

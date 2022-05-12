@@ -8,7 +8,7 @@ import YAML from 'yaml'
 import tools, { getApiV1Url } from './tools'
 import config, { excludePaths } from './config'
 import _ from 'lodash'
-import { Course } from './course'
+import { Course, info } from './course'
 
 type YamlRaw = {
   assignment: string | undefined
@@ -176,37 +176,44 @@ async function loadYaml(yamlDir: string): Promise<Yaml[]> {
   return validityState(res)
 }
 
-async function reducePublish(course: string | Course, srcDir: string, yamlDir: string, changelog: string): Promise<void> {
+async function findNames(courseId: string, ymlCfg: Yaml[]) {
+  const usesNames = _(ymlCfg).map('assignmentName').compact().size() > 0
+  if (!usesNames) {
+    return
+  }
+  const course = await info(courseId)
+
+  for(const item of ymlCfg) {
+    if (item.assignmentName) {
+      const assignments = _.filter(course.assignments, {name: item.assignmentName})
+      if (assignments.length == 0) {
+        throw new Error(`no assignments in course with name ${item.assignmentName} is found`)
+      }
+      if (assignments.length > 1) {
+        throw new Error(`many assignments in course with same name ${item.assignmentName}`)
+      }
+      item.assignment = assignments[0].id
+    }
+  }
+}
+
+async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string): Promise<void> {
   const ymlCfg = await loadYaml(yamlDir)
-  const courseId = typeof course === 'string' ? course : course.id
+  
+  await findNames(courseId, ymlCfg)
+
   for(const item of ymlCfg) {
     console.log(`publishing ${JSON.stringify(item)}`)
     const tmpDstDir = fs.mkdtempSync('/tmp/publish_codio_reduce')
     const paths = item.paths || []
     paths.push(`!${yamlDir}`) // exclude yaml directory from export
     paths.push(`!${yamlDir}/**`) // exclude yaml directory from export
-    
-    let assignmentId
-    if (item.assignmentName && typeof course !== 'string') {
-      for (const module of course.modules) {
-        for (const assignment of module.assignments) {
-          if (assignment.name === item.assignmentName) {
-            if (assignmentId) {
-              throw new Error(`many assignments in course with same name ${item.assignmentName}`)
-            } else {
-              assignmentId = assignment.id
-            }
-          }
-        }
-      }
-    } else {
-      assignmentId = item.assignment
-    }
-    if (!assignmentId) {
+
+    if (!item.assignment) {
       throw new Error(`assignment not found with name "${item.assignmentName}}"`)
     }
     await tools.reduce(srcDir, tmpDstDir, item.section, paths)
-    await assignment.publish(courseId, assignmentId, tmpDstDir, changelog)
+    await assignment.publish(courseId, item.assignment, tmpDstDir, changelog)
     fs.rmdirSync(tmpDstDir, {recursive: true})
   }
 }

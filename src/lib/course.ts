@@ -1,6 +1,7 @@
 import bent from 'bent'
 import https from 'https'
 import fs from 'fs'
+import _ from 'lodash'
 
 import config from './config'
 import { getApiV1Url, secondsToDate } from './tools'
@@ -13,9 +14,16 @@ export type Assignment = {
   name: string
 }
 
+export type Module = {
+  id: string,
+  name: string,
+  assignments: Assignment[]
+}
+
 export type Course = {
   id: string
   name: string
+  modules: Module[]
   assignments: Assignment[]
 }
 
@@ -28,7 +36,11 @@ export type StudentProgress = {
   completion_date: Date
 }
 
-export async function info(courseId: string): Promise<Course> {
+function flattenAssignments(course: Course) {
+  course.assignments = _.flatten(_.map(course.modules, 'assignments'))
+}
+
+export async function info(courseId: string, withHiddenAssignments = true): Promise<Course> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -37,9 +49,42 @@ export async function info(courseId: string): Promise<Course> {
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
+    
+    const params = {
+      withHiddenAssignments: withHiddenAssignments ? 'true' : 'false'
+    }
+    const urlParams = new URLSearchParams(params)
 
-    return getJson(`${getApiV1Url()}/courses/${courseId}`, undefined, authHeaders)
-  } catch (error) {
+    const course: Course = await getJson(`${getApiV1Url()}/courses/${courseId}?${urlParams.toString()}`, undefined, authHeaders)
+    flattenAssignments(course)
+    return course
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function findByName(courseName: string, withHiddenAssignments: boolean | undefined): Promise<Course> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const token = config.getToken()
+    const authHeaders = {
+      'Authorization': `Bearer ${token}`
+    }
+    const params = {
+      name: courseName,
+      withHiddenAssignments: withHiddenAssignments ? 'true' : 'false'
+    }
+    const urlParams = new URLSearchParams(params)
+    const course = await getJson(`${getApiV1Url()}/courses?${urlParams.toString()}`, undefined, authHeaders)
+    flattenAssignments(course)
+    return course
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -64,7 +109,7 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
       }
     }
     return res
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -92,7 +137,7 @@ export async function waitDownloadTask(taskUrl: string): Promise<string> {
       throw new Error(`Task ${archive.taskId} failed with an error`)
     }
     return archive.url
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -117,7 +162,7 @@ export async function exportStudentAssignment(courseId: string, assignmentId: st
       throw new Error('task Url not found')
     }
     return await waitDownloadTask(taskUrl)
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -181,7 +226,7 @@ export async function exportStudentCSV(courseId: string, studentId: string): Pro
         undefined,
         authHeaders
     )
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -204,7 +249,7 @@ export async function exportAssignmentCSV(courseId: string, assignmentId: string
         undefined,
         authHeaders
     )
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -232,7 +277,7 @@ export async function exportAssessmentData(courseId: string, assignmentIds: stri
       throw new Error('task Url not found')
     }
     return await waitDownloadTask(taskUrl)
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -252,6 +297,7 @@ const course = {
   downloadStudentCSV,
   downloadAssignmentCSV,
   downloadAssessmentData,
+  findByName
 }
 
 export default course

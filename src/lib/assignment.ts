@@ -8,15 +8,18 @@ import YAML from 'yaml'
 import tools, { getApiV1Url } from './tools'
 import config, { excludePaths } from './config'
 import _ from 'lodash'
+import { info } from './course'
 
 type YamlRaw = {
-  assignment: string
+  assignment: string | undefined
+  assignmentName: string | undefined
   paths: string[] | undefined
   section: string | string[]
 }
 
 type Yaml = {
-  assignment: string
+  assignment: string | undefined
+  assignmentName: string | undefined
   paths: string[]
   section: string[][]
 }
@@ -90,11 +93,12 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
   }
   try {
     const token = config.getToken()
+    const domain = config.getDomain()
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
 
-    const api = bent(getApiV1Url(), 'POST', 'json', 200)
+    const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)
 
     const postData = new FormData()
     postData.append('changelog', changelog)
@@ -120,7 +124,7 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
         break
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -132,19 +136,57 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
 function validityState(ymls: YamlRaw[]): Yaml[] {
   const map: Map<string, Yaml> = new Map()
   for(const yml of ymls) {
+    if (!yml.section) {
+      console.error(`Warning: ${yml.assignment || yml.assignmentName} is empty. skipped`)
+      continue
+    }
     const section = _.isString(yml.section)? [yml.section] : yml.section
-    if (map.has(yml.assignment)) {
-      const item = map.get(yml.assignment)
+    const assignmentId = yml.assignment || yml.assignmentName
+    if (assignmentId === undefined) {
+      throw new Error('assignment and assignmentName does not exist')
+    }
+    if (map.has(assignmentId)) {
+      const item = map.get(assignmentId)
       if (!item) {
         continue
       }
       item.section.push(section)
       item.paths = item.paths.concat(yml.paths || [])
     } else {
-      map.set(yml.assignment, {
+      map.set(assignmentId, {
         assignment: yml.assignment,
+        assignmentName: yml.assignmentName,
         paths: yml.paths || [],
         section: [section]
+      })
+    }
+  }
+
+  return Array.from(map.values())
+}
+
+// after find names should regroup assignments by id
+function validateYmlCfg(ymls: Yaml[]): Yaml[] {
+  const map: Map<string, Yaml> = new Map()
+  for (const yml of ymls) {
+    const section = yml.section
+    const assignmentId = yml.assignment
+    if (assignmentId === undefined) {
+      throw new Error('assignment does not exist')
+    }
+    if (map.has(assignmentId)) {
+      const item = map.get(assignmentId)
+      if (!item) {
+        continue
+      }
+      item.section = item.section.concat(section)
+      item.paths = item.paths.concat(yml.paths || [])
+    } else {
+      map.set(assignmentId, {
+        assignment: yml.assignment,
+        assignmentName: yml.assignmentName,
+        paths: yml.paths || [],
+        section: section
       })
     }
   }
@@ -167,15 +209,44 @@ async function loadYaml(yamlDir: string): Promise<Yaml[]> {
   return validityState(res)
 }
 
+async function findNames(courseId: string, ymlCfg: Yaml[]) {
+  const usesNames = _(ymlCfg).map('assignmentName').compact().size() > 0
+  if (!usesNames) {
+    return
+  }
+  const course = await info(courseId)
+
+  for(const item of ymlCfg) {
+    if (!item.assignment && item.assignmentName) { // make id higher priority
+      const assignments = _.filter(course.assignments, {name: item.assignmentName})
+      if (assignments.length == 0) {
+        throw new Error(`no assignments in course with name ${item.assignmentName} is found`)
+      }
+      if (assignments.length > 1) {
+        throw new Error(`many assignments in course with same name ${item.assignmentName}`)
+      }
+      item.assignment = assignments[0].id
+    }
+  }
+}
+
 async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string): Promise<void> {
-  const ymlCfg = await loadYaml(yamlDir)
+  let ymlCfg = await loadYaml(yamlDir)
+  
+  await findNames(courseId, ymlCfg)
+  ymlCfg = validateYmlCfg(ymlCfg)
+
   for(const item of ymlCfg) {
     console.log(`publishing ${JSON.stringify(item)}`)
     const tmpDstDir = fs.mkdtempSync('/tmp/publish_codio_reduce')
     const paths = item.paths || []
     paths.push(`!${yamlDir}`) // exclude yaml directory from export
     paths.push(`!${yamlDir}/**`) // exclude yaml directory from export
-    await tools.reduce(srcDir, tmpDstDir, item.section, paths)
+
+    if (!item.assignment) {
+      throw new Error(`assignment not found with name "${item.assignmentName}}"`)
+    }
+    await tools.reduce(srcDir, tmpDstDir, item.section, _.compact(paths))
     await assignment.publish(courseId, item.assignment, tmpDstDir, changelog)
     fs.rmdirSync(tmpDstDir, {recursive: true})
   }

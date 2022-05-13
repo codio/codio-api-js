@@ -35,7 +35,7 @@ async function listLibraries(): Promise<Library[]> {
       })
     }
     return libraries
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -116,7 +116,7 @@ async function _publishAssessment(libraryId: string, assessment: Assessment, isN
     const assessmentId = isNew ? '' : `/${assessment.assessmentId}`
     await updateJSON(assessment, base)
     await api(`/api/v1/assessment_library/${libraryId}/assessment${assessmentId}`, postData, headers)
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       console.log(message)
@@ -194,8 +194,8 @@ async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
       const item = parse(json, metadataPages)
       item.basePath = dir
       res.push(item)
-    } catch (_) {
-      console.log(`Skipping assessment ${_.message}`)
+    } catch (error: any) {
+      console.log(`Skipping assessment ${error.message}`)
     }
   }
   console.log(`Assessments found: ${res.length}`)
@@ -210,8 +210,8 @@ async function fromCodioProject(libraryId: string, path: string): Promise<void> 
   for(const _ of assessments) {
     try {
       await _updateOrAdd(libraryId, _, path)
-    } catch(_) {
-      console.error(_.message)
+    } catch(error: any) {
+      console.error(error.message)
     }
   }
 }
@@ -241,7 +241,7 @@ async function find(libraryId: string, tags = new Map()): Promise<Assessment[]> 
       res.push(parseApi(_))
     }
     return res
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)

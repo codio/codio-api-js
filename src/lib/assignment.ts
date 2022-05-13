@@ -136,6 +136,10 @@ async function publishArchive (courseId: string, assignmentId:string, archivePat
 function validityState(ymls: YamlRaw[]): Yaml[] {
   const map: Map<string, Yaml> = new Map()
   for(const yml of ymls) {
+    if (!yml.section) {
+      console.error(`Warning: ${yml.assignment || yml.assignmentName} is empty. skipped`)
+      continue
+    }
     const section = _.isString(yml.section)? [yml.section] : yml.section
     const assignmentId = yml.assignment || yml.assignmentName
     if (assignmentId === undefined) {
@@ -242,7 +246,7 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
     if (!item.assignment) {
       throw new Error(`assignment not found with name "${item.assignmentName}}"`)
     }
-    await tools.reduce(srcDir, tmpDstDir, item.section, paths)
+    await tools.reduce(srcDir, tmpDstDir, item.section, _.compact(paths))
     await assignment.publish(courseId, item.assignment, tmpDstDir, changelog)
     fs.rmdirSync(tmpDstDir, {recursive: true})
   }

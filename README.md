@@ -1,6 +1,6 @@
 # codio-api-js
 ```
-import codio from 'codio-api-js
+import codio from 'codio-api-js'
 
 codio.v1.setDomain('codio.com') // codio.co.uk for UK domain, codio.com is default
 ```

@@ -4,7 +4,7 @@ import fs from 'fs'
 import _ from 'lodash'
 
 import config from './config'
-import { getApiV1Url, secondsToDate } from './tools'
+import { getApiV1Url, secondsToDate, sendApiRequest } from './tools'
 
 
 const getJson = bent('json')
@@ -30,10 +30,20 @@ export type Course = {
 export type StudentProgress = {
   student_id: string
   student_email: string
+  student_name: string
   seconds_spent: number
   grade: number
-  status: string
+  status: 'NOT_STARTED' | 'COMPLETED' | 'STARTED'
   completion_date: Date
+  timeLimitExtension: number | undefined
+  deadlineExtension: number | undefined
+}
+
+export type User = {
+  id: string
+  name: string
+  login: string
+  email: string
 }
 
 function flattenAssignments(course: Course) {
@@ -49,7 +59,7 @@ export async function info(courseId: string, withHiddenAssignments = true): Prom
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
-    
+
     const params = {
       withHiddenAssignments: withHiddenAssignments ? 'true' : 'false'
     }
@@ -150,7 +160,7 @@ export async function exportStudentAssignment(courseId: string, assignmentId: st
   if (!config) {
     throw new Error('No Config')
   }
-  
+
   try {
     const token = config.getToken()
     const authHeaders = {
@@ -286,6 +296,30 @@ export async function exportAssessmentData(courseId: string, assignmentIds: stri
   }
 }
 
+export async function getStudents(courseId: string): Promise<User[]> {
+  try {
+    return await sendApiRequest(`${getApiV1Url()}/courses/${courseId}/students`, undefined)
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function getTeachers(courseId: string): Promise<User[]> {
+  try {
+    return await sendApiRequest(`${getApiV1Url()}/courses/${courseId}/teachers`, undefined)
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
 const course = {
   assignmentStudentsProgress,
   info,
@@ -297,7 +331,9 @@ const course = {
   downloadStudentCSV,
   downloadAssignmentCSV,
   downloadAssessmentData,
-  findByName
+  findByName,
+  getStudents,
+  getTeachers
 }
 
 export default course

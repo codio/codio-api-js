@@ -343,7 +343,7 @@ Example:
 #### Update student related time extensions
 
 
-Tet time limits on a per student basis
+Set time limits on a per student basis
 
 
 ```javascript

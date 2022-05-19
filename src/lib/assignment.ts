@@ -38,7 +38,7 @@ type PenaltyRaw = {
   message: string
 }
 
-type TimeExtension = {
+export type TimeExtension = {
   extendedDeadline: number | undefined
   extendedTimeLimit: number | undefined
 }

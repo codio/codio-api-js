@@ -1,11 +1,14 @@
 import path from 'path'
 import fs from 'fs'
 import _ from 'lodash'
+import bent from 'bent'
 import copy from 'recursive-copy'
 import {excludePaths} from './config'
 import tar from 'tar'
 import { ZSTDCompress } from 'simple-zstd'
 import config from './config'
+
+const getJson = bent('json')
 
 
 async function copyStripped(srcDir: string, bookStripped: any, metadataStriped: any, dstDir: string, paths: string[]): Promise<void> {
@@ -115,9 +118,9 @@ export async function reduce(srcDir: string, dstDir: string, sections: string[][
 }
 
 export function mapToObject(map: Map<string, any>): any {
-  return map.size === 0 ? [] : 
+  return map.size === 0 ? [] :
   Array.from(map).reduce((obj, [key, value]) => (
-    Object.assign(obj, { [key]: value }) 
+    Object.assign(obj, { [key]: value })
   ), {})
 }
 
@@ -163,11 +166,27 @@ export function getApiV1Url(): string {
   return `https://octopus.${config.getDomain()}/api/v1`
 }
 
+export function getBearer() {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  const token = config.getToken()
+  return {
+    'Authorization': `Bearer ${token}`
+  }
+}
+
+export async function sendApiRequest(url, body): Promise<any> {
+  const authHeaders =  getBearer()
+  return getJson(url, body, authHeaders)
+}
+
 const tools = {
   reduce,
   mapToObject,
   createTar,
   secondsToDate,
+  sendApiRequest
 }
 
 export default tools

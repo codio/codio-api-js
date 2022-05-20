@@ -1,6 +1,6 @@
 # codio-api-js
 ```
-import codio from 'codio-api-js
+import codio from 'codio-api-js'
 
 codio.v1.setDomain('codio.com') // codio.co.uk for UK domain, codio.com is default
 ```
@@ -166,6 +166,8 @@ StudentProgress = {
   grade: number
   status: string
   completion_date: Date
+  extendedDeadline: number
+  extendedTimeLimit: number
 }
 ```
 
@@ -192,6 +194,32 @@ you need to specify `course Id : string`, `assignmentId: string`, `studentId: st
   await codio.v1.course.downloadStudentAssignment(courseId, assignmentId, studentId, filePath)
 ```
 downloads file to filePath
+
+#### Course users
+
+Fetch course students excepts test users
+
+```
+  await codio.v1.course.getStudents(courseId)
+```
+returns user `User[]` object
+
+```
+User = {
+  id: string
+  name: string
+  login: string
+  email: string
+}
+```
+
+Fetch course teachers
+
+```
+  await codio.v1.course.getTeachers(courseId)
+```
+returns user `User[]` object
+
 
 #### Export student CSV
 
@@ -309,8 +337,23 @@ Example:
         datetime: new Date('2022-05-09T23:59:59+01:00'),
       }
     ]
-  }))
+  })
 ```
+
+#### Update student related time extensions
+
+
+Set time limits on a per student basis
+
+
+```javascript
+ await codio.assignment.updateStudentTimeExtension(courseId, assignmentId, studentId, {
+  extendedDeadline: minutes
+  extendedTimeLimit: minutes
+})
+```
+
+returns empty object
 
 ### Timezones:
 

@@ -5,7 +5,7 @@ import FormData from 'form-data'
 import tar from 'tar'
 import glob from 'glob-promise'
 import YAML from 'yaml'
-import tools, { getApiV1Url } from './tools'
+import tools, { getApiV1Url, getBearer } from './tools'
 import config, { excludePaths } from './config'
 import _ from 'lodash'
 import { info } from './course'
@@ -38,6 +38,11 @@ type PenaltyRaw = {
   message: string
 }
 
+export type TimeExtension = {
+  extendedDeadline: number | undefined
+  extendedTimeLimit: number | undefined
+}
+
 export type AssignmentSettings = {
   enableResetAssignmentByStudent?: boolean
   disableDownloadByStudent?: boolean
@@ -45,7 +50,7 @@ export type AssignmentSettings = {
   visibilityOnCompleted?: string, // "READ_ONLY_RESUBMIT", "READ_ONLY", "NO_ACCESS",
   startTime?: Date | null,
   endTime?: Date | null,
-  action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE", 
+  action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
   penalties?: Penalty[]
 }
 
@@ -56,7 +61,7 @@ type AssignmentSettingsRaw = {
   visibilityOnCompleted?: string, // "READ_ONLY_RESUBMIT", "READ_ONLY", "NO_ACCESS",
   startTime?: string,
   endTime?: string,
-  action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE", 
+  action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
   penalties?: PenaltyRaw[]
 }
 
@@ -232,7 +237,7 @@ async function findNames(courseId: string, ymlCfg: Yaml[]) {
 
 async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string): Promise<void> {
   let ymlCfg = await loadYaml(yamlDir)
-  
+
   await findNames(courseId, ymlCfg)
   ymlCfg = validateYmlCfg(ymlCfg)
 
@@ -260,7 +265,7 @@ function convertDateToLocal(date: string | undefined): Date | null {
   if (!date) {
     return null
   }
-  
+
  return new Date(date)
 }
 
@@ -284,7 +289,7 @@ function toRawSettings(settings: AssignmentSettings): AssignmentSettingsRaw {
   if (settings.endTime !== undefined) {
     res.endTime = settings.endTime ? settings.endTime.toISOString() : ''
   }
-  
+
   if (settings.action !== undefined) {
     res.action = settings.action
   }
@@ -323,7 +328,7 @@ export async function updateSettings(courseId: string, assignmentId: string, set
   try {
     const token = config.getToken()
     const authHeaders = {'Authorization': `Bearer ${token}`}
-    
+
     const api = bent(getApiV1Url(), 'POST', 'json', 200)
 
     const res = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
@@ -354,6 +359,26 @@ export async function updateSettings(courseId: string, assignmentId: string, set
   }
 }
 
+export async function updateStudentTimeExtension(
+  courseId: string, assignmentId: string, studentId: string, extension: TimeExtension
+): Promise<void> {
+  try {
+    const authHeaders = getBearer()
+
+    const api = bent(getApiV1Url(), 'POST', 'json', 200)
+
+    return await api(
+      `/courses/${courseId}/assignments/${assignmentId}/students/${studentId}`, extension, authHeaders
+    ) as any
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
 const assignment = {
   publish: async (courseId: string, assignmentId: string, projectPath: string, changelog: string): Promise<void> => {
     const {file, dir} = await archiveTar(projectPath)
@@ -364,6 +389,7 @@ const assignment = {
   reducePublish,
   updateSettings,
   getSettings,
+  updateStudentTimeExtension
 }
 
 export default assignment

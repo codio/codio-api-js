@@ -39,8 +39,8 @@ type PenaltyRaw = {
 }
 
 export type TimeExtension = {
-  extendedDeadline: number | undefined
-  extendedTimeLimit: number | undefined
+  extendedDeadline?: number | undefined
+  extendedTimeLimit?: number | undefined
 }
 
 export type AssignmentSettings = {
@@ -52,6 +52,16 @@ export type AssignmentSettings = {
   endTime?: Date | null,
   action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
   penalties?: Penalty[]
+  examMode?: {
+    timedExamMode: { 
+      enabled: boolean
+      duration: number // minutes
+    }
+    shuffleQuestionsOrder: boolean
+    forwardOnlyNavigation: boolean
+    singleLogin: boolean
+    authentication: boolean
+  }
 }
 
 type AssignmentSettingsRaw = {
@@ -63,6 +73,16 @@ type AssignmentSettingsRaw = {
   endTime?: string,
   action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
   penalties?: PenaltyRaw[]
+  examMode?: {
+    timedExamMode: { 
+      enabled: boolean, 
+      duration: number // minutes
+    }
+    shuffleQuestionsOrder: boolean
+    forwardOnlyNavigation: boolean
+    singleLogin: boolean
+    authentication: boolean
+  }
 }
 
 
@@ -257,8 +277,44 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
   }
 }
 
+function fromRawSettings(res: AssignmentSettingsRaw): AssignmentSettings {
+  return {
+    enableResetAssignmentByStudent: res.enableResetAssignmentByStudent,
+    disableDownloadByStudent: res.disableDownloadByStudent,
+    visibilityOnDisabled: res.visibilityOnDisabled,
+    visibilityOnCompleted: res.visibilityOnCompleted,
+    startTime: convertDateToLocal(res.startTime),
+    endTime: convertDateToLocal(res.endTime),
+    action: res.action,
+    examMode: res.examMode,
+    penalties: res.penalties? _.map(res.penalties, _ => {
+      return {
+        id: _.id,
+        datetime: new Date(_.datetime),
+        percent: _.percent,
+        message: _.message,
+      }
+    }) : undefined,
+  }
+}
+
 export async function getSettings(courseId: string, assignmentId:string): Promise<AssignmentSettings> {
-  return updateSettings(courseId, assignmentId, {})
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const api = bent(getApiV1Url(), 'GET', 'json', 200)
+
+    const res = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
+        undefined, getBearer()) as AssignmentSettingsRaw
+    return fromRawSettings(res)
+  } catch (error) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
 }
 
 function convertDateToLocal(date: string | undefined): Date | null {
@@ -293,6 +349,9 @@ function toRawSettings(settings: AssignmentSettings): AssignmentSettingsRaw {
   if (settings.action !== undefined) {
     res.action = settings.action
   }
+  if (settings.examMode !== undefined) {
+    res.examMode = settings.examMode
+  }
   if (settings.penalties !== undefined) {
     res.penalties = _.map(settings.penalties, _ => {
       validatePenalty(_)
@@ -326,30 +385,10 @@ export async function updateSettings(courseId: string, assignmentId: string, set
     throw new Error('No Config')
   }
   try {
-    const token = config.getToken()
-    const authHeaders = {'Authorization': `Bearer ${token}`}
-
     const api = bent(getApiV1Url(), 'POST', 'json', 200)
-
     const res = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
-        toRawSettings(settings), authHeaders) as AssignmentSettingsRaw
-    return {
-      enableResetAssignmentByStudent: res.enableResetAssignmentByStudent,
-      disableDownloadByStudent: res.disableDownloadByStudent,
-      visibilityOnDisabled: res.visibilityOnDisabled,
-      visibilityOnCompleted: res.visibilityOnCompleted,
-      startTime: convertDateToLocal(res.startTime),
-      endTime: convertDateToLocal(res.endTime),
-      action: res.action,
-      penalties: res.penalties? _.map(res.penalties, _ => {
-        return {
-          id: _.id,
-          datetime: new Date(_.datetime),
-          percent: _.percent,
-          message: _.message,
-        }
-      }) : undefined,
-    }
+        toRawSettings(settings), getBearer()) as AssignmentSettingsRaw
+    return fromRawSettings(res)
   } catch (error) {
     if (error.json) {
       const message = JSON.stringify(await error.json())

@@ -17,6 +17,8 @@ async function copyStripped(srcDir: string, bookStripped: any, metadataStriped: 
   paths.push('.codio-menu')
   paths.push('.settings')
   paths.push('!.github/**')
+  paths.push('!.guides/book.json')
+  paths.push('!.guides/metadata.json')
   for(const path of excludePaths) {
     paths.push(`!${path}`)
   }
@@ -28,8 +30,12 @@ async function copyStripped(srcDir: string, bookStripped: any, metadataStriped: 
   const bookJsonPath = path.join(dstDir, '.guides', 'book.json')
   const metadataPath = path.join(dstDir, '.guides', 'metadata.json')
   await fs.promises.mkdir(path.join(srcDir, '.guides'), {recursive: true})
-  await fs.promises.writeFile(bookJsonPath, JSON.stringify(bookStripped, undefined, ' '))
-  await fs.promises.writeFile(metadataPath, JSON.stringify(metadataStriped, undefined, ' '))
+  if (bookStripped.children.length > 0) {
+    await fs.promises.writeFile(bookJsonPath, JSON.stringify(bookStripped, undefined, ' '))
+  }
+  if (metadataStriped.sections.length > 0) {
+    await fs.promises.writeFile(metadataPath, JSON.stringify(metadataStriped, undefined, ' '))
+  }
 }
 
 // case-insensitive search for title
@@ -76,6 +82,9 @@ function getSectionIds(book: any): string[] {
 function stripBook(book: any, sections: string[][]): any {
   const children: any[] = []
   for (const sectionPath of sections ) {
+    if (sectionPath.length === 0) { //skip empty sections
+      continue
+    }
     const section = traverseBook(book, sectionPath)
     if (!section) {
       throw new Error(`${section} not found`)
@@ -104,13 +113,23 @@ function stripMetadata(metadata: any, book: any): string[] {
 }
 
 export async function reduce(srcDir: string, dstDir: string, sections: string[][], paths: string[]): Promise<void> {
-  const bookJsonPath = path.join(srcDir, '.guides', 'book.json')
-  const metadataPath = path.join(srcDir, '.guides', 'metadata.json')
+  let book: any
+  let metadata: any
+  try {
+    const bookJsonPath = path.join(srcDir, '.guides', 'book.json')
+    const bookJson = await fs.promises.readFile(bookJsonPath, { encoding: 'utf-8' })
+    book = JSON.parse(bookJson)
+  } catch (_) {
+    book = {children:[]}
+  }
 
-  const bookJson = await fs.promises.readFile(bookJsonPath, { encoding: 'utf-8' })
-  const book = JSON.parse(bookJson)
-  const metadataJson = await fs.promises.readFile(metadataPath, { encoding: 'utf-8' })
-  const metadata = JSON.parse(metadataJson)
+  try {
+    const metadataPath = path.join(srcDir, '.guides', 'metadata.json')
+    const metadataJson = await fs.promises.readFile(metadataPath, { encoding: 'utf-8' })
+    metadata = JSON.parse(metadataJson)
+  } catch(_) {
+    metadata = {sections:[]}
+  }
 
   const bookStripped = stripBook(book, sections)
   const excludePaths = stripMetadata(metadata, bookStripped)

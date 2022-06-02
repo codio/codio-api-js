@@ -162,8 +162,8 @@ function validityState(ymls: YamlRaw[]): Yaml[] {
   const map: Map<string, Yaml> = new Map()
   for(const yml of ymls) {
     if (!yml.section) {
-      console.error(`Warning: ${yml.assignment || yml.assignmentName} is empty. skipped`)
-      continue
+      console.error(`Warning: ${yml.assignment || yml.assignmentName} is empty`)
+      yml.section = []
     }
     const section = _.isString(yml.section)? [yml.section] : yml.section
     const assignmentId = yml.assignment || yml.assignmentName
@@ -194,7 +194,7 @@ function validityState(ymls: YamlRaw[]): Yaml[] {
 function validateYmlCfg(ymls: Yaml[]): Yaml[] {
   const map: Map<string, Yaml> = new Map()
   for (const yml of ymls) {
-    const section = yml.section
+    const section = yml.section || []
     const assignmentId = yml.assignment
     if (assignmentId === undefined) {
       throw new Error('assignment does not exist')

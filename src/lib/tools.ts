@@ -7,26 +7,41 @@ import {excludePaths} from './config'
 import tar from 'tar'
 import { ZSTDCompress } from 'simple-zstd'
 import config from './config'
+import { PathMap } from './assignment'
 
 const getJson = bent('json')
 
 
-async function copyStripped(srcDir: string, bookStripped: any, metadataStriped: any, dstDir: string, paths: string[]): Promise<void> {
-  paths.push('.guides/**')
-  paths.push('.codio')
-  paths.push('.codio-menu')
-  paths.push('.settings')
-  paths.push('!.github/**')
-  paths.push('!.guides/book.json')
-  paths.push('!.guides/metadata.json')
+async function copyStripped(srcDir: string, bookStripped: any, metadataStriped: any, dstDir: string, paths: (string | PathMap)[]): Promise<void> {
+  const stringPaths =  (_.filter(paths, _ => typeof _ === 'string') as string[])
+  const mapPaths = (_.filter(paths, _ => typeof _ != 'string') as PathMap[])
+  stringPaths.push('.guides/**')
+  stringPaths.push('.codio')
+  stringPaths.push('.codio-menu')
+  stringPaths.push('.settings')
+  stringPaths.push('!.github/**')
+  stringPaths.push('!.guides/book.json')
+  stringPaths.push('!.guides/metadata.json')
   for(const path of excludePaths) {
-    paths.push(`!${path}`)
+    stringPaths.push(`!${path}`)
   }
   await copy(srcDir, dstDir, {
-    filter: paths,
+    filter: stringPaths,
     overwrite: true,
     dot: true
   })
+
+  for( const map of mapPaths) {
+    try {
+      await copy(path.join(srcDir, map.source), path.join(dstDir, map.destination), {
+        overwrite: true,
+        dot: true
+      })  
+    } catch (_) {
+      console.error(_)
+    }
+  }
+
   const bookJsonPath = path.join(dstDir, '.guides', 'book.json')
   const metadataPath = path.join(dstDir, '.guides', 'metadata.json')
   await fs.promises.mkdir(path.join(srcDir, '.guides'), {recursive: true})
@@ -112,7 +127,7 @@ function stripMetadata(metadata: any, book: any): string[] {
   return excludePaths
 }
 
-export async function reduce(srcDir: string, dstDir: string, sections: string[][], paths: string[]): Promise<void> {
+export async function reduce(srcDir: string, dstDir: string, sections: string[][], paths: (string | PathMap)[]): Promise<void> {
   let book: any
   let metadata: any
   try {

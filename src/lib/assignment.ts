@@ -10,17 +10,22 @@ import config, { excludePaths } from './config'
 import _ from 'lodash'
 import { info } from './course'
 
+export type PathMap = {
+  source: string
+  destination: string
+}
+
 type YamlRaw = {
   assignment: string | undefined
   assignmentName: string | undefined
-  paths: string[] | undefined
+  paths: (string | PathMap)[] | undefined 
   section: string | string[]
 }
 
 type Yaml = {
   assignment: string | undefined
   assignmentName: string | undefined
-  paths: string[]
+  paths: (string | PathMap)[]
   section: string[][]
 }
 
@@ -225,6 +230,9 @@ async function loadYaml(yamlDir: string): Promise<Yaml[]> {
   for (const file of files) {
     const ymlText = await fs.promises.readFile(path.join(yamlDir, file), {encoding: 'utf-8'})
     let ymls: YamlRaw[] = YAML.parse(ymlText)
+    if (!ymls) {
+      continue
+    }
     if (!_.isArray(ymls)) {
       ymls = [ymls]
     }

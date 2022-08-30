@@ -296,6 +296,8 @@ returns `AssignmentSettings` - Settings, missed properties won't be updated
 
 ```javascript
 type AssignmentSettings = {
+  isDisabled?: boolean
+  releaseGrades?: boolean
   enableResetAssignmentByStudent?: boolean
   disableDownloadByStudent?: boolean
   visibilityOnDisabled?: string, // "READ_ONLY", "NO_ACCESS",

@@ -18,7 +18,7 @@ export type PathMap = {
 type YamlRaw = {
   assignment: string | undefined
   assignmentName: string | undefined
-  paths: (string | PathMap)[] | undefined 
+  paths: (string | PathMap)[] | undefined
   section: string | string[]
 }
 
@@ -58,7 +58,7 @@ export type AssignmentSettings = {
   action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
   penalties?: Penalty[]
   examMode?: {
-    timedExamMode: { 
+    timedExamMode: {
       enabled: boolean
       duration: number // minutes
     }
@@ -66,7 +66,8 @@ export type AssignmentSettings = {
     forwardOnlyNavigation: boolean
     singleLogin: boolean
     authentication: boolean
-  }
+  },
+  releaseGrades?: boolean
 }
 
 type AssignmentSettingsRaw = {
@@ -79,15 +80,16 @@ type AssignmentSettingsRaw = {
   action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
   penalties?: PenaltyRaw[]
   examMode?: {
-    timedExamMode: { 
-      enabled: boolean, 
+    timedExamMode: {
+      enabled: boolean,
       duration: number // minutes
     }
     shuffleQuestionsOrder: boolean
     forwardOnlyNavigation: boolean
     singleLogin: boolean
     authentication: boolean
-  }
+  },
+  releaseGrades?: boolean
 }
 
 
@@ -295,6 +297,7 @@ function fromRawSettings(res: AssignmentSettingsRaw): AssignmentSettings {
     endTime: convertDateToLocal(res.endTime),
     action: res.action,
     examMode: res.examMode,
+    releaseGrades: res.releaseGrades,
     penalties: res.penalties? _.map(res.penalties, _ => {
       return {
         id: _.id,
@@ -353,12 +356,14 @@ function toRawSettings(settings: AssignmentSettings): AssignmentSettingsRaw {
   if (settings.endTime !== undefined) {
     res.endTime = settings.endTime ? settings.endTime.toISOString() : ''
   }
-
   if (settings.action !== undefined) {
     res.action = settings.action
   }
   if (settings.examMode !== undefined) {
     res.examMode = settings.examMode
+  }
+  if (settings.releaseGrades !== undefined) {
+    res.releaseGrades = settings.releaseGrades
   }
   if (settings.penalties !== undefined) {
     res.penalties = _.map(settings.penalties, _ => {

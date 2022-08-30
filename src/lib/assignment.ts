@@ -67,7 +67,8 @@ export type AssignmentSettings = {
     singleLogin: boolean
     authentication: boolean
   },
-  releaseGrades?: boolean
+  releaseGrades?: boolean,
+  isDisabled?: boolean
 }
 
 type AssignmentSettingsRaw = {
@@ -89,7 +90,8 @@ type AssignmentSettingsRaw = {
     singleLogin: boolean
     authentication: boolean
   },
-  releaseGrades?: boolean
+  releaseGrades?: boolean,
+  isDisabled?: boolean
 }
 
 
@@ -298,6 +300,7 @@ function fromRawSettings(res: AssignmentSettingsRaw): AssignmentSettings {
     action: res.action,
     examMode: res.examMode,
     releaseGrades: res.releaseGrades,
+    isDisabled: res.isDisabled,
     penalties: res.penalties? _.map(res.penalties, _ => {
       return {
         id: _.id,
@@ -364,6 +367,9 @@ function toRawSettings(settings: AssignmentSettings): AssignmentSettingsRaw {
   }
   if (settings.releaseGrades !== undefined) {
     res.releaseGrades = settings.releaseGrades
+  }
+  if (settings.isDisabled !== undefined) {
+    res.isDisabled = settings.isDisabled
   }
   if (settings.penalties !== undefined) {
     res.penalties = _.map(settings.penalties, _ => {

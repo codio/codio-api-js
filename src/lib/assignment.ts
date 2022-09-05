@@ -58,7 +58,7 @@ export type AssignmentSettings = {
   action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
   penalties?: Penalty[]
   examMode?: {
-    timedExamMode: {
+    timedMode: {
       enabled: boolean
       duration: number // minutes
     }
@@ -81,7 +81,7 @@ type AssignmentSettingsRaw = {
   action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
   penalties?: PenaltyRaw[]
   examMode?: {
-    timedExamMode: {
+    timedMode: {
       enabled: boolean,
       duration: number // minutes
     }

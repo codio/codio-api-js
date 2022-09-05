@@ -305,7 +305,17 @@ type AssignmentSettings = {
   startTime?: Date | null,
   endTime?: Date | null,
   action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE", 
-  penalties?: Penalty[]
+  penalties?: Penalty[],
+  examMode?: {
+    timedMode: {
+      enabled: boolean,
+      duration: number // minutes
+    },
+    shuffleQuestionsOrder: boolean,
+    forwardOnlyNavigation: boolean,
+    singleLogin: boolean,
+    authentication: boolean
+  }
 }
 
 type Penalty = {

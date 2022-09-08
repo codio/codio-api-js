@@ -307,7 +307,7 @@ type AssignmentSettings = {
   action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE", 
   penalties?: Penalty[],
   examMode?: {
-    timedMode: {
+    timedExamMode: {
       enabled: boolean,
       duration: number // minutes
     },

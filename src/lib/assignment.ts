@@ -139,7 +139,7 @@ async function publishArchive (courseId: string, assignmentId: string, archivePa
       postData.append('changelog', changelog)
     } else {
       postData.append('changelog', changelog.changelog)
-      postData.append('stackVersionId', changelog.stackVersionId)
+      postData.append('stackVersionId', changelog.stack)
     }
     postData.append('archive', fs.createReadStream(archivePath),  {
       knownLength: fs.statSync(archivePath).size

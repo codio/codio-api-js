@@ -26,7 +26,7 @@ you need to specify `course Id : string`, `assignmentId: string`, `changelog: st
   await codio.v1.assignment.publishArchive(courseId, assignmentId, projectArchivePath,
    {changelog: string, stack: string} || changelog: string))
    
-  stack - stackVersionId || stackId:latest
+  stack - stackVersionId || stackVersionId:latest
 
 ```
 

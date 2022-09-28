@@ -21,10 +21,10 @@ These methods allow to publish the assignment either as archive (zip and tar.gz 
 you need to specify `course Id : string`, `assignmentId: string`, `changelog: string` and path to either project folder or archive
 ```
   await codio.v1.assignment.publish(courseId, assignmentId, projectPath,
-   {changelog: string, stack: string} || changelog: string))
+   {changelog: string, stack: string, withStackUpdate: boolean} || changelog: string))
 
   await codio.v1.assignment.publishArchive(courseId, assignmentId, projectArchivePath,
-   {changelog: string, stack: string} || changelog: string))
+   {changelog: string, stack: string, withStackUpdate: boolean} || changelog: string))
    
   stack - stackVersionId || stackVersionId:latest
 
@@ -44,7 +44,7 @@ which contains only pages specified in `sections: string[]` and files specified 
 Similar to reduce but publishes generated projects as assignments.
 ```
   await codio.v1.assignment.reducePublish(courseId, srcDir, yamConfigsDir,
-   {changelog: string, stack: string} || changelog: string))
+   {changelog: string, stack: string, withStackUpdate: boolean} || changelog: string))
 ```
 `yamlConfig` Directory should contain yaml files in the next format:
 `assignment` - id of the assignment to publish

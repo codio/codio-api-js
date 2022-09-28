@@ -94,6 +94,12 @@ type AssignmentSettingsRaw = {
   isDisabled?: boolean
 }
 
+type publishOptions = {
+  changelog: string
+  stack: string
+  withStackUpdate: boolean
+}
+
 
 async function archiveTar(src: string): Promise<{ file: string; dir: string; }> {
   const dir = await fs.promises.mkdtemp('/tmp/codio_export')
@@ -121,7 +127,8 @@ const sleep = async (seconds: number): Promise<void> => new Promise((resolve) =>
 
 const getJson = bent('json')
 
-async function publishArchive (courseId: string, assignmentId: string, archivePath: string, changelog: any): Promise<void> {
+async function publishArchive (courseId: string, assignmentId: string, archivePath: string,
+                               changelog: string | publishOptions): Promise<void> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -140,6 +147,7 @@ async function publishArchive (courseId: string, assignmentId: string, archivePa
     } else {
       postData.append('changelog', changelog.changelog)
       postData.append('stackVersionId', changelog.stack)
+      postData.append('withStackUpdate', changelog.withStackUpdate)
     }
     postData.append('archive', fs.createReadStream(archivePath),  {
       knownLength: fs.statSync(archivePath).size
@@ -272,7 +280,7 @@ async function findNames(courseId: string, ymlCfg: Yaml[]) {
   }
 }
 
-async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string | object): Promise<void> {
+async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelog: string | publishOptions): Promise<void> {
   let ymlCfg = await loadYaml(yamlDir)
 
   await findNames(courseId, ymlCfg)
@@ -443,7 +451,8 @@ export async function updateStudentTimeExtension(
 }
 
 const assignment = {
-  publish: async (courseId: string, assignmentId: string, projectPath: string, changelog: string | object): Promise<void> => {
+  publish: async (courseId: string, assignmentId: string, projectPath: string,
+                  changelog: string | publishOptions): Promise<void> => {
     const {file, dir} = await archiveTar(projectPath)
     await assignment.publishArchive(courseId, assignmentId, file, changelog)
     fs.rmdirSync(dir, {recursive: true})

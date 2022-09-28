@@ -135,7 +135,7 @@ async function publishArchive (courseId: string, assignmentId: string, archivePa
     const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)
 
     const postData = new FormData()
-    if (changelog instanceof String) {
+    if (typeof changelog == 'string') {
       postData.append('changelog', changelog)
     } else {
       postData.append('changelog', changelog.changelog)

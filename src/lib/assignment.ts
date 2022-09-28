@@ -145,8 +145,8 @@ async function publishArchive (courseId: string, assignmentId: string, archivePa
     if (typeof changelogOrOptions == 'string') {
       postData.append('changelog', changelogOrOptions)
     } else {
-      postData.append('changelog', changelogOrOptions.changelog)
-      postData.append('stackVersionId', changelogOrOptions.stack)
+      postData.append('changelog', changelogOrOptions.changelog || '')
+      postData.append('stackVersionId', changelogOrOptions.stack || '')
       postData.append('withStackUpdate', `${changelogOrOptions.withStackUpdate}`)
     }
     postData.append('archive', fs.createReadStream(archivePath),  {

@@ -278,7 +278,7 @@ you need to specify
 `archivePath: string | null` - path to archive with files to use during provision,
 `message: string` - published version changelog
 
-```
+```javascript
   await codio.v1.stack.publish(
     stackId,
     id,
@@ -288,6 +288,13 @@ you need to specify
     message
   )
 
+```
+
+## Get Stack Info
+`stackId : string` - stack id
+
+```javascript
+  await codio.v1.stack.info(stackId)
 ```
 
 ## Get Assignment Settings

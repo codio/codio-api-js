@@ -94,7 +94,7 @@ type AssignmentSettingsRaw = {
   isDisabled?: boolean
 }
 
-type publishOptions = {
+type PublishOptions = {
   changelog: string
   stack: string
   withStackUpdate: boolean
@@ -128,7 +128,7 @@ const sleep = async (seconds: number): Promise<void> => new Promise((resolve) =>
 const getJson = bent('json')
 
 async function publishArchive (courseId: string, assignmentId: string, archivePath: string,
-                               changelogOrOptions: string | publishOptions): Promise<void> {
+                               changelogOrOptions: string | PublishOptions): Promise<void> {
   if (!config) {
     throw new Error('No Config')
   }
@@ -143,11 +143,12 @@ async function publishArchive (courseId: string, assignmentId: string, archivePa
 
     const postData = new FormData()
     if (typeof changelogOrOptions == 'string') {
-      postData.append('changelog', changelogOrOptions)
+      postData.append('changelog', changelogOrOptions || '')
     } else {
-      postData.append('changelog', changelogOrOptions.changelog || '')
-      postData.append('stackVersionId', changelogOrOptions.stack || '')
-      postData.append('withStackUpdate', `${changelogOrOptions.withStackUpdate}`)
+      const options = changelogOrOptions || {}
+      postData.append('changelog', options.changelog || '')
+      postData.append('stackVersionId', options.stack || '')
+      postData.append('withStackUpdate', `${options.withStackUpdate}`)
     }
     postData.append('archive', fs.createReadStream(archivePath),  {
       knownLength: fs.statSync(archivePath).size
@@ -280,7 +281,7 @@ async function findNames(courseId: string, ymlCfg: Yaml[]) {
   }
 }
 
-async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelogOrOptions: string | publishOptions): Promise<void> {
+async function reducePublish(courseId: string, srcDir: string, yamlDir: string, changelogOrOptions: string | PublishOptions): Promise<void> {
   let ymlCfg = await loadYaml(yamlDir)
 
   await findNames(courseId, ymlCfg)
@@ -452,7 +453,7 @@ export async function updateStudentTimeExtension(
 
 const assignment = {
   publish: async (courseId: string, assignmentId: string, projectPath: string,
-                  changelogOrOptions: string | publishOptions): Promise<void> => {
+                  changelogOrOptions: string | PublishOptions): Promise<void> => {
     const {file, dir} = await archiveTar(projectPath)
     await assignment.publishArchive(courseId, assignmentId, file, changelogOrOptions)
     fs.rmdirSync(dir, {recursive: true})

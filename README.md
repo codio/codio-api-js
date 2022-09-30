@@ -17,20 +17,24 @@ The token is saved inside the library all consequence calls will be made using t
 
 
 ## Publish Assignment
-This methods allow to publish the assignment either as archive (zip and tar.gz is supported)
+These methods allow to publish the assignment either as archive (zip and tar.gz is supported)
 you need to specify `course Id : string`, `assignmentId: string`, `changelog: string` and path to either project folder or archive
 ```
-  await codio.v1.assignment.publish(courseId, assignmentId, projectPath, changelog)
+  await codio.v1.assignment.publish(courseId, assignmentId, projectPath,
+   {changelog: string, stack: string, withStackUpdate: boolean} || changelog: string))
 
-  await codio.v1.assignment.publishArchive(courseId, assignmentId, projectArchivePath, changelog)
+  await codio.v1.assignment.publishArchive(courseId, assignmentId, projectArchivePath,
+   {changelog: string, stack: string, withStackUpdate: boolean} || changelog: string))
+   
+  stack - stackVersionId || stackVersionId:latest
 
 ```
 
-Github Action: https://github.com/codio/codio-assignment-publish-action
-Github Action Usage Example: https://github.com/ksimuk/codio-test-publish/blob/master/.github/workflows/publish.yaml
+GitHub Action: https://github.com/codio/codio-assignment-publish-action
+GitHub Action Usage Example: https://github.com/ksimuk/codio-test-publish/blob/master/.github/workflows/publish.yaml
 
 ## Reduce (ex Books)
-Truncates pages from project. This method creates in the `dstDir` reduced version of the project, 
+Truncate pages from project. This method creates in the `dstDir` reduced version of the project, 
 which contains only pages specified in `sections: string[]` and files specified in `paths: string[]`
 ```
   await codio.v1.tools.reduce(srcDir, dstDir, sections, paths)
@@ -39,9 +43,10 @@ which contains only pages specified in `sections: string[]` and files specified 
 ## Reduce Publish
 Similar to reduce but publishes generated projects as assignments.
 ```
-  await codio.v1.assignment.reducePublish(courseId, srcDir, yamConfigsDir, changelog)
+  await codio.v1.assignment.reducePublish(courseId, srcDir, yamConfigsDir,
+   {changelog: string, stack: string, withStackUpdate: boolean} || changelog: string))
 ```
-`yamlConfig` Directory shoudl contain yaml files in the next format:
+`yamlConfig` Directory should contain yaml files in the next format:
 `assignment` - id of the assignment to publish
 `assignmentName` - or name of the assignment to publish
 `section` - section name or array of paths to the section
@@ -60,8 +65,8 @@ Similar to reduce but publishes generated projects as assignments.
 
 ```
 
-Github Action: https://github.com/codio/codio-assignment-publish-action
-Github Action Usage Example: https://github.com/ksimuk/codio-test-publish-book/tree/master/.github
+GitHub Action: https://github.com/codio/codio-assignment-publish-action
+GitHub Action Usage Example: https://github.com/ksimuk/codio-test-publish-book/tree/master/.github
 
 ## Assessment Library
 
@@ -80,7 +85,7 @@ Returns an array of `Library` items
 
 ### Find Assessments in a library
 
-Retunrs an array of `Assessment` items
+Returns an array of `Assessment` items
 ```
   const assessments = await codio.v1.assessment.find('libraryId || name', searchTags: Map<string, string>)
 ```
@@ -96,7 +101,7 @@ Please be aware on that this action will update assessment.json with new tags
 needed to keep connection between project assessment and library item. You will 
 need to commit the changes to avoid duplication the assessment
 
-Github action: https://github.com/codio/codio-assessments-publish-action
+GitHub action: https://github.com/codio/codio-assessments-publish-action
 
 ### Get Course Info
 
@@ -175,11 +180,11 @@ Please be aware on that this action will update assessment.json with new tags
 needed to keep connection between project assessment and library item. You will 
 need to commit the changes to avoid duplication the assessment
 
-Github action: https://github.com/codio/codio-assessments-publish-action
+GitHub action: https://github.com/codio/codio-assessments-publish-action
 
 #### Course assignments students projects
 
-Prepare students's project 
+Prepare student's project 
 you need to specify `course Id : string`, `assignmentId: string`, `studentId: string`
 
 ```
@@ -264,7 +269,7 @@ await codio.course.downloadAssessmentData(courseId, assignmentIds, filePath)
 downloads file to filePath
 
 ## Publish Stack
-This methods allow to publish the stack 
+This method allow to publish the stack 
 you need to specify 
 `stackId : string` - stack to add new published version to,
 `id: string | null` - stack id or stack version id to use as base,
@@ -273,7 +278,7 @@ you need to specify
 `archivePath: string | null` - path to archive with files to use during provision,
 `message: string` - published version changelog
 
-```
+```javascript
   await codio.v1.stack.publish(
     stackId,
     id,
@@ -283,6 +288,13 @@ you need to specify
     message
   )
 
+```
+
+## Get Stack Info
+`stackId : string` - stack id
+
+```javascript
+  await codio.v1.stack.info(stackId)
 ```
 
 ## Get Assignment Settings
@@ -327,7 +339,7 @@ type Penalty = {
 ```
 
 ## Update Assignment Settings
-This method allow to update assignment settings.
+This method allow updating assignment settings.
 You need to specify
 `courseId : string` - course id,
 `assignmentId : string` - assignment id ,
@@ -355,7 +367,7 @@ Example:
 #### Update student related time extensions
 
 
-Set time limits on a per student basis
+Set time limits on a per-student basis
 
 
 ```javascript

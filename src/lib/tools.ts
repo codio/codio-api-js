@@ -11,12 +11,15 @@ import { PathMap } from './assignment'
 
 const getJson = bent('json')
 
+const GUIDES_CONTENT_FOLDER = '.guides/content'
+const INDEX_METADATA_FILE = 'index.json'
+
 export async function reduce(
     srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[]): Promise<void> {
-  const contentDir = path.join(srcDir, '.guides/content')
+  const contentDir = path.join(srcDir, GUIDES_CONTENT_FOLDER)
   let rootMetadata: any
   try {
-    const rootMetadataPath = path.join(contentDir, 'index.json')
+    const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)
     rootMetadata = JSON.parse(fs.readFileSync(rootMetadataPath, { encoding: "utf-8" }))
   } catch(_) {
     rootMetadata = []
@@ -33,9 +36,9 @@ export async function reduce(
 
 function getGuidesStructure(metadata, srcDir, currentPath) {
   return _.map(metadata['order'], item => {
-    const contentDirPath = path.join(srcDir, '.guides/content');
+    const contentDirPath = path.join(srcDir, GUIDES_CONTENT_FOLDER);
     const sectionPath = path.join(currentPath, item);
-    const indexFilePath = path.join(contentDirPath, sectionPath, 'index.json');
+    const indexFilePath = path.join(contentDirPath, sectionPath, INDEX_METADATA_FILE);
 
     if (!fs.existsSync(indexFilePath)) {
       let sectionMetadata;
@@ -48,16 +51,16 @@ function getGuidesStructure(metadata, srcDir, currentPath) {
         sectionMetadata = [];
       }
       sectionMetadata['name'] = item;
-      sectionMetadata['content_path'] = path.join('.guides/content', `${sectionPath}.md`);
-      sectionMetadata['metadata_path'] = path.join('.guides/content', `${sectionPath}.json`);
+      sectionMetadata['content_path'] = path.join(GUIDES_CONTENT_FOLDER, `${sectionPath}.md`);
+      sectionMetadata['metadata_path'] = path.join(GUIDES_CONTENT_FOLDER, `${sectionPath}.json`);
       return sectionMetadata;
     }
     else {
       const newMetadataPath = path.join(currentPath, item);
-      const indexFilePath = path.join(contentDirPath, sectionPath, 'index.json');
+      const indexFilePath = path.join(contentDirPath, sectionPath, INDEX_METADATA_FILE);
       const sectionMetadata = JSON.parse(fs.readFileSync(indexFilePath, { encoding: "utf-8" }));
       sectionMetadata['name'] = item;
-      sectionMetadata['metadata_path'] = path.join('.guides/content', newMetadataPath);
+      sectionMetadata['metadata_path'] = path.join(GUIDES_CONTENT_FOLDER, newMetadataPath);
       sectionMetadata['section_path'] = sectionPath;
       sectionMetadata['children'] = getGuidesStructure(sectionMetadata, srcDir, sectionPath);
       return sectionMetadata;
@@ -181,7 +184,7 @@ async function copyStripped(srcDir: string, dstDir: string, paths: (string | Pat
 }
 
 async function updateRootMetadata(structure, metadata, dstDir) {
-  const filePath = path.join(dstDir, '.guides/content', 'index.json');
+  const filePath = path.join(dstDir, GUIDES_CONTENT_FOLDER, INDEX_METADATA_FILE);
   metadata['order'] = _.map(structure, item => item.name);
   await fs.promises.writeFile(filePath, JSON.stringify(metadata, undefined, ' '));
 }
@@ -189,7 +192,7 @@ async function updateRootMetadata(structure, metadata, dstDir) {
 async function updateMetadataFiles(structure, dstDir) {
   for (const item of structure) {
     if (item.children) {
-      const filePath = path.join(dstDir, '.guides/content', item['section_path'], 'index.json');
+      const filePath = path.join(dstDir, GUIDES_CONTENT_FOLDER, item['section_path'], INDEX_METADATA_FILE);
       const data = {
         id: item.id,
         title: item.title,

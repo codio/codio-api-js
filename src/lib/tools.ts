@@ -152,7 +152,7 @@ function getExcludedPaths(structure, stripped, excludePaths) {
 }
 
 async function copyStripped(srcDir: string, dstDir: string, paths: (string | PathMap)[]): Promise<void> {
-  const mapPaths = [] as PathMap[]
+  const mapPaths = _.filter(paths, _ => typeof _ != 'string') as PathMap[]
   const stringPaths = [] as string[]
   stringPaths.push('.guides/**')
   stringPaths.push('.codio')
@@ -160,7 +160,9 @@ async function copyStripped(srcDir: string, dstDir: string, paths: (string | Pat
   stringPaths.push('.settings')
   stringPaths.push('!.github/**')
 
-  _.forEach(paths, path => stringPaths.push(`${path}`))
+  _.forEach(_.filter(paths, _ => typeof _ === 'string') as string[],
+          path => stringPaths.push(`${path}`))
+
   _.forEach(excludePaths, path => stringPaths.push(`${path}`))
 
   await copy(srcDir, dstDir, {

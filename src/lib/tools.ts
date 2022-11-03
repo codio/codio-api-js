@@ -11,20 +11,156 @@ import { PathMap } from './assignment'
 
 const getJson = bent('json')
 
+export async function reduce(
+    srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[]): Promise<void> {
+  const contentDir = path.join(srcDir, '.guides/content')
+  let rootMetadata: any
+  try {
+    const rootMetadataPath = path.join(contentDir, 'index.json')
+    rootMetadata = JSON.parse(fs.readFileSync(rootMetadataPath, { encoding: "utf-8" }))
+  } catch(_) {
+    rootMetadata = []
+  }
+  const guidesStructure = getGuidesStructure(rootMetadata, srcDir, '');
+  const strippedStructure = stripStructure(guidesStructure, yaml_sections);
+  const excludePaths = [];
+  getExcludedPaths(guidesStructure, strippedStructure, excludePaths);
 
-async function copyStripped(srcDir: string, bookStripped: any, metadataStriped: any, dstDir: string, paths: (string | PathMap)[]): Promise<void> {
-  const stringPaths =  (_.filter(paths, _ => typeof _ === 'string') as string[])
-  const mapPaths = (_.filter(paths, _ => typeof _ != 'string') as PathMap[])
+  await copyStripped(srcDir, dstDir, paths.concat(excludePaths))
+  await updateMetadataFiles(strippedStructure, dstDir)
+}
+
+function getGuidesStructure(metadata, srcDir, currentPath) {
+  return _.map(metadata['order'], item => {
+    const contentDirPath = path.join(srcDir, '.guides/content');
+    const sectionPath = path.join(currentPath, item);
+    const indexFilePath = path.join(contentDirPath, sectionPath, 'index.json');
+
+    if (!fs.existsSync(indexFilePath)) {
+      let sectionMetadata;
+      try {
+        const jsonFilePath = path.join(contentDirPath, `${sectionPath}.json`);
+        const fileMetadataJson = fs.readFileSync(jsonFilePath, { encoding: "utf-8" });
+        sectionMetadata = JSON.parse(fileMetadataJson);
+      }
+      catch (_) {
+        sectionMetadata = [];
+      }
+      sectionMetadata['name'] = item;
+      sectionMetadata['content_path'] = path.join('.guides/content', `${sectionPath}.md`);
+      sectionMetadata['metadata_path'] = path.join('.guides/content', `${sectionPath}.json`);
+      return sectionMetadata;
+    }
+    else {
+      const newMetadataPath = path.join(currentPath, item);
+      const indexFilePath = path.join(contentDirPath, sectionPath, 'index.json');
+      const sectionMetadata = JSON.parse(fs.readFileSync(indexFilePath, { encoding: "utf-8" }));
+      sectionMetadata['name'] = item;
+      sectionMetadata['metadata_path'] = path.join('.guides/content', newMetadataPath);
+      sectionMetadata['section_path'] = sectionPath;
+      sectionMetadata['children'] = getGuidesStructure(sectionMetadata, srcDir, sectionPath);
+      return sectionMetadata;
+    }
+  });
+}
+
+function stripStructure(guidesStructure, yaml_sections) {
+  const result: string[] = [];
+  const structure = _.cloneDeep(guidesStructure)
+  for (const item of yaml_sections) {
+    if (item.length === 0) { //skip empty sections
+      continue;
+    }
+    const section = traverseData(structure, item);
+    if (!section) {
+      throw new Error(`${section} not found`);
+    }
+    result.push(section);
+  }
+  return result;
+}
+
+function traverseData(structure, sections) {
+  const sectionName = sections.shift();
+  if (!sectionName) {
+    return;
+  }
+  const section = findSection(structure, sectionName);
+  if (!section) {
+    throw new Error(`section "${sectionName}" is not found`);
+  }
+  if (sections.length > 0) {
+    section['children'] = [traverseData(section.children, sections)];
+    return section;
+  }
+  return section;
+}
+
+function findSection(structure, title) {
+  const capitalTitle = _.upperCase(title);
+  if (structure['type'] === 'page') {
+    if (structure['title'] === capitalTitle) {
+      return structure;
+    }
+  }
+  else {
+    for (const item of structure) {
+      if (_.upperCase(item['title']) === capitalTitle) {
+        return item;
+      }
+    }
+  }
+  return undefined;
+}
+
+function getSectionIds(stripped) {
+  let ids: string[] = [];
+  for (const item of stripped) {
+    if (item['id']) {
+      ids.push(`${item.id}`);
+    }
+    if (item.children) {
+      for (const section of [item.children]) {
+        const sectionIds = getSectionIds(section);
+        ids = ids.concat(sectionIds);
+      }
+    }
+  }
+  return ids;
+}
+
+function getExcludedPaths(structure, stripped, excludePaths) {
+  const ids = getSectionIds(stripped);
+  for (const section of structure) {
+    if (!ids.includes(section.id)) {
+      if (section.type === 'page') {
+        excludePaths.push(`!${section.metadata_path}`);
+        excludePaths.push(`!${section.content_path}`);
+      } else {
+        excludePaths.push(`!${section.metadata_path}/**`);
+        excludePaths.push(`!${section.metadata_path}`);
+      }
+    }
+
+    if (section.children) {
+      getExcludedPaths(section.children, stripped, excludePaths)
+    }
+  }
+  return excludePaths;
+}
+
+async function copyStripped(srcDir: string, dstDir: string, paths: (string | PathMap)[]): Promise<void> {
+  const mapPaths = [] as PathMap[]
+  const stringPaths = [] as string[]
   stringPaths.push('.guides/**')
   stringPaths.push('.codio')
   stringPaths.push('.codio-menu')
   stringPaths.push('.settings')
   stringPaths.push('!.github/**')
-  stringPaths.push('!.guides/book.json')
-  stringPaths.push('!.guides/metadata.json')
-  for(const path of excludePaths) {
-    stringPaths.push(`!${path}`)
-  }
+
+  _.forEach(paths, path => stringPaths.push(`${path}`))
+  _.forEach(excludePaths, path => stringPaths.push(`${path}`))
+
   await copy(srcDir, dstDir, {
     filter: stringPaths,
     overwrite: true,
@@ -36,119 +172,27 @@ async function copyStripped(srcDir: string, bookStripped: any, metadataStriped: 
       await copy(path.join(srcDir, map.source), path.join(dstDir, map.destination), {
         overwrite: true,
         dot: true
-      })  
+      })
     } catch (_) {
       console.error(_)
     }
   }
-
-  const bookJsonPath = path.join(dstDir, '.guides', 'book.json')
-  const metadataPath = path.join(dstDir, '.guides', 'metadata.json')
-  await fs.promises.mkdir(path.join(srcDir, '.guides'), {recursive: true})
-  if (bookStripped.children.length > 0) {
-    await fs.promises.writeFile(bookJsonPath, JSON.stringify(bookStripped, undefined, ' '))
-  }
-  if (metadataStriped.sections.length > 0) {
-    await fs.promises.writeFile(metadataPath, JSON.stringify(metadataStriped, undefined, ' '))
-  }
 }
 
-// case-insensitive search for title
-function findSection(children: any[], title: string): any | undefined {
-  const capitalTitle = _.upperCase(title)
-  for(const item of children) {
-    if (_.upperCase(item.title) === capitalTitle) {
-      return item
-    }
-  }
-  return undefined
-}
-
-function traverseBook(book: any, sections: string[]): any {
-  const sectionName = sections.shift()
-  if (!sectionName) {
-    return
-  }
-  const section = findSection(book.children, sectionName)
-  if (!section) {
-    throw new Error(`section "${sectionName}" is not found`)
-  }
-  if (sections.length > 0) {
-    return traverseBook(section, sections)
-  }
-  return section
-}
-
-function getSectionIds(book: any): string[] {
-  let ids: string[] = []
-  if (book['pageId']) {
-    ids.push(`${book['pageId']}`)
-  }
-  if (!book.children) {
-    return ids
-  }
-  for(const section of book.children) {
-    const sectionIds = getSectionIds(section)
-    ids = ids.concat(sectionIds)
-  }
-  return ids
-}
-
-function stripBook(book: any, sections: string[][]): any {
-  const children: any[] = []
-  for (const sectionPath of sections ) {
-    if (sectionPath.length === 0) { //skip empty sections
-      continue
-    }
-    const section = traverseBook(book, sectionPath)
-    if (!section) {
-      throw new Error(`${section} not found`)
-    }
-    children.push(section)
-  }
-  book.children = children
-  return book
-}
-
-function stripMetadata(metadata: any, book: any): string[] {
-  const ids = getSectionIds(book)
-  const newSections: any[] = []
-  const excludePaths: string[] = []
-  for (const section of metadata.sections) {
-    if (ids.includes(section['id'])) {
-      newSections.push(section)
-    } else {
-      if (section['content-file']) {
-        excludePaths.push(`!${section['content-file']}`)
+async function updateMetadataFiles(structure, dstDir) {
+  for (const item of structure) {
+    if (item.children) {
+      const filePath = path.join(dstDir, '.guides/content', item['section_path'], 'index.json');
+      const data = {
+        id: item.id,
+        title: item.title,
+        type: item.type,
+        order: _.map(item.children, child => child.name)
       }
+      await fs.promises.writeFile(filePath, JSON.stringify(data, undefined, ' '));
+      await updateMetadataFiles(item.children, dstDir)
     }
   }
-  metadata.sections = newSections
-  return excludePaths
-}
-
-export async function reduce(srcDir: string, dstDir: string, sections: string[][], paths: (string | PathMap)[]): Promise<void> {
-  let book: any
-  let metadata: any
-  try {
-    const bookJsonPath = path.join(srcDir, '.guides', 'book.json')
-    const bookJson = await fs.promises.readFile(bookJsonPath, { encoding: 'utf-8' })
-    book = JSON.parse(bookJson)
-  } catch (_) {
-    book = {children:[]}
-  }
-
-  try {
-    const metadataPath = path.join(srcDir, '.guides', 'metadata.json')
-    const metadataJson = await fs.promises.readFile(metadataPath, { encoding: 'utf-8' })
-    metadata = JSON.parse(metadataJson)
-  } catch(_) {
-    metadata = {sections:[]}
-  }
-
-  const bookStripped = stripBook(book, sections)
-  const excludePaths = stripMetadata(metadata, bookStripped)
-  await copyStripped(srcDir, bookStripped, metadata, dstDir, paths.concat(excludePaths))
 }
 
 export function mapToObject(map: Map<string, any>): any {

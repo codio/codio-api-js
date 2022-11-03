@@ -31,7 +31,7 @@ export async function reduce(
 
   await copyStripped(srcDir, dstDir, paths.concat(excludePaths))
   await updateRootMetadata(strippedStructure, rootMetadata, dstDir)
-  await updateMetadataFiles(strippedStructure, dstDir)
+  await updateMetadata(strippedStructure, dstDir)
 }
 
 function getGuidesStructure(metadata, srcDir, currentPath) {
@@ -44,21 +44,19 @@ function getGuidesStructure(metadata, srcDir, currentPath) {
       let sectionMetadata;
       try {
         const jsonFilePath = path.join(contentDirPath, `${sectionPath}.json`);
-        const fileMetadataJson = fs.readFileSync(jsonFilePath, { encoding: "utf-8" });
+        const fileMetadataJson = fs.readFileSync(jsonFilePath, {encoding: "utf-8"});
         sectionMetadata = JSON.parse(fileMetadataJson);
-      }
-      catch (_) {
+      } catch (_) {
         sectionMetadata = [];
       }
       sectionMetadata['name'] = item;
       sectionMetadata['content_path'] = path.join(GUIDES_CONTENT_FOLDER, `${sectionPath}.md`);
       sectionMetadata['metadata_path'] = path.join(GUIDES_CONTENT_FOLDER, `${sectionPath}.json`);
       return sectionMetadata;
-    }
-    else {
+    } else {
       const newMetadataPath = path.join(currentPath, item);
       const indexFilePath = path.join(contentDirPath, sectionPath, INDEX_METADATA_FILE);
-      const sectionMetadata = JSON.parse(fs.readFileSync(indexFilePath, { encoding: "utf-8" }));
+      const sectionMetadata = JSON.parse(fs.readFileSync(indexFilePath, {encoding: "utf-8"}));
       sectionMetadata['name'] = item;
       sectionMetadata['metadata_path'] = path.join(GUIDES_CONTENT_FOLDER, newMetadataPath);
       sectionMetadata['section_path'] = sectionPath;
@@ -141,8 +139,8 @@ function getExcludedPaths(structure, stripped, excludePaths) {
         excludePaths.push(`!${section.metadata_path}`);
         excludePaths.push(`!${section.content_path}`);
       } else {
-        excludePaths.push(`!${section.metadata_path}/**`);
         excludePaths.push(`!${section.metadata_path}`);
+        excludePaths.push(`!${section.metadata_path}/**`);
       }
     }
 
@@ -189,7 +187,7 @@ async function updateRootMetadata(structure, metadata, dstDir) {
   await fs.promises.writeFile(filePath, JSON.stringify(metadata, undefined, ' '));
 }
 
-async function updateMetadataFiles(structure, dstDir) {
+async function updateMetadata(structure, dstDir) {
   for (const item of structure) {
     if (item.children) {
       const filePath = path.join(dstDir, GUIDES_CONTENT_FOLDER, item['section_path'], INDEX_METADATA_FILE);
@@ -200,7 +198,7 @@ async function updateMetadataFiles(structure, dstDir) {
         order: _.map(item.children, child => child.name)
       }
       await fs.promises.writeFile(filePath, JSON.stringify(data, undefined, ' '));
-      await updateMetadataFiles(item.children, dstDir)
+      await updateMetadata(item.children, dstDir)
     }
   }
 }

@@ -27,6 +27,7 @@ export async function reduce(
   getExcludedPaths(guidesStructure, strippedStructure, excludePaths);
 
   await copyStripped(srcDir, dstDir, paths.concat(excludePaths))
+  await updateRootMetadata(strippedStructure, rootMetadata, dstDir)
   await updateMetadataFiles(strippedStructure, dstDir)
 }
 
@@ -177,6 +178,12 @@ async function copyStripped(srcDir: string, dstDir: string, paths: (string | Pat
       console.error(_)
     }
   }
+}
+
+async function updateRootMetadata(structure, metadata, dstDir) {
+  const filePath = path.join(dstDir, '.guides/content', 'index.json');
+  metadata['order'] = _.map(structure, item => item.name);
+  await fs.promises.writeFile(filePath, JSON.stringify(metadata, undefined, ' '));
 }
 
 async function updateMetadataFiles(structure, dstDir) {

@@ -156,10 +156,10 @@ async function copyStripped(srcDir: string, dstDir: string, paths: (string | Pat
   stringPaths.push('.codio-menu')
   stringPaths.push('.settings')
   stringPaths.push('!.github/**')
+  stringPaths.push('!**/index.json');
 
   _.forEach(_.filter(paths, _ => typeof _ === 'string') as string[],
           path => stringPaths.push(`${path}`))
-
   _.forEach(excludePaths, path => stringPaths.push(`${path}`))
 
   await copy(srcDir, dstDir, {

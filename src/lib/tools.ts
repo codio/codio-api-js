@@ -17,13 +17,8 @@ const INDEX_METADATA_FILE = 'index.json'
 export async function reduce(
     srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[]): Promise<void> {
   const contentDir = path.join(srcDir, GUIDES_CONTENT_FOLDER)
-  let rootMetadata: any
-  try {
-    const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)
-    rootMetadata = JSON.parse(fs.readFileSync(rootMetadataPath, { encoding: "utf-8" }))
-  } catch(_) {
-    rootMetadata = []
-  }
+  const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)
+  const rootMetadata = readMetadataFile(rootMetadataPath)
   const guidesStructure = getGuidesStructure(rootMetadata, srcDir, '');
   const strippedStructure = stripStructure(guidesStructure, yaml_sections);
   const excludePaths = [];
@@ -39,16 +34,9 @@ function getGuidesStructure(metadata, srcDir, currentPath) {
     const contentDirPath = path.join(srcDir, GUIDES_CONTENT_FOLDER);
     const sectionPath = path.join(currentPath, item);
     const indexFilePath = path.join(contentDirPath, sectionPath, INDEX_METADATA_FILE);
-
     if (!fs.existsSync(indexFilePath)) {
-      let sectionMetadata;
-      try {
-        const jsonFilePath = path.join(contentDirPath, `${sectionPath}.json`);
-        const fileMetadataJson = fs.readFileSync(jsonFilePath, {encoding: "utf-8"});
-        sectionMetadata = JSON.parse(fileMetadataJson);
-      } catch (_) {
-        sectionMetadata = [];
-      }
+      const metadataFilePath = path.join(contentDirPath, `${sectionPath}.json`);
+      const sectionMetadata = readMetadataFile(metadataFilePath)
       sectionMetadata['name'] = item;
       sectionMetadata['content_path'] = path.join(GUIDES_CONTENT_FOLDER, `${sectionPath}.md`);
       sectionMetadata['metadata_path'] = path.join(GUIDES_CONTENT_FOLDER, `${sectionPath}.json`);
@@ -56,7 +44,7 @@ function getGuidesStructure(metadata, srcDir, currentPath) {
     } else {
       const newMetadataPath = path.join(currentPath, item);
       const indexFilePath = path.join(contentDirPath, sectionPath, INDEX_METADATA_FILE);
-      const sectionMetadata = JSON.parse(fs.readFileSync(indexFilePath, {encoding: "utf-8"}));
+      const sectionMetadata = readMetadataFile(indexFilePath)
       sectionMetadata['name'] = item;
       sectionMetadata['metadata_path'] = path.join(GUIDES_CONTENT_FOLDER, newMetadataPath);
       sectionMetadata['section_path'] = sectionPath;
@@ -64,6 +52,15 @@ function getGuidesStructure(metadata, srcDir, currentPath) {
       return sectionMetadata;
     }
   });
+}
+
+function readMetadataFile(path) {
+  try {
+    const metadataJson = fs.readFileSync(path, {encoding: "utf-8"});
+    return JSON.parse(metadataJson);
+  } catch (_) {
+    return [];
+  }
 }
 
 function stripStructure(guidesStructure, yaml_sections) {

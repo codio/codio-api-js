@@ -13,6 +13,7 @@ const getJson = bent('json')
 
 const GUIDES_CONTENT_FOLDER = '.guides/content'
 const INDEX_METADATA_FILE = 'index.json'
+const PAGE = 'page'
 
 export async function reduce(
     srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[]): Promise<void> {
@@ -22,7 +23,8 @@ export async function reduce(
   const guidesStructure = getGuidesStructure(rootMetadata, srcDir, '')
   const strippedStructure = stripStructure(guidesStructure, yaml_sections)
   const excludePaths = []
-  getExcludedPaths(guidesStructure, strippedStructure, excludePaths)
+  const strippedSectionsIds = getStrippedSectionIds(strippedStructure)
+  getExcludedPaths(guidesStructure, strippedSectionsIds, excludePaths)
 
   await copyStripped(srcDir, dstDir, paths.concat(excludePaths))
   await updateRootMetadata(strippedStructure, rootMetadata, dstDir)
@@ -97,14 +99,14 @@ function traverseData(structure, sections) {
 
 function findSection(structure, title) {
   const capitalTitle = _.upperCase(title)
-  if (structure['type'] === 'page') {
-    if (structure['title'] === capitalTitle) {
+  if (structure.title === PAGE) {
+    if (structure.title === capitalTitle) {
       return structure
     }
   }
   else {
     for (const item of structure) {
-      if (_.upperCase(item['title']) === capitalTitle) {
+      if (_.upperCase(item.title) === capitalTitle) {
         return item
       }
     }
@@ -112,15 +114,15 @@ function findSection(structure, title) {
   return undefined
 }
 
-function getSectionIds(stripped) {
+function getStrippedSectionIds(stripped) {
   let ids: string[] = []
   for (const item of stripped) {
-    if (item['id']) {
+    if (item.id) {
       ids.push(`${item.id}`)
     }
     if (item.children) {
       for (const section of [item.children]) {
-        const sectionIds = getSectionIds(section)
+        const sectionIds = getStrippedSectionIds(section)
         ids = ids.concat(sectionIds)
       }
     }
@@ -128,11 +130,10 @@ function getSectionIds(stripped) {
   return ids
 }
 
-function getExcludedPaths(structure, stripped, excludePaths) {
-  const ids = getSectionIds(stripped)
+function getExcludedPaths(structure, strippedSectionIds, excludePaths) {
   for (const section of structure) {
-    if (!ids.includes(section.id)) {
-      if (section.type === 'page') {
+    if (!strippedSectionIds.includes(section.id)) {
+      if (section.type === PAGE) {
         excludePaths.push(`!${section.metadata_path}`)
         excludePaths.push(`!${section.content_path}`)
       } else {
@@ -140,9 +141,8 @@ function getExcludedPaths(structure, stripped, excludePaths) {
         excludePaths.push(`!${section.metadata_path}/**`)
       }
     }
-
     if (section.children) {
-      getExcludedPaths(section.children, stripped, excludePaths)
+      getExcludedPaths(section.children, strippedSectionIds, excludePaths)
     }
   }
   return excludePaths

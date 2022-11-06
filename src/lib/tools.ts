@@ -3,6 +3,7 @@ import fs from 'fs'
 import _ from 'lodash'
 import bent from 'bent'
 import copy from 'recursive-copy'
+import process from 'child_process';
 import {excludePaths} from './config'
 import tar from 'tar'
 import { ZSTDCompress } from 'simple-zstd'
@@ -11,12 +12,17 @@ import { PathMap } from './assignment'
 
 const getJson = bent('json')
 
+const CONVERTER_VERSION = '4ca4944ddf9d4fe4df9697bec06cbd0a6c170419'
 const GUIDES_CONTENT_FOLDER = '.guides/content'
+const OLD_METADATA_FILE = '.guides/metadata.json'
 const INDEX_METADATA_FILE = 'index.json'
 const PAGE = 'page'
 
 export async function reduce(
     srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[]): Promise<void> {
+  if (fs.existsSync(OLD_METADATA_FILE)) {
+    await convertToGuidesV3()
+  }
   const contentDir = path.join(srcDir, GUIDES_CONTENT_FOLDER)
   const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)
   const rootMetadata = readMetadataFile(rootMetadataPath)
@@ -245,6 +251,26 @@ export function secondsToDate(seconds: number): Date {
   const t = new Date(1970, 0, 1) // Epoch
   t.setUTCSeconds(seconds)
   return t
+}
+
+export async function convertToGuidesV3() {
+  console.log('guides conversion process...')
+  await execShellCommand(`curl "https://static-assets.codio.com/guides-converter-v3/guides-converter-v3-${CONVERTER_VERSION}" --output guides-converter-v3`)
+  await execShellCommand('chmod +x ./guides-converter-v3')
+  await execShellCommand('./guides-converter-v3')
+  await execShellCommand('rm guides-converter-v3')
+}
+
+function execShellCommand(command) {
+  return new Promise((resolve, reject) => {
+    process.exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(error);
+        reject(error)
+      }
+      resolve(stdout ? stdout : stderr)
+    })
+  })
 }
 
 export function getApiV1Url(): string {

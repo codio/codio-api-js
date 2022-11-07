@@ -255,17 +255,20 @@ export function secondsToDate(seconds: number): Date {
 
 export async function convertToGuidesV3() {
   console.log('guides conversion process...')
-  await execShellCommand(`curl "https://static-assets.codio.com/guides-converter-v3/guides-converter-v3-${CONVERTER_VERSION}" --output guides-converter-v3`)
-  await execShellCommand('chmod +x ./guides-converter-v3')
-  await execShellCommand('./guides-converter-v3')
-  await execShellCommand('rm guides-converter-v3')
+  try {
+    await execShellCommand(`curl "https://static-assets.codio.com/guides-converter-v3/guides-converter-v3-${CONVERTER_VERSION}" --output guides-converter-v3`)
+    await execShellCommand('chmod +x ./guides-converter-v3')
+    await execShellCommand('./guides-converter-v3')
+    await execShellCommand('rm guides-converter-v3')
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function execShellCommand(command) {
   return new Promise((resolve, reject) => {
     process.exec(command, (error, stdout, stderr) => {
       if (error) {
-        console.error(error);
         reject(error)
       }
       resolve(stdout ? stdout : stderr)

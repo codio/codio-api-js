@@ -51,7 +51,6 @@ export function getGuidesStructure(metadata, srcDir, currentPath) {
       return sectionMetadata
     } else {
       const newMetadataPath = path.join(currentPath, item)
-      const indexFilePath = path.join(contentDirPath, sectionPath, INDEX_METADATA_FILE)
       const sectionMetadata = readMetadataFile(indexFilePath)
       sectionMetadata['name'] = item
       sectionMetadata['metadata_path'] = path.join(GUIDES_CONTENT_DIR, newMetadataPath)
@@ -66,8 +65,8 @@ export function readMetadataFile(path) {
   try {
     const metadataJson = fs.readFileSync(path, {encoding: "utf-8"})
     return JSON.parse(metadataJson)
-  } catch (_) {
-    return []
+  } catch (error) {
+    throw new Error(error)
   }
 }
 
@@ -165,8 +164,8 @@ async function copyStripped(srcDir: string, dstDir: string, paths: (string | Pat
   stringPaths.push('!**/index.json')
 
   _.forEach(_.filter(paths, _ => typeof _ === 'string') as string[],
-          path => stringPaths.push(`${path}`))
-  _.forEach(excludePaths, path => stringPaths.push(`${path}`))
+          path => stringPaths.push(path))
+  _.forEach(excludePaths, path => stringPaths.push(path))
 
   await copy(srcDir, dstDir, {
     filter: stringPaths,
@@ -261,7 +260,7 @@ export async function convertToGuidesV3() {
     await execShellCommand('./guides-converter-v3')
     await execShellCommand('rm guides-converter-v3')
   } catch (error) {
-    console.error(error);
+    throw new Error(error);
   }
 }
 

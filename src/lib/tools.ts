@@ -37,7 +37,7 @@ export async function reduce(
   await updateMetadata(strippedStructure, dstDir)
 }
 
-function getGuidesStructure(metadata, srcDir, currentPath) {
+export function getGuidesStructure(metadata, srcDir, currentPath) {
   return _.map(metadata['order'], item => {
     const contentDirPath = path.join(srcDir, GUIDES_CONTENT_DIR)
     const sectionPath = path.join(currentPath, item)
@@ -62,7 +62,7 @@ function getGuidesStructure(metadata, srcDir, currentPath) {
   })
 }
 
-function readMetadataFile(path) {
+export function readMetadataFile(path) {
   try {
     const metadataJson = fs.readFileSync(path, {encoding: "utf-8"})
     return JSON.parse(metadataJson)
@@ -300,7 +300,9 @@ const tools = {
   mapToObject,
   createTar,
   secondsToDate,
-  sendApiRequest
+  sendApiRequest,
+  readMetadataFile,
+  getGuidesStructure
 }
 
 export default tools

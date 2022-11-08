@@ -4,9 +4,12 @@ import path from 'path'
 import config from './config'
 import { Assessment, parse, API_ID_TAG, parseApi, API_HASH_TAG } from './assessmentsTypes'
 import FormData from 'form-data'
-import { mapToObject } from './tools'
+import tools from './tools'
 import _ from 'lodash'
+import glob from "glob-promise";
 const getJson = bent('json')
+
+const ASSESSMENTS_DIR = '.guides/assessments'
 
 export type Library = {
   name: string
@@ -66,18 +69,19 @@ function updateTags(tags: {name: string, value: string}[], id: string, hash: str
 }
 
 async function updateJSON(assessment: Assessment, base: string): Promise<void> {
-  const filePath = path.join(base, '.guides', 'assessments.json')
-  const jsonString = await fs.promises.readFile(filePath, {encoding: 'utf8'})
-  const json = JSON.parse(jsonString)
-  for (const item of json) {
-    if (item.taskId === assessment.taskId) {
+  const assessmentJsonFiles = await glob('*.json', {cwd: path.join(base, ASSESSMENTS_DIR), nodir: true})
+  for (const file of assessmentJsonFiles) {
+    const filePath = path.join(ASSESSMENTS_DIR, file)
+    const assessmentString = await fs.promises.readFile(filePath, {encoding: 'utf8'})
+    const assessmentData = JSON.parse(assessmentString)
+    if (assessmentData.taskId === assessment.taskId) {
       const hash = assessment.getHash()
       const id = assessment.getId()
-      updateTags(item.source.metadata.tags, id, hash)
+      updateTags(assessmentData.source.metadata.tags, id, hash)
+      await fs.promises.writeFile(filePath, JSON.stringify(assessmentData, undefined, ' '))
       break
     }
   }
-  await fs.promises.writeFile(filePath, JSON.stringify(json, undefined, ' '))
 }
 
 export async function publishAssessment(libraryId: string, assessment: Assessment, isNew: boolean, base: string): Promise<void> {
@@ -89,7 +93,7 @@ async function _publishAssessment(libraryId: string, assessment: Assessment, isN
   if (!config) {
     throw new Error('No Config')
   }
-  
+
   try {
     const token = config.getToken()
     const domain = config.getDomain()
@@ -170,25 +174,22 @@ async function _updateOrAdd(libraryId: string, assessment: Assessment, base: str
 async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
   // read assessments
   const res: Assessment[] = []
-  const assessmentsJson = await fs.promises.readFile(path.join(dir, '/.guides/assessments.json'), 
-    {encoding: 'utf8'}) 
 
-  const metadataPath = path.join(dir, '.guides', 'metadata.json')
-  const metadataString = await fs.promises.readFile(metadataPath, { encoding: 'utf8'} )
-  const metadata = JSON.parse(metadataString)
-  const metadataPages: {page: string, data: any}[] = []
-  for( const data of metadata.sections) {
-    const filePath = path.join(dir, data['content-file'])
-    const page = await fs.promises.readFile(filePath, {encoding: 'utf8'})
-    metadataPages.push(
-      {
-        page,
-        data
-      }
-    )
+  const assessmentJsonFiles = await glob('*.json', {cwd: path.join(dir, ASSESSMENTS_DIR), nodir: true})
+  let assessments: any[] = []
+  for (const file of assessmentJsonFiles) {
+    const filePath = path.join(ASSESSMENTS_DIR, file)
+    const assessmentString = await fs.promises.readFile(filePath, {encoding: 'utf8'})
+    const assessment = JSON.parse(assessmentString)
+    assessments = assessments.concat(assessment)
   }
-  
-  const assessments: any[] = JSON.parse(assessmentsJson)
+
+  const rootMetadata = tools.readMetadataFile('.guides/content/index.json')
+  const guidesStructure = tools.getGuidesStructure(rootMetadata, dir, '')
+
+  const metadataPages: { page: string, data: any }[] = []
+  getMetadataPages(dir, guidesStructure, metadataPages)
+
   for (const json of assessments) {
     try {
       const item = parse(json, metadataPages)
@@ -202,7 +203,17 @@ async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
   return res
 }
 
-
+function getMetadataPages(dir, guidesStructure, metadataPages) {
+  for (const data of guidesStructure) {
+    if (data.type === 'page') {
+      const filePath = path.join(dir, data['content_path'])
+      const page = fs.readFileSync(filePath, {encoding: "utf-8"})
+      metadataPages.push({page, data})
+      return
+    }
+    getMetadataPages(dir, data.children, metadataPages)
+  }
+}
 
 async function fromCodioProject(libraryId: string, path: string): Promise<void> {
   libraryId = await getLibraryId(libraryId)
@@ -227,8 +238,8 @@ async function find(libraryId: string, tags = new Map()): Promise<Assessment[]> 
     const authHeaders = {
       'Authorization': `Bearer ${token}`
     }
-    
-    const params = mapToObject(tags)
+
+    const params = tools.mapToObject(tags)
 
     const urlParams = new URLSearchParams(params)
     const url = `https://octopus.${domain}/api/v1/assessment_library/${libraryId}/assessment?${urlParams.toString()}`

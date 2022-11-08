@@ -28,9 +28,8 @@ export async function reduce(
   const rootMetadata = readMetadataFile(rootMetadataPath)
   const guidesStructure = getGuidesStructure(rootMetadata, srcDir, '')
   const strippedStructure = stripStructure(guidesStructure, yaml_sections)
-  const excludePaths = []
   const strippedSectionsIds = getStrippedSectionIds(strippedStructure)
-  getExcludedPaths(guidesStructure, strippedSectionsIds, excludePaths)
+  const excludePaths = getExcludedPaths(guidesStructure, strippedSectionsIds)
 
   await copyStripped(srcDir, dstDir, paths.concat(excludePaths))
   await updateRootMetadata(strippedStructure, rootMetadata, dstDir)
@@ -135,22 +134,24 @@ function getStrippedSectionIds(stripped) {
   return ids
 }
 
-function getExcludedPaths(structure, strippedSectionIds, excludePaths) {
+function getExcludedPaths(structure, strippedSectionIds) {
+  let paths: string[] = []
   for (const section of structure) {
     if (!strippedSectionIds.includes(section.id)) {
       if (section.type === PAGE) {
-        excludePaths.push(`!${section.metadata_path}`)
-        excludePaths.push(`!${section.content_path}`)
+        paths.push(`!${section.metadata_path}`)
+        paths.push(`!${section.content_path}`)
       } else {
-        excludePaths.push(`!${section.metadata_path}`)
-        excludePaths.push(`!${section.metadata_path}/**`)
+        paths.push(`!${section.metadata_path}`)
+        paths.push(`!${section.metadata_path}/**`)
       }
     }
     if (section.children) {
-      getExcludedPaths(section.children, strippedSectionIds, excludePaths)
+      const childrenPaths = getExcludedPaths(section.children, strippedSectionIds)
+      paths = paths.concat(childrenPaths)
     }
   }
-  return excludePaths
+  return paths
 }
 
 async function copyStripped(srcDir: string, dstDir: string, paths: (string | PathMap)[]): Promise<void> {

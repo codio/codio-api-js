@@ -186,10 +186,7 @@ async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
 
   const rootMetadata = tools.readMetadataFile('.guides/content/index.json')
   const guidesStructure = tools.getGuidesStructure(rootMetadata, dir, '')
-
-  const metadataPages: { page: string, data: any }[] = []
-  getMetadataPages(dir, guidesStructure, metadataPages)
-
+  const metadataPages = getMetadataPages(dir, guidesStructure)
   for (const json of assessments) {
     try {
       const item = parse(json, metadataPages)
@@ -203,16 +200,20 @@ async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
   return res
 }
 
-function getMetadataPages(dir, guidesStructure, metadataPages) {
+function getMetadataPages(dir, guidesStructure) {
+  let metadataPages: { page: string, data: any }[] = []
   for (const data of guidesStructure) {
     if (data.type === 'page') {
       const filePath = path.join(dir, data['content_path'])
       const page = fs.readFileSync(filePath, {encoding: "utf-8"})
       metadataPages.push({page, data})
-      continue
     }
-    getMetadataPages(dir, data.children, metadataPages)
+    if (data.children) {
+      const res = getMetadataPages(dir, data.children)
+      metadataPages = metadataPages.concat(res)
+    }
   }
+  return metadataPages
 }
 
 async function fromCodioProject(libraryId: string, path: string): Promise<void> {

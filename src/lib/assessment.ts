@@ -209,7 +209,7 @@ function getMetadataPages(dir, guidesStructure, metadataPages) {
       const filePath = path.join(dir, data['content_path'])
       const page = fs.readFileSync(filePath, {encoding: "utf-8"})
       metadataPages.push({page, data})
-      return
+      continue
     }
     getMetadataPages(dir, data.children, metadataPages)
   }

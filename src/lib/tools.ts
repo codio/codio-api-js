@@ -26,9 +26,7 @@ export async function reduce(
   const contentDir = path.join(srcDir, GUIDES_CONTENT_DIR)
   const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)
   const rootMetadata = readMetadataFile(rootMetadataPath)
-  console.log("readMetadataFile", JSON.stringify(rootMetadata, undefined, " "))
   const guidesStructure = getGuidesStructure(rootMetadata, srcDir, '')
-  console.log("getGuidesStructure", JSON.stringify(guidesStructure, undefined, " "))
   const strippedStructure = stripStructure(guidesStructure, yaml_sections)
   const strippedSectionsIds = getStrippedSectionIds(strippedStructure)
   const excludePaths = getExcludedPaths(guidesStructure, strippedSectionsIds)
@@ -72,8 +70,6 @@ export function readMetadataFile(path) {
 }
 
 function stripStructure(guidesStructure, yaml_sections) {
-  console.log('strip structure', JSON.stringify(guidesStructure, undefined, " "))
-  console.log('yaml sections', yaml_sections)
   const result: string[] = []
   const structure = _.cloneDeep(guidesStructure)
   for (const item of yaml_sections) {

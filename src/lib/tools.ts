@@ -20,7 +20,7 @@ const PAGE = 'page'
 
 export async function reduce(
     srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[]): Promise<void> {
-  if (fs.existsSync(OLD_METADATA_FILE)) {
+  if (fs.existsSync(path.join(srcDir, OLD_METADATA_FILE))) {
     await convertToGuidesV3()
   }
   const contentDir = path.join(srcDir, GUIDES_CONTENT_DIR)

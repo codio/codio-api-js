@@ -70,6 +70,8 @@ export function readMetadataFile(path) {
 }
 
 function stripStructure(guidesStructure, yaml_sections) {
+  console.log('strip structure', JSON.stringify(guidesStructure, undefined, " "))
+  console.log('yaml sections', yaml_sections)
   const result: string[] = []
   const structure = _.cloneDeep(guidesStructure)
   for (const item of yaml_sections) {

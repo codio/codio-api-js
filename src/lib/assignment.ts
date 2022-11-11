@@ -336,7 +336,7 @@ export async function getSettings(courseId: string, assignmentId:string): Promis
     const res = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
         undefined, getBearer()) as AssignmentSettingsRaw
     return fromRawSettings(res)
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)
@@ -422,7 +422,7 @@ export async function updateSettings(courseId: string, assignmentId: string, set
     const res = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
         toRawSettings(settings), getBearer()) as AssignmentSettingsRaw
     return fromRawSettings(res)
-  } catch (error) {
+  } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
       throw new Error(message)

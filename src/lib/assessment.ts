@@ -4,7 +4,7 @@ import path from 'path'
 import config from './config'
 import { Assessment, parse, API_ID_TAG, parseApi, API_HASH_TAG } from './assessmentsTypes'
 import FormData from 'form-data'
-import tools from './tools'
+import tools, {fixGuidesVersion} from './tools'
 import _ from 'lodash'
 import glob from "glob-promise";
 const getJson = bent('json')
@@ -217,6 +217,7 @@ function getMetadataPages(dir, guidesStructure) {
 }
 
 async function fromCodioProject(libraryId: string, path: string): Promise<void> {
+  await fixGuidesVersion(path)
   libraryId = await getLibraryId(libraryId)
   const assessments = await loadProjectAssessments(path)
   for(const _ of assessments) {

@@ -18,11 +18,15 @@ const OLD_METADATA_FILE = '.guides/metadata.json'
 const INDEX_METADATA_FILE = 'index.json'
 const PAGE = 'page'
 
-export async function reduce(
-    srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[]): Promise<void> {
-  if (fs.existsSync(path.join(srcDir, OLD_METADATA_FILE))) {
+export async function fixGuidesVersion(projectPath: string) {
+  if (fs.existsSync(path.join(projectPath, OLD_METADATA_FILE))) {
     await convertToGuidesV3()
   }
+}
+
+export async function reduce(
+    srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[]): Promise<void> {
+  await fixGuidesVersion(srcDir)
   const contentDir = path.join(srcDir, GUIDES_CONTENT_DIR)
   const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)
   const rootMetadata = readMetadataFile(rootMetadataPath)

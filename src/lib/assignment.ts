@@ -5,7 +5,7 @@ import FormData from 'form-data'
 import tar from 'tar'
 import glob from 'glob-promise'
 import YAML from 'yaml'
-import tools, { getApiV1Url, getBearer } from './tools'
+import tools, { getApiV1Url, getBearer, fixGuidesVersion } from './tools'
 import config, { excludePaths } from './config'
 import _ from 'lodash'
 import { info } from './course'
@@ -454,6 +454,7 @@ export async function updateStudentTimeExtension(
 const assignment = {
   publish: async (courseId: string, assignmentId: string, projectPath: string,
                   changelogOrOptions: string | PublishOptions): Promise<void> => {
+    await fixGuidesVersion(projectPath)
     const {file, dir} = await archiveTar(projectPath)
     await assignment.publishArchive(courseId, assignmentId, file, changelogOrOptions)
     fs.rmdirSync(dir, {recursive: true})

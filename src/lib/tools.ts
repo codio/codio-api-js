@@ -20,7 +20,7 @@ const PAGE = 'page'
 
 export async function fixGuidesVersion(projectPath: string) {
   if (fs.existsSync(path.join(projectPath, OLD_METADATA_FILE))) {
-    await convertToGuidesV3()
+    await convertToGuidesV3(projectPath)
   }
 }
 
@@ -257,21 +257,21 @@ export function secondsToDate(seconds: number): Date {
   return t
 }
 
-export async function convertToGuidesV3() {
+export async function convertToGuidesV3(cwd: string) {
   console.log('guides conversion process...')
   try {
-    await execShellCommand(`curl "https://static-assets.codio.com/guides-converter-v3/guides-converter-v3-${CONVERTER_VERSION}" --output guides-converter-v3`)
-    await execShellCommand('chmod +x ./guides-converter-v3')
-    await execShellCommand('./guides-converter-v3')
-    await execShellCommand('rm guides-converter-v3')
+    await execShellCommand(`curl "https://static-assets.codio.com/guides-converter-v3/guides-converter-v3-${CONVERTER_VERSION}" --output guides-converter-v3`, cwd)
+    await execShellCommand('chmod +x ./guides-converter-v3', cwd)
+    await execShellCommand('./guides-converter-v3', cwd)
+    await execShellCommand('rm guides-converter-v3', cwd)
   } catch (error: any) {
     throw new Error(error);
   }
 }
 
-function execShellCommand(command) {
+function execShellCommand(command: string, cwd: string) {
   return new Promise((resolve, reject) => {
-    process.exec(command, (error, stdout, stderr) => {
+    process.exec(command, { cwd }, (error, stdout, stderr) => {
       if (error) {
         reject(error)
       }

@@ -10,6 +10,7 @@ import glob from "glob-promise";
 const getJson = bent('json')
 
 const ASSESSMENTS_DIR = '.guides/assessments'
+const ROOT_METADATA = '.guides/content/index.json'
 
 export type Library = {
   name: string
@@ -178,13 +179,12 @@ async function loadProjectAssessments(dir: string): Promise<Assessment[]> {
   const assessmentJsonFiles = await glob('*.json', {cwd: path.join(dir, ASSESSMENTS_DIR), nodir: true})
   let assessments: any[] = []
   for (const file of assessmentJsonFiles) {
-    const filePath = path.join(ASSESSMENTS_DIR, file)
+    const filePath = path.join(dir, ASSESSMENTS_DIR, file)
     const assessmentString = await fs.promises.readFile(filePath, {encoding: 'utf8'})
     const assessment = JSON.parse(assessmentString)
     assessments = assessments.concat(assessment)
   }
-
-  const rootMetadata = tools.readMetadataFile('.guides/content/index.json')
+  const rootMetadata = tools.readMetadataFile(path.join(dir, ROOT_METADATA))
   const guidesStructure = tools.getGuidesStructure(rootMetadata, dir, '')
   const metadataPages = getMetadataPages(dir, guidesStructure)
   for (const json of assessments) {

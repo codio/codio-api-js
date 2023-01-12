@@ -295,7 +295,7 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
     paths.push(`!${yamlDir}/**`) // exclude yaml directory from export
 
     if (!item.assignment) {
-      throw new Error(`assignment not found with name "${item.assignmentName}}"`)
+      throw new Error(`assignment not found with name "${item.assignmentName}"`)
     }
     await tools.reduce(srcDir, tmpDstDir, item.section, _.compact(paths))
     await assignment.publish(courseId, item.assignment, tmpDstDir, changelogOrOptions)

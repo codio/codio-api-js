@@ -94,7 +94,7 @@ function traverseData(structure, sections) {
   if (!sectionName) {
     return
   }
-  const section = findSection(structure, sectionName)
+  const section = _.cloneDeep(findSection(structure, sectionName))
   if (!section) {
     throw new Error(`section "${sectionName}" is not found`)
   }

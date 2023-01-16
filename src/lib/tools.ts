@@ -215,11 +215,7 @@ async function updateRootMetadata(structure, metadata, dstDir) {
 async function updateMetadata(structure, dstDir) {
   for (const item of structure) {
     if (item.children) {
-      let filePath = path.join(dstDir, GUIDES_CONTENT_DIR, item['section_path'], INDEX_METADATA_FILE)
-      if (item.newSection_path) {
-        filePath = path.join(dstDir, GUIDES_CONTENT_DIR, item['newSection_path'], INDEX_METADATA_FILE)
-      }
-      
+      const filePath = path.join(dstDir, GUIDES_CONTENT_DIR, item['section_path'], INDEX_METADATA_FILE)
       const data = {
         id: item.id,
         title: item.title,

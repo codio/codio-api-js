@@ -95,7 +95,7 @@ function traverseItems(structure, sectionPath: string[], filterMap: any) {
   if (!sectionName) {
     return
   }
-  const section = _.cloneDeep(findSection(structure, sectionName))
+  const section = findSection(structure, sectionName)
   if (!section) {
     throw new Error(`section "${sectionName}" is not found`)
   }

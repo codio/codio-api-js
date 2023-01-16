@@ -79,17 +79,16 @@ export function readMetadataFile(path) {
   }
 }
 
-const takenIds: string[] = []
-
 function stripStructure(guidesStructure, yaml_sections) {
   const result: string[] = []
+  const takenIds: string[] = []
   
   const structure = _.cloneDeep(guidesStructure)
   for (const item of yaml_sections) {
     if (item.length === 0) { //skip empty sections
       continue
     }
-    const section = traverseData(structure, item)
+    const section = traverseData(structure, item, takenIds)
     if (!section) {
       throw new Error(`${section} not found`)
     }
@@ -102,7 +101,7 @@ function stripStructure(guidesStructure, yaml_sections) {
 // two times same section
 // two times same chapter
 
-function traverseData(structure, sections) {
+function traverseData(structure, sections, takenIds: string[]) {
   const sectionName = sections.shift()
   if (!sectionName) {
     return
@@ -112,18 +111,22 @@ function traverseData(structure, sections) {
     throw new Error(`section "${sectionName}" is not found`)
   }
   if (sections.length > 0) {
-    section['children'] = [traverseData(section.children, sections)]
+    section['children'] = [traverseData(section.children, sections, takenIds)]
   }
   if (takenIds.includes(section.id)) {
-    section = updateSectionWithNewId(section)
+    section = updateSectionWithNewId(section, takenIds)
   }
-  takenIds.push(section.id)
+  takenIds.push(section.newId || section.id)
+  console.log("takenIds", takenIds)
   return section
 }
 
-// sections with same pages used
-const updateSectionWithNewId = (section) => {
+// sections with same pages used twice or more
+const updateSectionWithNewId = (section, takenIds: string[]) => {
   section.newId = crypto.randomUUID()
+  while (takenIds.includes(section.newId)) {
+    section.newId = crypto.randomUUID()
+  }
   section.newName = section.name.replace(section.id.substring(0, 3), section.newId.substring(0, 3))
   section.newMetadata_path = section.metadata_path.replaceAll(section.name, section.newName)
   section.newSection_path = section.section_path.replaceAll(section.name, section.newName)
@@ -189,6 +192,7 @@ function getExcludedPaths(structure, strippedSectionIds) {
   return paths
 }
 
+// need map of updated sections
 function getUpdatedPaths(strippedStructure): PathMap[] {
   let paths: PathMap[] = []
   for (const section of strippedStructure) {

@@ -9,7 +9,6 @@ import tar from 'tar'
 import { ZSTDCompress } from 'simple-zstd'
 import config from './config'
 import { PathMap } from './assignment'
-import crypto from 'crypto'
 
 const getJson = bent('json')
 
@@ -32,16 +31,12 @@ export async function reduce(
   const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)
   const rootMetadata = readMetadataFile(rootMetadataPath)
   const guidesStructure = getGuidesStructure(rootMetadata, srcDir, '')
-  const strippedStructure = stripStructure(guidesStructure, yaml_sections)
-  console.log("strippedStructure", JSON.stringify(strippedStructure, null, 4))
+  const filter = collectFilter(guidesStructure, _.cloneDeep(yaml_sections))
+  const strippedStructure = stripStructure(guidesStructure, filter)
   const strippedSectionsIds = getStrippedSectionIds(strippedStructure)
-  console.log("strippedSectionsIds", JSON.stringify(strippedSectionsIds, null, 4))
   const excludePaths = getExcludedPaths(guidesStructure, strippedSectionsIds)
-  console.log("excludePaths", JSON.stringify(excludePaths, null, 4))
-  const updatedPaths = getUpdatedPaths(strippedStructure)
 
-  //todo: exclude not needed section children
-  await copyStripped(srcDir, dstDir, paths.concat(excludePaths).concat(updatedPaths))
+  await copyStripped(srcDir, dstDir, paths.concat(excludePaths))
   await updateRootMetadata(strippedStructure, rootMetadata, dstDir)
   await updateMetadata(strippedStructure, dstDir)
 }
@@ -79,64 +74,51 @@ export function readMetadataFile(path) {
   }
 }
 
-function stripStructure(guidesStructure, yaml_sections) {
-  const result: string[] = []
-  const takenIds: string[] = []
-  
-  const structure = _.cloneDeep(guidesStructure)
-  for (const item of yaml_sections) {
-    if (item.length === 0) { //skip empty sections
+function collectFilter(guidesStructure, yaml_sections) {
+  const filterMap = {}
+
+  for (const sectionPath of yaml_sections) {
+    if (sectionPath.length === 0) {
       continue
     }
-    const section = traverseData(structure, item, takenIds)
+    const section = traverseItems(guidesStructure, sectionPath, filterMap)
     if (!section) {
       throw new Error(`${section} not found`)
     }
-    result.push(section)
   }
-  return result
+  
+  return filterMap
 }
 
-// two times same page
-// two times same section
-// two times same chapter
-
-function traverseData(structure, sections, takenIds: string[]) {
-  const sectionName = sections.shift()
+function traverseItems(structure, sectionPath: string[], filterMap: any) {
+  const sectionName = sectionPath.shift()
   if (!sectionName) {
     return
   }
-  let section = _.cloneDeep(findSection(structure, sectionName))
+  const section = _.cloneDeep(findSection(structure, sectionName))
   if (!section) {
     throw new Error(`section "${sectionName}" is not found`)
   }
-  if (sections.length > 0) {
-    section['children'] = [traverseData(section.children, sections, takenIds)]
+  if (filterMap[section.id] === undefined) {
+    filterMap[section.id] = {}
   }
-  if (takenIds.includes(section.id)) {
-    section = updateSectionWithNewId(section, takenIds)
+  if (sectionPath.length > 0) {
+    // fill-in filterMap
+    traverseItems(section.children, sectionPath, filterMap[section.id])
   }
-  takenIds.push(section.newId || section.id)
-  console.log("takenIds", takenIds)
   return section
 }
 
-// sections with same pages used twice or more
-const updateSectionWithNewId = (section, takenIds: string[]) => {
-  section.newId = crypto.randomUUID()
-  while (takenIds.includes(section.newId)) {
-    section.newId = crypto.randomUUID()
-  }
-  section.newName = section.name.replace(section.id.substring(0, 3), section.newId.substring(0, 3))
-  section.newMetadata_path = section.metadata_path.replaceAll(section.name, section.newName)
-  section.newSection_path = section.section_path.replaceAll(section.name, section.newName)
-  if (section.children && section.children.length > 0) {
-    for (const item of section.children) {
-      item.newContent_path = item.content_path.replaceAll(section.name, section.newName)
-      item.newMetadata_path = item.metadata_path.replaceAll(section.name, section.newName)
+function stripStructure(guidesStructure, filterMap) {
+  const structure = _.cloneDeep(guidesStructure)
+  return _.filter(structure, section => {
+    return _.keys(filterMap).includes(section.id)
+  }).map(section => {
+    if (section.children) {
+      section.children = stripStructure(section.children, filterMap[section.id])
     }
-  }
-  return section
+    return section
+  })
 }
 
 function findSection(structure, title) {
@@ -192,33 +174,8 @@ function getExcludedPaths(structure, strippedSectionIds) {
   return paths
 }
 
-// need map of updated sections
-function getUpdatedPaths(strippedStructure): PathMap[] {
-  let paths: PathMap[] = []
-  for (const section of strippedStructure) {
-    if (section.newMetadata_path) {
-      paths.push({
-        source: section.metadata_path,
-        destination: section.newMetadata_path
-      })
-    }
-    if (section.newContent_path) {
-      paths.push({
-        source: section.content_path,
-        destination: section.newContent_path
-      })
-    }
-    if (section.children) {
-      const childrenPaths = getUpdatedPaths(section.children)
-      paths = paths.concat(childrenPaths)
-    }
-  }
-  return paths
-}
-
 async function copyStripped(srcDir: string, dstDir: string, paths: (string | PathMap)[]): Promise<void> {
   const mapPaths = _.filter(paths, _ => typeof _ != 'string') as PathMap[]
-  console.log("copyStripped", srcDir, dstDir, JSON.stringify(mapPaths, null, 4), JSON.stringify(paths, null, 4))
   const stringPaths = [] as string[]
   stringPaths.push('.guides/**')
   stringPaths.push('.codio')
@@ -270,7 +227,6 @@ async function updateMetadata(structure, dstDir) {
         order: _.map(item.children, child => child.name)
       }
       await fs.promises.writeFile(filePath, JSON.stringify(data, undefined, ' '))
-      console.log("wrote file", filePath, "data:", JSON.stringify(data, undefined, ' '))
       await updateMetadata(item.children, dstDir)
     }
   }

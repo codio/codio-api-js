@@ -87,6 +87,9 @@ function collectFilter(guidesStructure, yaml_sections) {
     }
   }
   
+  if (_.isEmpty(_.keys(filterMap))) {
+    throw new Error(`Nothing to publish`)
+  }
   return filterMap
 }
 
@@ -109,13 +112,15 @@ function traverseItems(structure, sectionPath: string[], filterMap: any) {
   return section
 }
 
+// if filter is empty then add all sections
 function stripStructure(guidesStructure, filterMap) {
   const structure = _.cloneDeep(guidesStructure)
   return _.filter(structure, section => {
-    return _.keys(filterMap).includes(section.id)
+    const ids = _.keys(filterMap)
+    return _.isEmpty(ids) || ids.includes(section.id)
   }).map(section => {
     if (section.children) {
-      section.children = stripStructure(section.children, filterMap[section.id])
+      section.children = stripStructure(section.children, filterMap[section.id] || {})
     }
     return section
   })

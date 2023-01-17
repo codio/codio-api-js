@@ -139,11 +139,11 @@ function stripStructure(guidesStructure, filterMap) {
     if (filterMap.all) {
       return true
     }
-    const ids = _.keys(filterMap.children)
-    return _.isEmpty(ids) || ids.includes(section.id)
+    return _.keys(filterMap.children).includes(section.id)
   }).map(section => {
     if (section.children) {
-      section.children = stripStructure(section.children, filterMap[section.id] || DEFAULT_ALL_SECTION)
+      const filter = filterMap.all ? DEFAULT_ALL_SECTION : filterMap.children[section.id]
+      section.children = stripStructure(section.children, filter)
     }
     return section
   })

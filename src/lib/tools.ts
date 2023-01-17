@@ -74,8 +74,23 @@ export function readMetadataFile(path) {
   }
 }
 
+// if all is true, then copy all children
+// else use children list
+type Section = {
+  all: boolean,
+  children: { [id: string]: Section }
+}
+
+const DEFAULT_ALL_SECTION: Section = {
+  all: true,
+  children: {}
+}
+
 function collectFilter(guidesStructure, yaml_sections) {
-  const filterMap = {}
+  const filterMap = {
+    all: false,
+    children: {}
+  }
 
   for (const sectionPath of yaml_sections) {
     if (sectionPath.length === 0) {
@@ -93,7 +108,7 @@ function collectFilter(guidesStructure, yaml_sections) {
   return filterMap
 }
 
-function traverseItems(structure, sectionPath: string[], filterMap: any) {
+function traverseItems(structure, sectionPath: string[], filterMap: Section) {
   const sectionName = sectionPath.shift()
   if (!sectionName) {
     return
@@ -102,12 +117,17 @@ function traverseItems(structure, sectionPath: string[], filterMap: any) {
   if (!section) {
     throw new Error(`section "${sectionName}" is not found`)
   }
-  if (filterMap[section.id] === undefined) {
-    filterMap[section.id] = {}
+  if (filterMap.children[section.id] === undefined) {
+    filterMap.children[section.id] = {
+      all: false,
+      children: {}
+    }
   }
   if (sectionPath.length > 0) {
     // fill-in filterMap
-    traverseItems(section.children, sectionPath, filterMap[section.id])
+    traverseItems(section.children, sectionPath, filterMap.children[section.id])
+  } else {
+    filterMap.children[section.id].all = true
   }
   return section
 }
@@ -116,11 +136,14 @@ function traverseItems(structure, sectionPath: string[], filterMap: any) {
 function stripStructure(guidesStructure, filterMap) {
   const structure = _.cloneDeep(guidesStructure)
   return _.filter(structure, section => {
-    const ids = _.keys(filterMap)
+    if (filterMap.all) {
+      return true
+    }
+    const ids = _.keys(filterMap.children)
     return _.isEmpty(ids) || ids.includes(section.id)
   }).map(section => {
     if (section.children) {
-      section.children = stripStructure(section.children, filterMap[section.id] || {})
+      section.children = stripStructure(section.children, filterMap[section.id] || DEFAULT_ALL_SECTION)
     }
     return section
   })

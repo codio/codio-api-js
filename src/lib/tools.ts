@@ -31,7 +31,8 @@ export async function reduce(
   const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)
   const rootMetadata = readMetadataFile(rootMetadataPath)
   const guidesStructure = getGuidesStructure(rootMetadata, srcDir, '')
-  const strippedStructure = stripStructure(guidesStructure, yaml_sections)
+  const filter = collectFilter(guidesStructure, _.cloneDeep(yaml_sections))
+  const strippedStructure = stripStructure(guidesStructure, filter)
   const strippedSectionsIds = getStrippedSectionIds(strippedStructure)
   const excludePaths = getExcludedPaths(guidesStructure, strippedSectionsIds)
 
@@ -73,24 +74,42 @@ export function readMetadataFile(path) {
   }
 }
 
-function stripStructure(guidesStructure, yaml_sections) {
-  const result: string[] = []
-  const structure = _.cloneDeep(guidesStructure)
-  for (const item of yaml_sections) {
-    if (item.length === 0) { //skip empty sections
+// if all is true, then copy all children
+// else use children list
+type Section = {
+  all: boolean,
+  children: { [id: string]: Section }
+}
+
+const DEFAULT_ALL_SECTION: Section = {
+  all: true,
+  children: {}
+}
+
+function collectFilter(guidesStructure, yaml_sections) {
+  const filterMap = {
+    all: false,
+    children: {}
+  }
+
+  for (const sectionPath of yaml_sections) {
+    if (sectionPath.length === 0) {
       continue
     }
-    const section = traverseData(structure, item)
+    const section = traverseItems(guidesStructure, sectionPath, filterMap)
     if (!section) {
       throw new Error(`${section} not found`)
     }
-    result.push(section)
   }
-  return result
+  
+  if (_.isEmpty(_.keys(filterMap))) {
+    throw new Error(`Nothing to publish`)
+  }
+  return filterMap
 }
 
-function traverseData(structure, sections) {
-  const sectionName = sections.shift()
+function traverseItems(structure, sectionPath: string[], filterMap: Section) {
+  const sectionName = sectionPath.shift()
   if (!sectionName) {
     return
   }
@@ -98,11 +117,36 @@ function traverseData(structure, sections) {
   if (!section) {
     throw new Error(`section "${sectionName}" is not found`)
   }
-  if (sections.length > 0) {
-    section['children'] = [traverseData(section.children, sections)]
-    return section
+  if (filterMap.children[section.id] === undefined) {
+    filterMap.children[section.id] = {
+      all: false,
+      children: {}
+    }
+  }
+  if (sectionPath.length > 0) {
+    // fill-in filterMap
+    traverseItems(section.children, sectionPath, filterMap.children[section.id])
+  } else {
+    filterMap.children[section.id].all = true
   }
   return section
+}
+
+// if filter is empty then add all sections
+function stripStructure(guidesStructure, filterMap) {
+  const structure = _.cloneDeep(guidesStructure)
+  return _.filter(structure, section => {
+    if (filterMap.all) {
+      return true
+    }
+    return _.keys(filterMap.children).includes(section.id)
+  }).map(section => {
+    if (section.children) {
+      const filter = filterMap.all ? DEFAULT_ALL_SECTION : filterMap.children[section.id]
+      section.children = stripStructure(section.children, filter)
+    }
+    return section
+  })
 }
 
 function findSection(structure, title) {

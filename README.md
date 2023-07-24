@@ -15,6 +15,21 @@ const token = await codio.v1.auth(client_id, client_secret)
 
 The token is saved inside the library all consequence calls will be made using the token.
 
+## API rate limit
+
+Burst rate limit: 50 requests per 10 seconds per organization
+
+Daily limit: 10.000 requests per organization
+
+API specific HTTP headers:
+
+| Header | Description |
+|----------|----------|
+| X-RateLimit-Limit | Number of request for burst, Example 50 |
+| X-RateLimit-Remaining | Number of requests left for the time window, 34 |
+| X-RateLimit-Reset | The remaining window before the rate limit resets in UTC epoch seconds |
+| X-RateLimit-DailyLimit | Number of request per day, Example 10000 |
+| X-RateLimit-DailyLimit-Remaining | Number of request per day remaining, Example 3456 |
 
 ## Publish Assignment
 These methods allow to publish the assignment either as archive (zip and tar.gz is supported)

@@ -26,7 +26,7 @@ API specific HTTP headers:
 | Header | Description |
 |----------|----------|
 | X-RateLimit-Limit | Number of request for burst, Example 50 |
-| X-RateLimit-Remaining | Number of requests left for the time window, 34 |
+| X-RateLimit-Remaining | Number of requests left for the time window, Example 34 |
 | X-RateLimit-Reset | The remaining window before the rate limit resets in UTC epoch seconds |
 | X-RateLimit-DailyLimit | Number of request per day, Example 10000 |
 | X-RateLimit-DailyLimit-Remaining | Number of request per day remaining, Example 3456 |

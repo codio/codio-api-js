@@ -81,7 +81,7 @@ type AssignmentSettingsRaw = {
   action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
   penalties?: PenaltyRaw[]
   examMode?: {
-    timedExamMode: {
+    timedMode: {
       enabled: boolean,
       duration: number // minutes
     }
@@ -312,7 +312,13 @@ function fromRawSettings(res: AssignmentSettingsRaw): AssignmentSettings {
     startTime: convertDateToLocal(res.startTime),
     endTime: convertDateToLocal(res.endTime),
     action: res.action,
-    examMode: res.examMode,
+    examMode: res.examMode? {
+      timedExamMode: res.examMode?.timedMode,
+      shuffleQuestionsOrder: res.examMode?.shuffleQuestionsOrder,
+      forwardOnlyNavigation: res.examMode?.forwardOnlyNavigation,
+      singleLogin: res.examMode?.singleLogin,
+      authentication: res.examMode?.authentication
+    } : undefined,
     releaseGrades: res.releaseGrades,
     isDisabled: res.isDisabled,
     penalties: res.penalties? _.map(res.penalties, _ => {
@@ -377,7 +383,13 @@ function toRawSettings(settings: AssignmentSettings): AssignmentSettingsRaw {
     res.action = settings.action
   }
   if (settings.examMode !== undefined) {
-    res.examMode = settings.examMode
+    res.examMode = {
+      timedMode: settings.examMode.timedExamMode,
+      shuffleQuestionsOrder: settings.examMode.shuffleQuestionsOrder,
+      forwardOnlyNavigation: settings.examMode.forwardOnlyNavigation,
+      singleLogin: settings.examMode.singleLogin,
+      authentication: settings.examMode.authentication
+    }
   }
   if (settings.releaseGrades !== undefined) {
     res.releaseGrades = settings.releaseGrades

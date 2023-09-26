@@ -3,9 +3,7 @@ const VALID_DOMAINS=[
   'codio.co.uk',
   'codiodev.com',
   'test1-codio.com',
-  'test2-codio.com',
-  'codio.test:15598',
-  'codio.test:15594'
+  'test2-codio.com'
 ]
 
 class Config {

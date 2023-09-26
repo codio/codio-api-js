@@ -332,7 +332,8 @@ export async function getSettings(courseId: string, assignmentId:string): Promis
   }
   try {
     const api = bent(getApiV1Url())
-    const rawSettings = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`) as AssignmentSettingsRaw
+    const rawSettings = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
+      undefined, getBearer()) as AssignmentSettingsRaw
     return fromRawSettings(rawSettings)
   } catch (error: any) {
     if (error.json) {

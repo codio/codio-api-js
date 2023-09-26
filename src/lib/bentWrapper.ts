@@ -11,7 +11,7 @@ const waitTimeout = async (ms: number) => {
 }
 
 export default (...args: bent.Options[]) => {
-    const api = bent.apply(null, args)
+    const api = bent(...args)
     const req = async (url: string, body?: bent.RequestBody | undefined, headers?: Headers | undefined): Promise<any> => {
         try {
             const resp = await api(url, body, headers) as bent.NodeResponse

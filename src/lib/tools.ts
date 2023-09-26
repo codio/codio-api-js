@@ -1,7 +1,6 @@
 import path from 'path'
 import fs from 'fs'
 import _ from 'lodash'
-import bent from 'bent'
 import copy from 'recursive-copy'
 import process from 'child_process';
 import {excludePaths} from './config'
@@ -9,7 +8,6 @@ import tar from 'tar'
 import { ZSTDCompress } from 'simple-zstd'
 import config from './config'
 import { PathMap } from './assignment'
-import bentWrapper from './bentWrapper'
 
 const CONVERTER_VERSION = '4ca4944ddf9d4fe4df9697bec06cbd0a6c170419'
 const GUIDES_CONTENT_DIR = '.guides/content'
@@ -324,7 +322,7 @@ function execShellCommand(command: string, cwd: string) {
 }
 
 export function getApiV1Url(): string {
-  return `http://octopus.${config.getDomain()}/api/v1`
+  return `https://octopus.${config.getDomain()}/api/v1`
 }
 
 export function getBearer() {

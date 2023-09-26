@@ -1,11 +1,10 @@
-import bent from 'bent'
+import bent from './bentWrapper'
 import FormData from 'form-data'
 import fs from 'fs'
 
 import config from './config'
-
-
-const getJson = bent('json')
+import {getApiV1Url, getBearer} from './tools'
+const getJson = bent()
 
 export type StackVersion = {
     id: string,
@@ -30,13 +29,7 @@ export async function info(stackId: string): Promise<Stack> {
     }
 
     try {
-        const token = config.getToken()
-        const domain = config.getDomain()
-        const authHeaders = {
-            'Authorization': `Bearer ${token}`
-        }
-
-        return getJson(`https://octopus.${domain}/api/v1/stacks/${stackId}`, undefined, authHeaders)
+        return getJson(`${getApiV1Url()}/stacks/${stackId}`, undefined, getBearer())
     } catch (error: any) {
         if (error.json) {
             const message = JSON.stringify(await error.json())
@@ -59,13 +52,7 @@ export async function publish(
     }
 
     try {
-        const token = config.getToken()
-        const domain = config.getDomain()
-        const authHeaders = {
-            'Authorization': `Bearer ${token}`
-        }
-
-        const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)
+        const api = bent(getApiV1Url, 'POST', 'json', 200)
         
         const postData = new FormData()
         postData.append('provisioner', provisioner)
@@ -82,13 +69,13 @@ export async function publish(
         }
         postData.append('message', message)
         
-        const headers = Object.assign(postData.getHeaders(), authHeaders)
+        const headers = Object.assign(postData.getHeaders(), getBearer())
         headers['Content-Length'] = await postData.getLengthSync()
         
         console.log('headers', headers)
         console.log('data', postData)
 
-        const res = await api(`/api/v1/stacks/${stackId}/versions`, postData, headers)
+        const res = await api(`/stacks/${stackId}/versions`, postData, headers)
         console.log('publish result', res)
         return res
     } catch (error: any) {
@@ -106,11 +93,7 @@ export async function waitTask(taskUrl: string): Promise<string> {
     }
 
     try {
-        const token = config.getToken()
-        const authHeaders = {
-            'Authorization': `Bearer ${token}`
-        }
-        const res = await getJson(taskUrl, undefined, authHeaders)
+        const res = await getJson(taskUrl, undefined, getBearer())
         console.log('waitTask', res)
         if (res.status !== 'done' && res.status !== 'error') {
             await new Promise(resolve => setTimeout(resolve, 500))

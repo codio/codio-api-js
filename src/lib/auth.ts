@@ -1,5 +1,5 @@
 import querystring from 'querystring'
-import bent from 'bent'
+import bent from './bentWrapper'
 
 const getJson = bent('json')
 
@@ -10,7 +10,7 @@ export async function auth(clientId: string, secretId: string, domain: string): 
     'client_secret': secretId
   }
   const paramsString = querystring.encode(params)
-  const url = `https://oauth.${domain}/api/v1/token?${paramsString}`
+  const url = `http://oauth.${domain}/api/v1/token?${paramsString}`
 
   const response = await getJson(url)
 

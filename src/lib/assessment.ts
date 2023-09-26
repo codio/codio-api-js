@@ -1,13 +1,13 @@
 import fs from 'fs'
-import bent from 'bent'
+import bent from './bentWrapper'
 import path from 'path'
 import config from './config'
 import { Assessment, parse, API_ID_TAG, parseApi, API_HASH_TAG } from './assessmentsTypes'
 import FormData from 'form-data'
-import tools, {fixGuidesVersion} from './tools'
+import tools, {fixGuidesVersion, getApiV1Url, getBearer} from './tools'
 import _ from 'lodash'
 import glob from "glob-promise";
-const getJson = bent('json')
+const getJson = bent()
 
 const ASSESSMENTS_DIR = '.guides/assessments'
 const ROOT_METADATA = '.guides/content/index.json'
@@ -23,13 +23,7 @@ async function listLibraries(): Promise<Library[]> {
     throw new Error('No Config')
   }
   try {
-    const token = config.getToken()
-    const domain = config.getDomain()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
-
-    const res = await getJson(`https://octopus.${domain}/api/v1/assessment_library`, undefined, authHeaders)
+    const res = await getJson(`${getApiV1Url()}/assessment_library`, undefined, getBearer())
     const libraries: Library[] = []
     for(const _ of res) {
       libraries.push({
@@ -96,12 +90,7 @@ async function _publishAssessment(libraryId: string, assessment: Assessment, isN
   }
 
   try {
-    const token = config.getToken()
-    const domain = config.getDomain()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
-    const api = bent(`https://octopus.${domain}`, isNew ? 'POST': 'PUT', 'json', 200)
+    const api = bent(getApiV1Url(), isNew ? 'POST': 'PUT', 'json', 200)
 
     const postData = new FormData()
     postData.append('assessment', assessment.export())
@@ -116,11 +105,11 @@ async function _publishAssessment(libraryId: string, assessment: Assessment, isN
         })
       }
     }
-    const headers = Object.assign(postData.getHeaders(), authHeaders)
+    const headers = Object.assign(postData.getHeaders(), getBearer())
     headers['Content-Length'] = await new Promise(resolve => postData.getLength((_, length) => resolve(length)))
     const assessmentId = isNew ? '' : `/${assessment.assessmentId}`
     await updateJSON(assessment, base)
-    await api(`/api/v1/assessment_library/${libraryId}/assessment${assessmentId}`, postData, headers)
+    await api(`/assessment_library/${libraryId}/assessment${assessmentId}`, postData, headers)
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -235,17 +224,11 @@ async function find(libraryId: string, tags = new Map()): Promise<Assessment[]> 
     throw new Error('No Config')
   }
   try {
-    const token = config.getToken()
-    const domain = config.getDomain()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
-
     const params = tools.mapToObject(tags)
 
     const urlParams = new URLSearchParams(params)
-    const url = `https://octopus.${domain}/api/v1/assessment_library/${libraryId}/assessment?${urlParams.toString()}`
-    const apiRes = await getJson(url, undefined, authHeaders)
+    const url = `${getApiV1Url()}/assessment_library/${libraryId}/assessment?${urlParams.toString()}`
+    const apiRes = await getJson(url, undefined, getBearer())
     if (!apiRes.assessments) {
       return []
     }

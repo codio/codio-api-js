@@ -90,7 +90,7 @@ async function _publishAssessment(libraryId: string, assessment: Assessment, isN
   }
 
   try {
-    const api = bent(getApiV1Url(), isNew ? 'POST': 'PUT', 'json', 200)
+    const api = bent(getApiV1Url(), isNew ? 'POST': 'PUT', 200)
 
     const postData = new FormData()
     postData.append('assessment', assessment.export())

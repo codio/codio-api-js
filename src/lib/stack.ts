@@ -52,7 +52,7 @@ export async function publish(
     }
 
     try {
-        const api = bent(getApiV1Url, 'POST', 'json', 200)
+        const api = bent(getApiV1Url, 'POST', 200)
         
         const postData = new FormData()
         postData.append('provisioner', provisioner)

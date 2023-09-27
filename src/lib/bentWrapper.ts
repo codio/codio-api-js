@@ -20,7 +20,7 @@ export default (...args: bent.Options[]) => {
                 throw Error('Tries limit exceeded')
             }
             const resp = await api(url, body, headers) as bent.NodeResponse
-            return await resp.json()
+            return resp.json()
         } catch (e: any) {
             if (e.statusCode === 429) {
                 const dailyRemaining = e.headers['x-ratelimit-dailylimit-remaining']
@@ -30,7 +30,7 @@ export default (...args: bent.Options[]) => {
                 const resetHeaderMs = e.headers['x-ratelimit-reset'] / 1000000
                 await waitTimeout(resetHeaderMs)
                 const triesCount = tries !== undefined && tries > 0 ? tries - 1 : RETRIES_COUNT
-                return await req(url, body, headers, triesCount)
+                return req(url, body, headers, triesCount)
             }
             throw e
         }

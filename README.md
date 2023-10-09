@@ -283,6 +283,90 @@ await codio.course.downloadAssessmentData(courseId, assignmentIds, filePath)
 ```
 downloads file to filePath
 
+#### Export Course Sources
+
+Export all course sources.
+
+
+Returns `CourseExport` object
+
+```
+CourseExport = {
+  taskId: string
+  done: boolean
+  error?: string
+  url?: string
+}
+```
+
+```
+await codio.course.createSourceExport(courseId)
+```
+
+To download exported data you need to specify course Id
+```
+await codio.course.downloadSourceExport(courseId, assignmentIds, filePath)
+```
+downloads file to filePath
+
+Get all available exports.
+
+Returns array `CourseExport[]` objects
+
+```
+await codio.course.getSourceExports(courseId)
+```
+
+Get export progress by id.
+
+Returns `CourseExport` object
+
+```
+await codio.course.getSourceExportProgress(courseId, taskId)
+```
+
+#### Export Course Word Data
+
+Export all course work data.
+
+
+Returns `CourseExport` object
+
+```
+CourseExport = {
+  taskId: string
+  done: boolean
+  error?: string
+  url?: string
+}
+```
+
+```
+await codio.course.createWorkExport(courseId)
+```
+
+To download exported data you need to specify course Id
+```
+await codio.course.downloadWorkExport(courseId, assignmentIds, filePath)
+```
+downloads file to filePath
+
+Get all available exports.
+
+Returns array `CourseExport[]` objects
+
+```
+await codio.course.getWorkExports(courseId)
+```
+
+Get export progress by id.
+
+Returns `CourseExport` object
+
+```
+await codio.course.getWorkExportProgress(courseId, taskId)
+```
+
 ## Publish Stack
 This method allow to publish the stack 
 you need to specify 

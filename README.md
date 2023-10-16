@@ -305,7 +305,7 @@ await codio.course.createSourceExport(courseId)
 
 To download exported data you need to specify course Id
 ```
-await codio.course.downloadSourceExport(courseId, assignmentIds, filePath)
+await codio.course.downloadSourceExport(courseId, filePath)
 ```
 downloads file to filePath
 
@@ -325,7 +325,7 @@ Returns `CourseExport` object
 await codio.course.getSourceExportProgress(courseId, taskId)
 ```
 
-#### Export Course Word Data
+#### Export Course Work Data
 
 Export all course work data.
 
@@ -347,7 +347,7 @@ await codio.course.createWorkExport(courseId)
 
 To download exported data you need to specify course Id
 ```
-await codio.course.downloadWorkExport(courseId, assignmentIds, filePath)
+await codio.course.downloadWorkExport(courseId, filePath)
 ```
 downloads file to filePath
 

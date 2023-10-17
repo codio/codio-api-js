@@ -4,7 +4,7 @@ import fs from 'fs'
 import _ from 'lodash'
 
 import config from './config'
-import { getApiV1Url, secondsToDate, sendApiRequest } from './tools'
+import {getApiV1Url, getBearer, secondsToDate, sendApiRequest} from './tools'
 
 
 const getJson = bent('json')
@@ -44,6 +44,17 @@ export type User = {
   name: string
   login: string
   email: string
+}
+
+export type CourseExport = {
+  taskId: string
+  done: boolean
+  error?: string
+  url?: string
+}
+
+export type TaskResponce = {
+  taskId: string
 }
 
 function flattenAssignments(course: Course) {
@@ -320,6 +331,124 @@ export async function getTeachers(courseId: string): Promise<User[]> {
   }
 }
 
+export async function getSourceExports(courseId: string): Promise<CourseExport[]> {
+  try {
+    return await sendApiRequest(`${getApiV1Url()}/courses/${courseId}/export/sources`, undefined)
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function getSourceExportProgress(courseId: string, taskId: string): Promise<CourseExport> {
+  try {
+    return await sendApiRequest(
+      `${getApiV1Url()}/courses/${courseId}/export/sources/progress/${taskId}`, undefined
+    )
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+async function waitExportTaskReady(taskId: string, taskChecker: (taskId: string) => Promise<CourseExport>): Promise<CourseExport> {
+  return new Promise((resolve, reject) => {
+    const checker = async () => {
+      try {
+        const check = await taskChecker(taskId)
+        if (check.done) {
+          if (check.error) {
+            reject(new Error(check.error))
+          } else {
+            resolve(check)
+          }
+        } else {
+          setTimeout(() => checker(), 10000)
+        }
+      } catch (ex) {
+        reject(ex)
+      }
+    }
+    checker()
+  })
+}
+
+export async function createSourceExport(courseId: string): Promise<CourseExport> {
+  const api = bent(getApiV1Url(), 'POST', 'json', 200)
+  try {
+    const res = await api(`/courses/${courseId}/export/sources`, undefined, getBearer()) as TaskResponce
+    return await waitExportTaskReady(res.taskId, (taskId) => getSourceExportProgress(courseId, taskId))
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function downloadSourceExport(courseId: string, filePath: string): Promise<void> {
+  const resp = await createSourceExport(courseId)
+  if (!resp.url) {
+    throw new Error(resp.error)
+  }
+  return download(filePath, resp.url)
+}
+
+export async function getWorkExports(courseId: string): Promise<CourseExport[]> {
+  try {
+    return await sendApiRequest(`${getApiV1Url()}/courses/${courseId}/export/workdata`, undefined)
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function getWorkExportProgress(courseId: string, taskId: string): Promise<CourseExport> {
+  try {
+    return await sendApiRequest(
+      `${getApiV1Url()}/courses/${courseId}/export/workdata/progress/${taskId}`, undefined
+    )
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function createWorkExport(courseId: string): Promise<CourseExport> {
+  const api = bent(getApiV1Url(), 'POST', 'json', 200)
+  try {
+    const res = await api(`/courses/${courseId}/export/workdata`, undefined, getBearer()) as TaskResponce
+    return await waitExportTaskReady(res.taskId, (taskId) => getWorkExportProgress(courseId, taskId))
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function downloadWorkExport(courseId: string, filePath: string): Promise<void> {
+  const resp = await createWorkExport(courseId)
+  if (!resp.url) {
+    throw new Error(resp.error)
+  }
+  return download(filePath, resp.url)
+}
+
 const course = {
   assignmentStudentsProgress,
   info,
@@ -333,7 +462,15 @@ const course = {
   downloadAssessmentData,
   findByName,
   getStudents,
-  getTeachers
+  getTeachers,
+  getWorkExportProgress,
+  getWorkExports,
+  createWorkExport,
+  downloadWorkExport,
+  getSourceExportProgress,
+  getSourceExports,
+  createSourceExport,
+  downloadSourceExport
 }
 
 export default course

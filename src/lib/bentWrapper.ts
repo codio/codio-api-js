@@ -12,6 +12,29 @@ const waitTimeout = async (ms: number) => {
     })
 }
 
+const encodings = new Set(['json', 'buffer', 'string'])
+const getEncodingFromArgs = (...args: bent.Options[]) => {
+    let encoding
+
+    args.forEach(arg => {
+        if (typeof arg === 'string') {
+            if (arg.toUpperCase() === arg) {
+                // ignore
+            } else if (arg.startsWith('http:') || arg.startsWith('https:')) {
+                // ignore
+            } else {
+                if (encodings.has(arg)) {
+                    encoding = arg
+                }
+            }
+        }
+    })
+    if (!encoding) {
+        encoding = 'json'
+    }
+    return encoding
+}
+
 export default (...args: bent.Options[]) => {
     const api = bent(...args)
     const req = async (url: string, body?: bent.RequestBody | undefined, headers?: Headers | undefined, tries?: number | undefined): Promise<any> => {
@@ -20,6 +43,17 @@ export default (...args: bent.Options[]) => {
                 throw Error('Tries limit exceeded')
             }
             const resp = await api(url, body, headers) as bent.NodeResponse
+            const encoding = getEncodingFromArgs(args)
+            if (!encoding) return resp
+            else {
+              if (encoding === 'buffer') {
+                return resp.arrayBuffer()
+              } else if (encoding === 'json') {
+                return resp.json()
+              } else if (encoding === 'string') {
+                return resp.text()
+              }
+            }
             return resp.json()
         } catch (e: any) {
             if (e.statusCode === 429) {

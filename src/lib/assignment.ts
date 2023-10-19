@@ -1,11 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import bent from 'bent'
+import bent from './bentWrapper'
 import FormData from 'form-data'
 import tar from 'tar'
 import glob from 'glob-promise'
 import YAML from 'yaml'
-import tools, { getApiV1Url, getBearer, fixGuidesVersion } from './tools'
+import tools, { getBearer, fixGuidesVersion, getApiV1Url } from './tools'
 import config, { excludePaths } from './config'
 import _ from 'lodash'
 import { info } from './course'
@@ -125,7 +125,7 @@ async function archiveTar(src: string): Promise<{ file: string; dir: string; }> 
 
 const sleep = async (seconds: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, seconds * 1000))
 
-const getJson = bent('json')
+const getJson = bent()
 
 async function publishArchive (courseId: string, assignmentId: string, archivePath: string,
                                changelogOrOptions: string | PublishOptions): Promise<void> {
@@ -133,13 +133,7 @@ async function publishArchive (courseId: string, assignmentId: string, archivePa
     throw new Error('No Config')
   }
   try {
-    const token = config.getToken()
-    const domain = config.getDomain()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
-
-    const api = bent(`https://octopus.${domain}`, 'POST', 'json', 200)
+    const api = bent(getApiV1Url(), 'POST')
 
     const postData = new FormData()
     if (typeof changelogOrOptions == 'string') {
@@ -153,9 +147,9 @@ async function publishArchive (courseId: string, assignmentId: string, archivePa
     postData.append('archive', fs.createReadStream(archivePath),  {
       knownLength: fs.statSync(archivePath).size
     })
-    const headers = Object.assign(postData.getHeaders(), authHeaders)
+    const headers = Object.assign(postData.getHeaders(), getBearer())
     headers['Content-Length'] = postData.getLengthSync()
-    const res = await api(`/api/v1/courses/${courseId}/assignments/${assignmentId}/versions`,
+    const res = await api(`/courses/${courseId}/assignments/${assignmentId}/versions`,
       postData, headers)
     const taskUrl = res['taskUri']
     if (!taskUrl) {
@@ -163,7 +157,7 @@ async function publishArchive (courseId: string, assignmentId: string, archivePa
     }
     for (let i = 0; i < 100; i++) { // 100 checks attempt
       await sleep(10)
-      const status = await getJson(taskUrl, undefined, authHeaders)
+      const status = await getJson(taskUrl, undefined, getBearer())
       console.log(status)
       if (status['done']) {
         if (status['error']) {
@@ -337,11 +331,10 @@ export async function getSettings(courseId: string, assignmentId:string): Promis
     throw new Error('No Config')
   }
   try {
-    const api = bent(getApiV1Url(), 'GET', 'json', 200)
-
-    const res = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
-        undefined, getBearer()) as AssignmentSettingsRaw
-    return fromRawSettings(res)
+    const api = bent(getApiV1Url())
+    const rawSettings = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
+      undefined, getBearer()) as AssignmentSettingsRaw
+    return fromRawSettings(rawSettings)
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -430,7 +423,7 @@ export async function updateSettings(courseId: string, assignmentId: string, set
     throw new Error('No Config')
   }
   try {
-    const api = bent(getApiV1Url(), 'POST', 'json', 200)
+    const api = bent(getApiV1Url(), 'POST')
     const res = await api(`/courses/${courseId}/assignments/${assignmentId}/settings`,
         toRawSettings(settings), getBearer()) as AssignmentSettingsRaw
     return fromRawSettings(res)
@@ -447,12 +440,9 @@ export async function updateStudentTimeExtension(
   courseId: string, assignmentId: string, studentId: string, extension: TimeExtension
 ): Promise<void> {
   try {
-    const authHeaders = getBearer()
-
-    const api = bent(getApiV1Url(), 'POST', 'json', 200)
-
+    const api = bent(getApiV1Url(), 'POST')
     return await api(
-      `/courses/${courseId}/assignments/${assignmentId}/students/${studentId}`, extension, authHeaders
+      `/courses/${courseId}/assignments/${assignmentId}/students/${studentId}`, extension, getBearer()
     ) as any
   } catch (error: any) {
     if (error.json) {

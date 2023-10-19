@@ -1,13 +1,11 @@
-import bent from 'bent'
+import bent from './bentWrapper'
 import https from 'https'
 import fs from 'fs'
 import _ from 'lodash'
 
 import config from './config'
-import {getApiV1Url, getBearer, secondsToDate, sendApiRequest} from './tools'
-
-
-const getJson = bent('json')
+import { getApiV1Url, secondsToDate, getBearer } from './tools'
+const getJson = bent()
 
 export type Assignment = {
   id: string
@@ -66,17 +64,12 @@ export async function info(courseId: string, withHiddenAssignments = true): Prom
     throw new Error('No Config')
   }
   try {
-    const token = config.getToken()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
-
     const params = {
       withHiddenAssignments: withHiddenAssignments ? 'true' : 'false'
     }
     const urlParams = new URLSearchParams(params)
 
-    const course: Course = await getJson(`${getApiV1Url()}/courses/${courseId}?${urlParams.toString()}`, undefined, authHeaders)
+    const course: Course = await getJson(`${getApiV1Url()}/courses/${courseId}?${urlParams.toString()}`, undefined, getBearer())
     flattenAssignments(course)
     return course
   } catch (error: any) {
@@ -93,16 +86,12 @@ export async function findByName(courseName: string, withHiddenAssignments: bool
     throw new Error('No Config')
   }
   try {
-    const token = config.getToken()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
     const params = {
       name: courseName,
       withHiddenAssignments: withHiddenAssignments ? 'true' : 'false'
     }
     const urlParams = new URLSearchParams(params)
-    const course = await getJson(`${getApiV1Url()}/courses?${urlParams.toString()}`, undefined, authHeaders)
+    const course = await getJson(`${getApiV1Url()}/courses?${urlParams.toString()}`, undefined, getBearer())
     flattenAssignments(course)
     return course
   } catch (error: any) {
@@ -119,11 +108,7 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
     throw new Error('No Config')
   }
   try {
-    const token = config.getToken()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
-    const res = await getJson(`${getApiV1Url()}/courses/${courseId}/assignments/${assignmentId}/students`, undefined, authHeaders)
+    const res = await getJson(`${getApiV1Url()}/courses/${courseId}/assignments/${assignmentId}/students`, undefined, getBearer())
     for (const progress of res) {
       if (progress.completion_date) {
         progress.completion_date = secondsToDate(progress.completion_date.seconds)
@@ -145,11 +130,7 @@ export async function waitDownloadTask(taskUrl: string): Promise<string> {
   }
 
   try {
-    const token = config.getToken()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
-    const archive = await getJson(taskUrl, undefined, authHeaders)
+    const archive = await getJson(taskUrl, undefined, getBearer())
     if (!archive.done) {
       await new Promise(resolve => setTimeout(resolve, 500))
       return await waitDownloadTask(taskUrl)
@@ -173,11 +154,7 @@ export async function exportStudentAssignment(courseId: string, assignmentId: st
   }
 
   try {
-    const token = config.getToken()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
-    const res = await getJson(`${getApiV1Url()}/courses/${courseId}/assignments/${assignmentId}/students/${studentId}/download`, undefined, authHeaders)
+    const res = await getJson(`${getApiV1Url()}/courses/${courseId}/assignments/${assignmentId}/students/${studentId}/download`, undefined, getBearer())
     const taskUrl = res['taskUri']
     if (!taskUrl) {
       throw new Error('task Url not found')
@@ -238,14 +215,10 @@ export async function exportStudentCSV(courseId: string, studentId: string): Pro
     throw new Error('No Config')
   }
   try {
-    const token = config.getToken()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
     return await getJson(
         `${getApiV1Url()}/courses/${courseId}/students/${studentId}/export/csv`,
         undefined,
-        authHeaders
+        getBearer()
     )
   } catch (error: any) {
     if (error.json) {
@@ -261,14 +234,10 @@ export async function exportAssignmentCSV(courseId: string, assignmentId: string
     throw new Error('No Config')
   }
   try {
-    const token = config.getToken()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
     return await getJson(
         `${getApiV1Url()}/courses/${courseId}/assignments/${assignmentId}/export/csv`,
         undefined,
-        authHeaders
+        getBearer()
     )
   } catch (error: any) {
     if (error.json) {
@@ -284,14 +253,10 @@ export async function exportAssessmentData(courseId: string, assignmentIds: stri
     throw new Error('No Config')
   }
   try {
-    const token = config.getToken()
-    const authHeaders = {
-      'Authorization': `Bearer ${token}`
-    }
     const res = await getJson(
         `${getApiV1Url()}/courses/${courseId}/export/assessments/csv?assignmentIds=${assignmentIds}`,
         undefined,
-        authHeaders
+        getBearer()
     )
     const taskUrl = res['taskUri']
     if (!taskUrl) {
@@ -309,7 +274,7 @@ export async function exportAssessmentData(courseId: string, assignmentIds: stri
 
 export async function getStudents(courseId: string): Promise<User[]> {
   try {
-    return await sendApiRequest(`${getApiV1Url()}/courses/${courseId}/students`, undefined)
+    return await getJson(`${getApiV1Url()}/courses/${courseId}/students`, undefined, getBearer())
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -321,7 +286,7 @@ export async function getStudents(courseId: string): Promise<User[]> {
 
 export async function getTeachers(courseId: string): Promise<User[]> {
   try {
-    return await sendApiRequest(`${getApiV1Url()}/courses/${courseId}/teachers`, undefined)
+    return await getJson(`${getApiV1Url()}/courses/${courseId}/teachers`, undefined, getBearer())
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -333,7 +298,7 @@ export async function getTeachers(courseId: string): Promise<User[]> {
 
 export async function getSourceExports(courseId: string): Promise<CourseExport[]> {
   try {
-    return await sendApiRequest(`${getApiV1Url()}/courses/${courseId}/export/sources`, undefined)
+    return await getJson(`${getApiV1Url()}/courses/${courseId}/export/sources`, undefined, getBearer())
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -345,8 +310,8 @@ export async function getSourceExports(courseId: string): Promise<CourseExport[]
 
 export async function getSourceExportProgress(courseId: string, taskId: string): Promise<CourseExport> {
   try {
-    return await sendApiRequest(
-      `${getApiV1Url()}/courses/${courseId}/export/sources/progress/${taskId}`, undefined
+    return await getJson(
+      `${getApiV1Url()}/courses/${courseId}/export/sources/progress/${taskId}`, undefined, getBearer()
     )
   } catch (error: any) {
     if (error.json) {
@@ -403,7 +368,7 @@ export async function downloadSourceExport(courseId: string, filePath: string): 
 
 export async function getWorkExports(courseId: string): Promise<CourseExport[]> {
   try {
-    return await sendApiRequest(`${getApiV1Url()}/courses/${courseId}/export/workdata`, undefined)
+    return await getJson(`${getApiV1Url()}/courses/${courseId}/export/workdata`, undefined, getBearer())
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
@@ -415,8 +380,8 @@ export async function getWorkExports(courseId: string): Promise<CourseExport[]> 
 
 export async function getWorkExportProgress(courseId: string, taskId: string): Promise<CourseExport> {
   try {
-    return await sendApiRequest(
-      `${getApiV1Url()}/courses/${courseId}/export/workdata/progress/${taskId}`, undefined
+    return await getJson(
+      `${getApiV1Url()}/courses/${courseId}/export/workdata/progress/${taskId}`, undefined, getBearer()
     )
   } catch (error: any) {
     if (error.json) {

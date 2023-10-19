@@ -1,7 +1,7 @@
 import querystring from 'querystring'
-import bent from 'bent'
+import bent from './bentWrapper'
 
-const getJson = bent('json')
+const getJson = bent()
 
 export async function auth(clientId: string, secretId: string, domain: string): Promise<string> {
   const params = {

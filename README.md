@@ -112,7 +112,7 @@ Publishes all assessments from the project in `project_path` to the library
   await codio.v1.assessment.fromCodioProject('libraryId || name', '<project_path>')
 ```
 
-Please be aware on that this action will update assessment.json with new tags 
+Please be aware on that this action will update {assessment_id}.json files with new tags 
 needed to keep connection between project assessment and library item. You will 
 need to commit the changes to avoid duplication the assessment
 
@@ -190,12 +190,6 @@ StudentProgress = {
   extendedTimeLimit: number
 }
 ```
-
-Please be aware on that this action will update assessment.json with new tags 
-needed to keep connection between project assessment and library item. You will 
-need to commit the changes to avoid duplication the assessment
-
-GitHub action: https://github.com/codio/codio-assessments-publish-action
 
 #### Course assignments students projects
 

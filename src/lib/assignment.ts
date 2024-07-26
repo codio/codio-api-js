@@ -29,20 +29,6 @@ type Yaml = {
   section: string[][]
 }
 
-export type Penalty = {
-  id: number
-  datetime: Date
-  percent: number
-  message: string
-}
-
-type PenaltyRaw = {
-  id: number
-  datetime: string
-  percent: number
-  message: string
-}
-
 export type TimeExtension = {
   extendedDeadline?: number | undefined
   extendedTimeLimit?: number | undefined
@@ -56,7 +42,9 @@ export type AssignmentSettings = {
   startTime?: Date | null,
   endTime?: Date | null,
   action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
-  penalties?: Penalty[]
+  dueTime?: Date | null
+  markAsCompleteOnDueDate?: boolean
+  penaltiesV2?: PenaltySettings
   examMode?: {
     timedExamMode: {
       enabled: boolean
@@ -79,7 +67,9 @@ type AssignmentSettingsRaw = {
   startTime?: string,
   endTime?: string,
   action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
-  penalties?: PenaltyRaw[]
+  dueTime?: string
+  markAsCompleteOnDueDate?: boolean
+  penaltiesV2?: PenaltySettings
   examMode?: {
     timedMode: {
       enabled: boolean,
@@ -92,6 +82,13 @@ type AssignmentSettingsRaw = {
   },
   releaseGrades?: boolean,
   isDisabled?: boolean
+}
+
+export type PenaltySettings = {
+  enable: boolean
+  deductionIntervalMinutes: number
+  deductionPercent: number
+  lowestGradePercent: number
 }
 
 type PublishOptions = {
@@ -306,6 +303,9 @@ function fromRawSettings(res: AssignmentSettingsRaw): AssignmentSettings {
     startTime: convertDateToLocal(res.startTime),
     endTime: convertDateToLocal(res.endTime),
     action: res.action,
+    dueTime: convertDateToLocal(res.dueTime),
+    markAsCompleteOnDueDate: res.markAsCompleteOnDueDate,
+    penaltiesV2: res.penaltiesV2,
     examMode: res.examMode? {
       timedExamMode: res.examMode?.timedMode,
       shuffleQuestionsOrder: res.examMode?.shuffleQuestionsOrder,
@@ -315,14 +315,6 @@ function fromRawSettings(res: AssignmentSettingsRaw): AssignmentSettings {
     } : undefined,
     releaseGrades: res.releaseGrades,
     isDisabled: res.isDisabled,
-    penalties: res.penalties? _.map(res.penalties, _ => {
-      return {
-        id: _.id,
-        datetime: new Date(_.datetime),
-        percent: _.percent,
-        message: _.message,
-      }
-    }) : undefined,
   }
 }
 
@@ -375,6 +367,23 @@ function toRawSettings(settings: AssignmentSettings): AssignmentSettingsRaw {
   if (settings.action !== undefined) {
     res.action = settings.action
   }
+  if (settings.dueTime !== undefined) {
+    res.dueTime = settings.dueTime ? settings.dueTime.toISOString() : ''
+  }
+  if (settings.markAsCompleteOnDueDate !== undefined) {
+    res.markAsCompleteOnDueDate = settings.markAsCompleteOnDueDate
+  }
+  if (settings.penaltiesV2 !== undefined) {
+    const deductionPercent = settings.penaltiesV2.deductionPercent
+    if (!_.isNumber(deductionPercent) || deductionPercent < 0 || deductionPercent > 100) {
+      throw new Error("penalty deduction percent must be a number between 0 and 100")
+    }
+    const lowestGradePercent = settings.penaltiesV2.lowestGradePercent
+    if (!_.isNumber(lowestGradePercent) || lowestGradePercent < 0 || lowestGradePercent > 100) {
+      throw new Error("lowest grade percent after penalty must be a number between 0 and 100")
+    }
+    res.penaltiesV2 = settings.penaltiesV2
+  }
   if (settings.examMode !== undefined) {
     res.examMode = {
       timedMode: settings.examMode.timedExamMode,
@@ -390,32 +399,7 @@ function toRawSettings(settings: AssignmentSettings): AssignmentSettingsRaw {
   if (settings.isDisabled !== undefined) {
     res.isDisabled = settings.isDisabled
   }
-  if (settings.penalties !== undefined) {
-    res.penalties = _.map(settings.penalties, _ => {
-      validatePenalty(_)
-      return {
-        id: _.id,
-        datetime: _.datetime.toISOString(),
-        percent: _.percent,
-        message: _.message,
-      }
-    })
-  }
   return res
-}
-
-function validatePenalty(penalty: Penalty) {
-  if (!_.isNumber(penalty.id) || !_.isFinite(penalty.id)) {
-    throw new Error("penalty id must be a number and present")
-  }
-
-  if (_.isNumber(penalty.percent) && (penalty.percent < 0 || penalty.percent > 100)) {
-    throw new Error("penalty percent must be a number between 0 and 100")
-  }
-
-  if (!_.isDate(penalty.datetime)) {
-    throw new Error("penalty date must be a Date object")
-  }
 }
 
 export async function updateSettings(courseId: string, assignmentId: string, settings: AssignmentSettings): Promise<AssignmentSettings> {

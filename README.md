@@ -400,34 +400,35 @@ returns `AssignmentSettings` - Settings, missed properties won't be updated
 ```
 
 ```javascript
-type AssignmentSettings = {
-  isDisabled?: boolean
-  releaseGrades?: boolean
   enableResetAssignmentByStudent?: boolean
   disableDownloadByStudent?: boolean
   visibilityOnDisabled?: string, // "READ_ONLY", "NO_ACCESS",
   visibilityOnCompleted?: string, // "READ_ONLY_RESUBMIT", "READ_ONLY", "NO_ACCESS",
   startTime?: Date | null,
   endTime?: Date | null,
-  action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE", 
-  penalties?: Penalty[],
+  action?: string // "COMPLETE", "DISABLE", "DISABLE_AND_COMPLETE",
+  dueTime?: Date | null
+  markAsCompleteOnDueDate?: boolean
+  penaltiesV2?: PenaltySettings
   examMode?: {
     timedExamMode: {
-      enabled: boolean,
+      enabled: boolean
       duration: number // minutes
-    },
-    shuffleQuestionsOrder: boolean,
-    forwardOnlyNavigation: boolean,
-    singleLogin: boolean,
+    }
+    shuffleQuestionsOrder: boolean
+    forwardOnlyNavigation: boolean
+    singleLogin: boolean
     authentication: boolean
-  }
+  },
+  releaseGrades?: boolean
+  isDisabled?: boolean
 }
 
-type Penalty = {
-  id: number
-  datetime: Date
-  percent: number
-  message: string
+export type PenaltySettings = {
+  enable: boolean
+  deductionIntervalMinutes: number
+  deductionPercent: number
+  lowestGradePercent: number
 }
 ```
 
@@ -446,14 +447,13 @@ Example:
     enableResetAssignmentByStudent: false,
     startTime: null,
     endTime: new Date('2022-05-10T23:59:59+01:00'),
-    penalties: [
-      {
-        id: 1,
-        message: "Too Late!",
-        percent: 10,
-        datetime: new Date('2022-05-09T23:59:59+01:00'),
-      }
-    ]
+    dueTime: new Date('2022-05-09T23:59:59+01:00'),
+    penaltiesV2: {
+      enable: true,
+      deductionIntervalMinutes: 60,
+      deductionPercent: 10,
+      lowestGradePercent: 90
+    }
   })
 ```
 

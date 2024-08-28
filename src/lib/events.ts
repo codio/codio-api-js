@@ -52,3 +52,10 @@ export async function loadAllEvents(): Promise<Event[]> {
   } while (nextToken)
   return events
 }
+
+const events = {
+    loadAllEvents,
+    loadEvents
+}
+
+export default events

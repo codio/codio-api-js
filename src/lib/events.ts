@@ -5,11 +5,11 @@ import {getApiV1Url, getBearer} from './tools'
 const getJson = bent()
 
 export type Event = {
-    id: string,
-    event: any,
-    completed: boolean,
-    error?: string,
-    issuedAt: Date
+  id: string,
+  event: any,
+  completed: boolean,
+  error?: string,
+  issuedAt: Date
 }
 
 export type LoadEventResponse = {
@@ -17,7 +17,7 @@ export type LoadEventResponse = {
   nextToken: string
 }
 
-export async function loadEvents(nextToken: string, limit: number=50): Promise<LoadEventResponse> {
+export async function loadEvents(nextToken: string, limit=50): Promise<LoadEventResponse> {
     if (!config) {
         throw new Error('No Config')
     }
@@ -44,7 +44,7 @@ export async function loadEvents(nextToken: string, limit: number=50): Promise<L
 
 export async function loadAllEvents(): Promise<Event[]> {
   let events: Event[] = []
-  let nextToken: string = ''
+  let nextToken = ''
   do {
     const resp = await loadEvents(nextToken)
     events = events.concat(resp.events)

@@ -5,6 +5,7 @@ import assignment from './lib/assignment'
 import assessment from './lib/assessment'
 import course from './lib/course'
 import stack from './lib/stack'
+import events from './lib/events'
 
 export const v1 = {
   setDomain: (_: string) => config.setDomain(_),
@@ -18,5 +19,6 @@ export const v1 = {
   assignment,
   assessment,
   course,
-  stack
+  stack,
+  events
 }

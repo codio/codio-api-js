@@ -472,6 +472,40 @@ Set time limits on a per-student basis
 
 returns empty object
 
+
+## Get webhook events
+
+### Load resent events
+
+Get last events list with continuation token if more events are awailable
+
+```
+  await codio.v1.events.loadEvents('<nextToken>', <limit>)
+```
+
+return `LoadEventResponse` object
+```
+LoadEventResponse = {
+  events: Event[],
+  nextToken: string
+}
+Event = {
+  id: string,
+  event: any,
+  completed: boolean,
+  error?: string,
+  issuedAt: Date
+}
+```
+
+### Load all resent events
+
+```
+  await codio.v1.events.loadAllEvents()
+```
+
+return `Event` array
+
 ### Timezones:
 
 We recommend using [Luxon](https://moment.github.io/luxon/) to deal with time zones.

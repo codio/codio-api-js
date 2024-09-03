@@ -42,8 +42,8 @@ export type AssignmentProgressInfo = {
   grade: number
   status: 'COMPLETED' | 'STARTED'
   completion_date: Date
-  extendedDeadline: number | undefined
-  extendedTimeLimit: number | undefined
+  extended_deadline: number | undefined
+  extended_time_limit: number | undefined
 }
 
 export type AssignmentProgress = {

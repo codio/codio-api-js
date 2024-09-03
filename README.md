@@ -210,8 +210,8 @@ AssignmentProgress = {
     grade: number
     status: string
     completion_date: Date
-    extendedDeadline: number
-    extendedTimeLimit: number
+    extended_deadline: number
+    extended_time_limit: number
   }
 }
 ```

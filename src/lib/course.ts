@@ -37,6 +37,24 @@ export type StudentProgress = {
   deadlineExtension: number | undefined
 }
 
+export type AssignmentProgressInfo = {
+  seconds_spent: number
+  grade: number
+  status: 'COMPLETED' | 'STARTED'
+  completion_date: Date
+  extendedDeadline: number | undefined
+  extendedTimeLimit: number | undefined
+}
+
+export type AssignmentProgress = {
+  assignment_name: string
+  assignment_id: string
+  module_name: string
+  module_id: string
+  started: boolean
+  progress: AssignmentProgressInfo | undefined
+}
+
 export type User = {
   id: string
   name: string
@@ -112,6 +130,27 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
     for (const progress of res) {
       if (progress.completion_date) {
         progress.completion_date = secondsToDate(progress.completion_date.seconds)
+      }
+    }
+    return res
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function studentCourseProgress(courseId: string, studentIdentification: string): Promise<AssignmentProgress[]> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const res = await getJson(`${getApiV1Url()}/courses/${courseId}/students/${studentIdentification}/progress`, undefined, getBearer())
+    for (const progress of res) {
+      if (progress.completion_date) {
+        progress.completion_date = new Date(progress.completion_date)
       }
     }
     return res
@@ -435,7 +474,8 @@ const course = {
   getSourceExportProgress,
   getSourceExports,
   createSourceExport,
-  downloadSourceExport
+  downloadSourceExport,
+  studentCourseProgress
 }
 
 export default course

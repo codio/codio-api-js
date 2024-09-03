@@ -191,6 +191,31 @@ StudentProgress = {
 }
 ```
 
+
+#### Course student Progress
+
+```
+  await codio.v1.course.studentCourseProgress(courseId, studentId|email|login)
+```
+returns `AssignmentProgress[]` object
+```
+AssignmentProgress = {
+  assignment_name: string
+  assignment_id: string
+  module_name: string
+  module_id: string
+  started: boolean
+  progress: {
+    seconds_spent: number
+    grade: number
+    status: string
+    completion_date: Date
+    extendedDeadline: number
+    extendedTimeLimit: number
+  }
+}
+```
+
 #### Course assignments students projects
 
 Prepare student's project 

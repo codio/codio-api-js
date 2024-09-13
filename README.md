@@ -386,6 +386,33 @@ Returns `CourseExport` object
 await codio.course.getWorkExportProgress(courseId, taskId)
 ```
 
+#### List organization courses
+
+List organization courses
+
+
+Returns ```
+ListCoursesResponse = {
+  courses: Course[],
+  nextToken: string
+}
+```
+
+
+```
+await codio.course.list(<next token>, <archived>)
+```
+
+
+#### Archive course
+
+Returns `Date` of archivation
+
+```
+await codio.course.archive(<courseId>)
+```
+
+
 ## Publish Stack
 This method allow to publish the stack 
 you need to specify 

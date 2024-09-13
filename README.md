@@ -7,6 +7,14 @@ codio.v1.setDomain('codio.com') // codio.co.uk for UK domain, codio.com is defau
 
 Follow https://docs.codio.com/develop/develop/ide/tools/ghapi.html#api-integration-information to generate
 API keys.
+## Requirements
+- Nodejs
+- zstd
+
+## How to build
+- Run `yarn`
+- Run `yarn build`
+
 
 ## Authentication
 ```

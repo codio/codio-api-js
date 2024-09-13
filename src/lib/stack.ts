@@ -71,12 +71,8 @@ export async function publish(
         
         const headers = Object.assign(postData.getHeaders(), getBearer())
         headers['Content-Length'] = await postData.getLengthSync()
-        
-        console.log('headers', headers)
-        console.log('data', postData)
-
         const res = await api(`/stacks/${stackId}/versions`, postData, headers)
-        console.log('publish result', res)
+        
         return res
     } catch (error: any) {
         if (error.json) {

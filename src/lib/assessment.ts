@@ -64,9 +64,10 @@ function updateTags(tags: {name: string, value: string}[], id: string, hash: str
 }
 
 async function updateJSON(assessment: Assessment, base: string): Promise<void> {
-  const assessmentJsonFiles = await glob('*.json', {cwd: path.join(base, ASSESSMENTS_DIR), nodir: true})
+  const working = path.join(base, ASSESSMENTS_DIR)
+  const assessmentJsonFiles = await glob('*.json', {cwd: working, nodir: true})
   for (const file of assessmentJsonFiles) {
-    const filePath = path.join(ASSESSMENTS_DIR, file)
+    const filePath = path.join(working, file)
     const assessmentString = await fs.promises.readFile(filePath, {encoding: 'utf8'})
     const assessmentData = JSON.parse(assessmentString)
     if (assessmentData.taskId === assessment.taskId) {

@@ -399,13 +399,16 @@ await codio.course.getWorkExportProgress(courseId, taskId)
 List organization courses
 
 
-Returns ```
+Returns
+
+```
 ListCoursesResponse = {
   courses: Course[],
   nextToken: string
 }
 ```
 
+Example
 
 ```
 await codio.course.list(<next token>, <archived>)

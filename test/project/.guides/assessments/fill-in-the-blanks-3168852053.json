@@ -1,0 +1,65 @@
+{
+	"type": "fill-in-the-blanks",
+	"taskId": "fill-in-the-blanks-3168852053",
+	"source": {
+		"name": "Python Basics",
+		"showName": true,
+		"instructions": "Fill in the blanks to complete the Python code snippets correctly.",
+		"showValues": true,
+		"text": "# Print \"Hello, World!\"\nprint(<<<\"Hello, World!\">>>)\n\n# Assign the value 5 to variable x\nx = <<<5>>>\n\n# Create a list of numbers 1 through 5\nnumbers = <<<[1, 2, 3, 4, 5]>>>\n\n# Define a function that returns the square of a number\ndef square(n):\n    return <<<n * n>>>\n\n# Use a for loop to iterate over a range from 0 to 4\nfor i in <<<range(5)>>>:\n    print(i)",
+		"distractors": "\"Hello World\"\n\"Hello world!\"\n4\n6\n(1, 2, 3, 4, 5)\n{1, 2, 3, 4, 5}\nn ** 2\nn + n\nrange(4)\nrange(1, 5)",
+		"guidance": "1. The correct string for printing \"Hello, World!\" includes proper capitalization and punctuation.\n2. To assign 5 to x, we simply use '5'.\n3. A list in Python is created using square brackets [].\n4. The square of a number is calculated by multiplying it by itself (n * n).\n5. range(5) generates numbers from 0 to 4, which is what we want for a loop that iterates 5 times starting from 0.",
+		"showGuidanceAfterResponseOption": {
+			"type": "Attempts",
+			"passedFrom": 1
+		},
+		"maxAttemptsCount": 1,
+		"showExpectedAnswer": true,
+		"points": 20,
+		"arePartialPointsAllowed": false,
+		"useMaximumScore": false,
+		"metadata": {
+			"tags": [
+				{
+					"name": "Assessment Type",
+					"value": "Fill in the Blanks"
+				},
+				{
+					"name": "Programming Language",
+					"value": "python"
+				},
+				{
+					"name": "Content",
+					"value": "python tests"
+				}
+			],
+			"files": [],
+			"opened": []
+		},
+		"bloomsObjectiveLevel": "1",
+		"learningObjectives": "python tests",
+		"tokens": {
+			"blank": [
+				"\"Hello, World!\"",
+				"5",
+				"[1, 2, 3, 4, 5]",
+				"n * n",
+				"range(5)"
+			],
+			"text": [
+				"# Print \"Hello, World!\"\nprint(",
+				0,
+				")\n\n# Assign the value 5 to variable x\nx = ",
+				0,
+				"\n\n# Create a list of numbers 1 through 5\nnumbers = ",
+				0,
+				"\n\n# Define a function that returns the square of a number\ndef square(n):\n    return ",
+				0,
+				"\n\n# Use a for loop to iterate over a range from 0 to 4\nfor i in ",
+				0,
+				":\n    print(i)"
+			],
+			"regexPositions": []
+		}
+	}
+}

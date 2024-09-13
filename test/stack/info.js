@@ -1,8 +1,8 @@
 const { codio, auth } = require('../auth.js')
+const { stackId } = require('../data.js')
 
 async function main() {
     await auth    
-    stackId = 'your stack id'
     
     const stack = await codio.stack.info(stackId)
     console.log(stack)

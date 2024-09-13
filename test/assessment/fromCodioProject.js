@@ -1,13 +1,12 @@
 const { codio, auth } = require('../auth.js')
-const { libraryId, libraryName } = require('../data.js')
+const { libraryId, libraryName, projectPath } = require('../data.js')
 
 async function main() {
   
     await auth
-    dir =  './'
-    // dir = './path'
-    const result  = await codio.assessment.fromCodioProject(libraryId, dir)
-    // const result  = await codio.assessment.fromCodioProject(libraryName, './')
+
+    const result  = await codio.assessment.fromCodioProject(libraryId, projectPath)
+    // const result  = await codio.assessment.fromCodioProject(libraryName, projectPath)
     console.log(result)
     
 }

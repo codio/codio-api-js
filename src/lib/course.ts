@@ -23,8 +23,8 @@ export type Course = {
   name: string
   modules: Module[]
   assignments: Assignment[]
-  creation_date: Date
-  archived_date: Date
+  creationDate: Date
+  archivedDate: Date
   archived: boolean
 }
 
@@ -79,10 +79,10 @@ export type TaskResponce = {
 function flattenAssignments(course: any) {
   course.assignments = _.flatten(_.map(course.modules, 'assignments'))
   if (course.creationDate) {
-    course.creation_date = new Date(course.creationDate)
+    course.creationDate = new Date(course.creationDate)
   }
   if (course.archivedDate) {
-    course.archived_date = new Date(course.archivedDate)
+    course.archivedDate = new Date(course.archivedDate)
   }
 }
 

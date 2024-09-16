@@ -141,7 +141,10 @@ Course = {
   id: string,
   name: string,
   modules: Module[],
-  assignments: Assignment[]
+  assignments: Assignment[],
+  creationDate: Date,
+  archivedDate?: Date,
+  archived: boolen
 }
 Module = {
   id: string,

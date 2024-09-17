@@ -141,7 +141,10 @@ Course = {
   id: string,
   name: string,
   modules: Module[],
-  assignments: Assignment[]
+  assignments: Assignment[],
+  creationDate: Date,
+  archivedDate?: Date,
+  archived: boolen
 }
 Module = {
   id: string,
@@ -393,6 +396,36 @@ Returns `CourseExport` object
 ```
 await codio.course.getWorkExportProgress(courseId, taskId)
 ```
+
+#### List organization courses
+
+List organization courses
+
+
+Returns
+
+```
+ListCoursesResponse = {
+  courses: Course[],
+  nextToken: string
+}
+```
+
+Example
+
+```
+await codio.course.list(<next token>, <archived>)
+```
+
+
+#### Archive course
+
+Returns `Date` of archivation
+
+```
+await codio.course.archive(<courseId>)
+```
+
 
 ## Publish Stack
 This method allow to publish the stack 

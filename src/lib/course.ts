@@ -23,6 +23,9 @@ export type Course = {
   name: string
   modules: Module[]
   assignments: Assignment[]
+  creationDate: Date
+  archivedDate: Date
+  archived: boolean
 }
 
 export type StudentProgress = {
@@ -73,8 +76,14 @@ export type TaskResponce = {
   taskId: string
 }
 
-function flattenAssignments(course: Course) {
+function flattenAssignments(course: any) {
   course.assignments = _.flatten(_.map(course.modules, 'assignments'))
+  if (course.creationDate) {
+    course.creationDate = new Date(course.creationDate)
+  }
+  if (course.archivedDate) {
+    course.archivedDate = new Date(course.archivedDate)
+  }
 }
 
 export async function info(courseId: string, withHiddenAssignments = true): Promise<Course> {
@@ -453,6 +462,58 @@ export async function downloadWorkExport(courseId: string, filePath: string): Pr
   return download(filePath, resp.url)
 }
 
+export type ListCoursesResponse = {
+  courses: Course[],
+  nextToken: string
+}
+
+export async function list(nextToken: string, archived?: boolean): Promise<ListCoursesResponse> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const params: any = {}
+    if (nextToken) {
+      params.nextToken = nextToken
+    }
+    if (archived !== undefined) {
+      params.archived = archived ? 'true' : 'false'
+    }
+    const urlParams = new URLSearchParams(params)
+
+    const resp: ListCoursesResponse = await getJson(`${getApiV1Url()}/courses_list?${urlParams.toString()}`, undefined, getBearer())
+    _.forEach(resp.courses, course => flattenAssignments(course))
+    return resp
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export type ArchiveResponse = {
+  archivedDate: string
+}
+
+export async function archive(courseId: string): Promise<Date> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const api = bent(getApiV1Url(), 'POST', 'json', 200)
+    const resp: ArchiveResponse = await api(`/courses/${courseId}/archive`, undefined, getBearer())
+    return new Date(resp.archivedDate)
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
 const course = {
   assignmentStudentsProgress,
   info,
@@ -475,7 +536,9 @@ const course = {
   getSourceExports,
   createSourceExport,
   downloadSourceExport,
-  studentCourseProgress
+  studentCourseProgress,
+  list,
+  archive
 }
 
 export default course

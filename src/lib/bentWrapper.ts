@@ -44,17 +44,24 @@ export default (...args: bent.Options[]) => {
             }
             const resp = await api(url, body, headers) as bent.NodeResponse
             const encoding = getEncodingFromArgs(args)
-            if (!encoding) return resp
-            else {
-              if (encoding === 'buffer') {
-                return resp.arrayBuffer()
-              } else if (encoding === 'json') {
-                return resp.json()
-              } else if (encoding === 'string') {
-                return resp.text()
-              }
+
+            if (!encoding) {
+              return resp
             }
-            return resp.json()
+
+            if (encoding === 'buffer' && resp.arrayBuffer) {
+              return resp.arrayBuffer()
+            }
+
+            if (encoding === 'json' && resp.json) {
+              return resp.json()
+            }
+
+            if (encoding === 'string' && resp.text) {
+              return resp.text()
+            }
+
+            return resp.json ? resp.json() : resp
         } catch (e: any) {
             if (e.statusCode === 429) {
                 const dailyRemaining = e.headers['x-ratelimit-dailylimit-remaining']

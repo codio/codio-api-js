@@ -12,5 +12,6 @@ const stackId = "fb02d280-dfea-4771-9529-e01b7b65b2d5"
 const stackVersionId = "d06eada5-f164-4610-82b6-3e9a0c2e5134"
 const archivePath = "./examples/project/project.zip"
 const yamlMapDir = "./examples/project/.guides/yamlMap"
+const courseIdToArchive = "your course id"
 
-module.exports = { courseId, courseName, assignmentId, studentId, studentEmail, studentLogin, libraryId, libraryName, projectPath, stackId, stackVersionId, archivePath, yamlMapDir }
+module.exports = { courseId, courseName, assignmentId, studentId, studentEmail, studentLogin, libraryId, libraryName, projectPath, stackId, stackVersionId, archivePath, yamlMapDir, courseIdToArchive }

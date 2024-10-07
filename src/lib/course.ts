@@ -519,11 +519,8 @@ export async function exportCoachData(courseId: string): Promise<string> {
     throw new Error('No Config')
   }
   try {
-    const res = await getJson(
-        `${getApiV1Url()}/courses/${courseId}/export/coach`,
-        undefined,
-        getBearer()
-    )
+    const api = bent(getApiV1Url(), 'POST', 'json', 200)
+    const res = await api(`/courses/${courseId}/export/coach`, undefined, getBearer())
     const taskUrl = res['taskUri']
     if (!taskUrl) {
       throw new Error('task Url not found')
@@ -543,11 +540,8 @@ export async function exportLLMProxyData(courseId: string): Promise<string> {
     throw new Error('No Config')
   }
   try {
-    const res = await getJson(
-        `${getApiV1Url()}/courses/${courseId}/export/llmproxy`,
-        undefined,
-        getBearer()
-    )
+    const api = bent(getApiV1Url(), 'POST', 'json', 200)
+    const res = await api(`/courses/${courseId}/export/llmproxy`, undefined, getBearer())
     const taskUrl = res['taskUri']
     if (!taskUrl) {
       throw new Error('task Url not found')

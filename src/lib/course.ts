@@ -514,6 +514,48 @@ export async function archive(courseId: string): Promise<Date> {
   }
 }
 
+export async function exportCoachData(courseId: string): Promise<string> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const api = bent(getApiV1Url(), 'POST', 'json', 200)
+    const res = await api(`/courses/${courseId}/export/coach`, undefined, getBearer())
+    const taskUrl = res['taskUri']
+    if (!taskUrl) {
+      throw new Error('task Url not found')
+    }
+    return await waitDownloadTask(taskUrl)
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function exportLLMProxyData(courseId: string): Promise<string> {
+  if (!config) {
+    throw new Error('No Config')
+  }
+  try {
+    const api = bent(getApiV1Url(), 'POST', 'json', 200)
+    const res = await api(`/courses/${courseId}/export/llmproxy`, undefined, getBearer())
+    const taskUrl = res['taskUri']
+    if (!taskUrl) {
+      throw new Error('task Url not found')
+    }
+    return await waitDownloadTask(taskUrl)
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
 const course = {
   assignmentStudentsProgress,
   info,
@@ -538,7 +580,9 @@ const course = {
   downloadSourceExport,
   studentCourseProgress,
   list,
-  archive
+  archive,
+  exportCoachData,
+  exportLLMProxyData
 }
 
 export default course

@@ -295,6 +295,21 @@ Download exported assignment CSV data to filePath:
 await codio.course.downloadAssignmentCSV(courseId, assignmentId, filePath)
 ```
 
+#### Export LLM Proxy data
+
+Returns url string:
+```
+await codio.course.exportLLMProxyData(courseId)
+```
+
+#### Export Coach data
+
+Returns url string:
+```
+await codio.course.exportCoachData(courseId)
+```
+
+
 #### Export Assessment Data
 
 Export all assessment results for selected assignments in the course.

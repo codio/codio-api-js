@@ -195,6 +195,7 @@ StudentProgress = {
   student_email: string
   seconds_spent: number
   grade: number
+  extra_credit: number
   status: string
   completion_date: Date
   extendedDeadline: number

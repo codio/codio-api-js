@@ -34,6 +34,7 @@ export type StudentProgress = {
   student_name: string
   seconds_spent: number
   grade: number
+  extra_credit: number
   status: 'NOT_STARTED' | 'COMPLETED' | 'STARTED'
   completion_date: Date
   timeLimitExtension: number | undefined

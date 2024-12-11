@@ -476,6 +476,8 @@ you need to specify
 `courseId : string` - course id,
 `assignmentId : string` - assignment id,
 
+Note: endTime field is Closing Date
+
 returns `AssignmentSettings` - Settings, missed properties won't be updated
 ```javascript
   const settings = await codio.assignment.getSettings('<course>', '<assignments>')
@@ -521,7 +523,7 @@ You need to specify
 `assignmentId : string` - assignment id ,
 `settings: AssignmentSettings` - Settings, missed properties won't be updated
 
-
+Note: endTime field is Closing Date
 
 Example: 
 ```javascript

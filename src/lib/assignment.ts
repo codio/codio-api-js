@@ -290,7 +290,7 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
     }
     await tools.reduce(srcDir, tmpDstDir, item.section, _.compact(paths))
     await assignment.publish(courseId, item.assignment, tmpDstDir, changelogOrOptions)
-    fs.rmdirSync(tmpDstDir, {recursive: true})
+    fs.rmSync(tmpDstDir, {recursive: true})
   }
 }
 
@@ -443,7 +443,7 @@ const assignment = {
     await fixGuidesVersion(projectPath)
     const {file, dir} = await archiveTar(projectPath)
     await assignment.publishArchive(courseId, assignmentId, file, changelogOrOptions)
-    fs.rmdirSync(dir, {recursive: true})
+    fs.rmSync(dir, {recursive: true})
   },
   publishArchive,
   reducePublish,

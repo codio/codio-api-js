@@ -92,7 +92,7 @@ export async function waitTask(taskUrl: string): Promise<string> {
         const res = await getJson(taskUrl, undefined, getBearer())
         console.log('waitTask', res)
         if (res.status !== 'done' && res.status !== 'error') {
-            await new Promise(resolve => setTimeout(resolve, 500))
+            await new Promise(resolve => setTimeout(resolve, 5000))
             return await waitTask(taskUrl)
         }
         return res

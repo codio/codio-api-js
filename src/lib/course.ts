@@ -77,6 +77,15 @@ export type TaskResponce = {
   taskId: string
 }
 
+export type FilterLeanersResponce = {
+  completed: boolean
+}
+
+export type FilterLeaners = {
+  mentorId: string,
+  learnerIds: string[]
+}
+
 function flattenAssignments(course: any) {
   course.assignments = _.flatten(_.map(course.modules, 'assignments'))
   if (course.creationDate) {
@@ -557,6 +566,20 @@ export async function exportLLMProxyData(courseId: string): Promise<string> {
   }
 }
 
+export async function filterLearnersForMentors(courseId: string, mapping: FilterLeaners[]): Promise<boolean> {
+  const api = bent(getApiV1Url(), 'POST', 'json', 200)
+  try {
+    const res = await api(`/courses/${courseId}/filterLearnersForMentors`, mapping, getBearer()) as FilterLeanersResponce
+    return res.completed
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
 const course = {
   assignmentStudentsProgress,
   info,
@@ -583,7 +606,8 @@ const course = {
   list,
   archive,
   exportCoachData,
-  exportLLMProxyData
+  exportLLMProxyData,
+  filterLearnersForMentors
 }
 
 export default course

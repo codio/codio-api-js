@@ -442,6 +442,32 @@ Returns `Date` of archivation
 await codio.course.archive(<courseId>)
 ```
 
+#### Filter Learners For Mentors
+
+Specify mentors for LTI-base course
+
+Returns
+
+```
+FilterLeanersResponce = {
+  completed: boolean
+}
+```
+
+Example
+
+```
+<leanersMapping> = [{
+  mentorId: string,
+  learnerIds: string[]
+}]
+```
+
+```
+await codio.course.filterLearnersForMentors(<courseId>, <leanersMapping>)
+```
+
+
 
 ## Publish Stack
 This method allow to publish the stack 

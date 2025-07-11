@@ -13,5 +13,13 @@ const stackVersionId = "d06eada5-f164-4610-82b6-3e9a0c2e5134"
 const archivePath = "./examples/project/project.zip"
 const yamlMapDir = "./examples/project/.guides/yamlMap"
 const courseIdToArchive = "your course id"
+const leanersMapping = [
+  {
+    "mentorId": "mentor2@email",
+    "learnerIds": [
+      "learner3@email"
+    ]
+  }
+]
 
-module.exports = { courseId, courseName, assignmentId, studentId, studentEmail, studentLogin, libraryId, libraryName, projectPath, stackId, stackVersionId, archivePath, yamlMapDir, courseIdToArchive }
+module.exports = { courseId, courseName, assignmentId, studentId, studentEmail, studentLogin, libraryId, libraryName, projectPath, stackId, stackVersionId, archivePath, yamlMapDir, courseIdToArchive, leanersMapping }

@@ -20,6 +20,16 @@ export const BLOOMS_LEVEL = {
   '6': 'Level VI - Creating'
 }
 
+function fixShowExpectedAnswer(json: any) {
+  if (!_.isUndefined(json.source.showExpectedAnswer)) {
+    // old format
+    return {
+      type: json.source.showExpectedAnswer ? "Always": "Never"
+    }
+  }
+  return json.source.showExpectedAnswerOption
+}
+
 function fixGuidance(json: any) {
   if (!_.isUndefined(json.source.showGuidanceAfterResponse)) {
     // old format
@@ -114,7 +124,9 @@ export class Assessment {
     name: string
     showName: boolean
     instructions: string
-    showExpectedAnswer: boolean
+    showExpectedAnswerOption: {
+      type: string
+    }
     guidance: string
     maxAttemptsCount: number
   }
@@ -239,7 +251,7 @@ export class Assessment {
         name: json.source.name,
         showName: json.source.showName,
         instructions: json.source.instructions,
-        showExpectedAnswer: json.source.showExpectedAnswer,
+        showExpectedAnswerOption: fixShowExpectedAnswer(json),
         guidance: json.source.guidance,
         maxAttemptsCount: getMaxAttemptsCount(json)
       }

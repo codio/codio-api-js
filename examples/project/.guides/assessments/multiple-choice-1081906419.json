@@ -35,7 +35,7 @@
 			"passedFrom": 1
 		},
 		"maxAttemptsCount": 1,
-		"showExpectedAnswer": true,
+		"showExpectedAnswerOption": {"type": "Always"},
 		"points": 20,
 		"incorrectPoints": 0,
 		"arePartialPointsAllowed": false,

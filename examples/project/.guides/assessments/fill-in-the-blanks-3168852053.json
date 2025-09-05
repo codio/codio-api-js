@@ -14,7 +14,7 @@
 			"passedFrom": 1
 		},
 		"maxAttemptsCount": 1,
-		"showExpectedAnswer": true,
+		"showExpectedAnswerOption": {"type": "Always"},
 		"points": 20,
 		"arePartialPointsAllowed": false,
 		"useMaximumScore": false,

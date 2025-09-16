@@ -21,12 +21,18 @@ export const BLOOMS_LEVEL = {
 }
 
 function fixShowExpectedAnswer(json: any) {
-  if (!_.isUndefined(json.source.showExpectedAnswer)) {
-    // old format
+  if (_.isUndefined(json.source.showExpectedAnswerOption)) {
+    if (!_.isUndefined(json.source.showExpectedAnswer)) {
+      // old format
+      return {
+        type: json.source.showExpectedAnswer ? "Always": "Never"
+      }
+    }
     return {
-      type: json.source.showExpectedAnswer ? "Always": "Never"
+      type: "Always"
     }
   }
+
   return json.source.showExpectedAnswerOption
 }
 

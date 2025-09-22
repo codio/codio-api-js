@@ -1,0 +1,10 @@
+version 0.15.1: 
+  - in `Assessment.details` replaced `showExpectedAnswer: boolean` with `showExpectedAnswerOption: {"always": {}, "never": {}, "whenGradesReleased": {}}`
+
+  - `showGuidanceAfterResponseOption` one of 
+    `{"byAttempts": { "passedFrom": 1 }}`
+    `{"always": {}}`
+    `{"never": {}}`
+    `{"byScore": { "passedFrom": 1 }}`
+    `{"whenGradesReleased": {}}`
+

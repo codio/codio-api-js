@@ -24,12 +24,17 @@ function fixShowExpectedAnswer(json: any) {
   if (_.isUndefined(json.source.showExpectedAnswerOption)) {
     if (!_.isUndefined(json.source.showExpectedAnswer)) {
       // old format
+      if (json.source.showExpectedAnswer) {
+        return {
+          "always": {}
+        }
+      }
       return {
-        type: json.source.showExpectedAnswer ? "Always": "Never"
+        "never": {}
       }
     }
     return {
-      type: "Always"
+      "always": {}
     }
   }
 
@@ -37,12 +42,22 @@ function fixShowExpectedAnswer(json: any) {
 }
 
 function fixGuidance(json: any) {
-  if (!_.isUndefined(json.source.showGuidanceAfterResponse)) {
-    // old format
-    return {
-      type: json.source.showGuidanceAfterResponse ? "Always": "Never"
+  if (_.isUndefined(json.source.showGuidanceAfterResponseOption)) {
+    if (!_.isUndefined(json.source.showGuidanceAfterResponse)) {
+      // old format
+      if (json.source.showGuidanceAfterResponse) {
+        return {
+          "always": {}
+        }
+      }
+      return {
+        "never": {}
+      }
     }
-  } 
+    return {
+      "always": {}
+    }
+  }
   return json.source.showGuidanceAfterResponseOption
 }
 
@@ -130,9 +145,7 @@ export class Assessment {
     name: string
     showName: boolean
     instructions: string
-    showExpectedAnswerOption: {
-      type: string
-    }
+    showExpectedAnswerOption: Map<string, object>
     guidance: string
     maxAttemptsCount: number
   }
@@ -294,10 +307,7 @@ export class AssessmentParsons extends Assessment {
       initial: string
       options: string
       grader: string
-      showGuidanceAfterResponseOption: {
-        type: string
-        passedFrom: number | undefined
-      }
+      showGuidanceAfterResponseOption: Map<string, object>
     }
   }
   

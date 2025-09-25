@@ -31,13 +31,12 @@
   ],
   "guidance": "The correct option follows PEP 8 guidelines:\n1. Use lowercase letters and underscores for function names (snake_case)\n2. Include spaces after commas in function parameters\n3. Use spaces around operators\n4. No spaces immediately inside parentheses\nThe other options violate one or more of these guidelines.",
   "showGuidanceAfterResponseOption": {
-   "byAttempts": {
-    "passedFrom": 1
-   }
+   "type": "Attempts",
+   "passedFrom": 1
   },
   "maxAttemptsCount": 1,
   "showExpectedAnswerOption": {
-   "always": {}
+   "type": "WhenGradesReleased"
   },
   "points": 20,
   "incorrectPoints": 0,
@@ -63,7 +62,7 @@
     },
     {
      "name": "CODIO_API_HASH",
-     "value": "18b56b2c9cbf63b9e3e5923782a44a6dc4ce96c5"
+     "value": "f22f511fa0ab1964b64314203d0806f79fea487e"
     }
    ],
    "files": [],

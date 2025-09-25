@@ -10,13 +10,12 @@
   "distractors": "\"Hello World\"\n\"Hello world!\"\n4\n6\n(1, 2, 3, 4, 5)\n{1, 2, 3, 4, 5}\nn ** 2\nn + n\nrange(4)\nrange(1, 5)",
   "guidance": "1. The correct string for printing \"Hello, World!\" includes proper capitalization and punctuation.\n2. To assign 5 to x, we simply use '5'.\n3. A list in Python is created using square brackets [].\n4. The square of a number is calculated by multiplying it by itself (n * n).\n5. range(5) generates numbers from 0 to 4, which is what we want for a loop that iterates 5 times starting from 0.",
   "showGuidanceAfterResponseOption": {
-   "byAttempts": {
-    "passedFrom": 1
-   }
+   "type": "Attempts",
+   "passedFrom": 1
   },
   "maxAttemptsCount": 1,
   "showExpectedAnswerOption": {
-   "always": {}
+   "type": "WhenGradesReleased"
   },
   "points": 20,
   "arePartialPointsAllowed": false,
@@ -41,7 +40,7 @@
     },
     {
      "name": "CODIO_API_HASH",
-     "value": "7f6bd5411e38b1fc34323b8236d3a06ad10d1373"
+     "value": "da670dc1476a0035505505477c1ff34483d892e4"
     }
    ],
    "files": [],

@@ -20,45 +20,103 @@ export const BLOOMS_LEVEL = {
   '6': 'Level VI - Creating'
 }
 
-function fixShowExpectedAnswer(json: any) {
-  if (_.isUndefined(json.source.showExpectedAnswerOption)) {
-    if (!_.isUndefined(json.source.showExpectedAnswer)) {
-      // old format
-      if (json.source.showExpectedAnswer) {
-        return {
-          "always": {}
-        }
-      }
-      return {
-        "never": {}
-      }
-    }
-    return {
-      "always": {}
-    }
-  }
-
-  return json.source.showExpectedAnswerOption
+const SHOW_EXPECTED_ANSWER_TYPES_API = {
+  ALWAYS: 'always',
+  NEVER: 'never',
+  WHEN_GRADES_RELEASED: 'whenGradesReleased'
 }
 
-function fixGuidance(json: any) {
-  if (_.isUndefined(json.source.showGuidanceAfterResponseOption)) {
-    if (!_.isUndefined(json.source.showGuidanceAfterResponse)) {
+const SHOW_EXPECTED_ANSWER_TYPES = {
+  ALWAYS: 'Always',
+  NEVER: 'Never',
+  WHEN_GRADES_RELEASED: 'WhenGradesReleased'
+}
+
+const SHOW_GUIDANCE_TYPES_API = {
+  ALWAYS: 'always',
+  NEVER: 'never',
+  SCORE: 'byScore',
+  ATTEMPTS: 'byAttempts',
+  WHEN_GRADES_RELEASED: 'whenGradesReleased'
+}
+
+const SHOW_GUIDANCE_TYPES = {
+  ALWAYS: 'Always',
+  NEVER: 'Never',
+  SCORE: 'Score',
+  ATTEMPTS: 'Attempts',
+  WHEN_GRADES_RELEASED: 'WhenGradesReleased'
+}
+
+function convertExpectedAnswerFromApi(option: any) {
+  const keys = _.keys(option)
+  if (keys.includes(SHOW_EXPECTED_ANSWER_TYPES_API.ALWAYS)) {
+    return {
+      type: SHOW_EXPECTED_ANSWER_TYPES.ALWAYS
+    }
+  } else if (keys.includes(SHOW_EXPECTED_ANSWER_TYPES_API.NEVER)) {
+    return {
+      type: SHOW_EXPECTED_ANSWER_TYPES.NEVER
+    }
+  } else if (keys.includes(SHOW_EXPECTED_ANSWER_TYPES_API.WHEN_GRADES_RELEASED)) {
+    return {
+      type: SHOW_EXPECTED_ANSWER_TYPES.WHEN_GRADES_RELEASED
+    }
+  }
+  return option
+}
+
+function fixShowExpectedAnswer(source: any) {
+  if (_.isUndefined(source.showExpectedAnswerOption)) {
+    if (!_.isUndefined(source.showExpectedAnswer)) {
       // old format
-      if (json.source.showGuidanceAfterResponse) {
-        return {
-          "always": {}
-        }
-      }
       return {
-        "never": {}
+        type: source.showExpectedAnswer ? "Always": "Never"
       }
     }
     return {
-      "always": {}
+      type: "Always"
     }
   }
-  return json.source.showGuidanceAfterResponseOption
+  return convertExpectedAnswerFromApi(source.showExpectedAnswerOption)
+}
+
+function convertGuidanceFromApi(option: any) {
+  const keys = _.keys(option)
+  if (keys.includes(SHOW_GUIDANCE_TYPES_API.ALWAYS)) {
+    return {
+      type: SHOW_GUIDANCE_TYPES.ALWAYS
+    }
+  } else if (keys.includes(SHOW_GUIDANCE_TYPES_API.NEVER)) {
+    return {
+      type: SHOW_GUIDANCE_TYPES.NEVER
+    }
+  } else if (keys.includes(SHOW_GUIDANCE_TYPES_API.WHEN_GRADES_RELEASED)) {
+    return {
+      type: SHOW_GUIDANCE_TYPES.WHEN_GRADES_RELEASED
+    }
+  } else if (keys.includes(SHOW_GUIDANCE_TYPES_API.SCORE)) {
+    return {
+      type: SHOW_GUIDANCE_TYPES.SCORE,
+      passedFrom: option.passedFrom
+    }
+  } else if (keys.includes(SHOW_GUIDANCE_TYPES_API.ATTEMPTS)) {
+    return {
+      type: SHOW_GUIDANCE_TYPES.ATTEMPTS,
+      passedFrom: option.passedFrom
+    }
+  }
+  return option
+}
+
+function fixGuidance(source: any) {
+  if (!_.isUndefined(source.showGuidanceAfterResponse)) {
+    // old format
+    return {
+      type: source.showGuidanceAfterResponse ? "Always": "Never"
+    }
+  }
+  return convertGuidanceFromApi(source.showGuidanceAfterResponseOption)
 }
 
 function getContentForComplexAssessment(taskId: string, content: string): string {
@@ -145,7 +203,9 @@ export class Assessment {
     name: string
     showName: boolean
     instructions: string
-    showExpectedAnswerOption: Map<string, object>
+    showExpectedAnswerOption: {
+      type: string
+    },
     guidance: string
     maxAttemptsCount: number
   }
@@ -219,7 +279,83 @@ export class Assessment {
     return hash(object)
   }
 
-  private _export(checksum = false): any {
+  private _convertDetailsToApi(details: any): any {
+    const option = details.showExpectedAnswerOption
+
+    const clone: any = _.cloneDeep(details)
+    if (!_.isUndefined(option)) {
+      const type = option.type
+
+      let result: any = {[SHOW_EXPECTED_ANSWER_TYPES_API.ALWAYS]: {}}
+      switch (type) {
+        case SHOW_EXPECTED_ANSWER_TYPES.NEVER:
+          result = {[SHOW_EXPECTED_ANSWER_TYPES_API.NEVER]: {}}
+          break
+        case SHOW_EXPECTED_ANSWER_TYPES.WHEN_GRADES_RELEASED:
+          result = {[SHOW_EXPECTED_ANSWER_TYPES_API.WHEN_GRADES_RELEASED]: {}}
+          break
+        default:
+        case SHOW_EXPECTED_ANSWER_TYPES.ALWAYS:
+          result = {[SHOW_EXPECTED_ANSWER_TYPES_API.ALWAYS]: {}}
+          break
+      }
+      clone.showExpectedAnswerOption = result
+    }
+    return clone
+  }
+
+  private _convertGuidanceToApi(option: any): any {
+    if (!_.isUndefined(option)) {
+      const type = option.type
+      let result: any = {[SHOW_GUIDANCE_TYPES_API.ALWAYS]: {}}
+      switch (type) {
+        case SHOW_GUIDANCE_TYPES.NEVER:
+          result = {[SHOW_GUIDANCE_TYPES_API.NEVER]: {}}
+          break
+        case SHOW_GUIDANCE_TYPES.WHEN_GRADES_RELEASED:
+          result = {[SHOW_GUIDANCE_TYPES_API.WHEN_GRADES_RELEASED]: {}}
+          break
+        case SHOW_GUIDANCE_TYPES.SCORE:
+          result = {[SHOW_GUIDANCE_TYPES_API.SCORE]: {
+            passedFrom: option.passedFrom
+          }}
+          break
+        case SHOW_GUIDANCE_TYPES.ATTEMPTS:
+          result = {[SHOW_GUIDANCE_TYPES_API.ATTEMPTS]: {
+            passedFrom: option.passedFrom
+          }}
+          break
+        default:
+        case SHOW_GUIDANCE_TYPES.ALWAYS:
+          result = {[SHOW_GUIDANCE_TYPES_API.ALWAYS]: {}}
+          break
+      }
+      return result
+    }
+    return option
+  }
+
+  private _convertBodyToApi(body: any): any {
+    const clone: any = _.cloneDeep(body)
+    if (clone.parsonPuzzle) {
+      clone.parsonPuzzle.showGuidanceAfterResponseOption = this._convertGuidanceToApi(clone.parsonPuzzle.showGuidanceAfterResponseOption)
+    } else if (clone.codeTest) {
+      clone.codeTest.showGuidanceAfterResponseOption = this._convertGuidanceToApi(clone.codeTest.showGuidanceAfterResponseOption)
+    } else if (clone.multipleChoice) {
+      clone.multipleChoice.showGuidanceAfterResponseOption = this._convertGuidanceToApi(clone.multipleChoice.showGuidanceAfterResponseOption)
+    } else if (clone.freeText) {
+      clone.freeText.showGuidanceAfterResponseOption = this._convertGuidanceToApi(clone.freeText.showGuidanceAfterResponseOption)
+    } else if (clone.fillInBlanks) {
+      clone.fillInBlanks.showGuidanceAfterResponseOption = this._convertGuidanceToApi(clone.fillInBlanks.showGuidanceAfterResponseOption)
+    } else if (clone.freeTextAuto) {
+      clone.freeTextAuto.showGuidanceAfterResponseOption = this._convertGuidanceToApi(clone.freeTextAuto.showGuidanceAfterResponseOption)
+    } else if (clone.codeCompare) {
+      clone.codeCompare.showGuidanceAfterResponseOption = this._convertGuidanceToApi(clone.codeCompare.showGuidanceAfterResponseOption)
+    }
+    return clone
+  }
+
+  private _export(checksum = false, forApi = false): any {
     const tags: any = {}
     this.metadata.tags.forEach((value, name) => {
       if (checksum && (name == API_HASH_TAG || name == API_ID_TAG)) {
@@ -234,8 +370,8 @@ export class Assessment {
     }
 
     return {
-      details: this.details,
-      body: this.body,
+      details: forApi ? this._convertDetailsToApi(this.details) : this.details,
+      body: forApi ? this._convertBodyToApi(this.body) : this.body,
       metadata: {
         files: this.metadata.files,
         opened: this.metadata.opened,
@@ -248,14 +384,15 @@ export class Assessment {
     }
   }
 
-  export(checksum = false): string {
-    return JSON.stringify(this._export(checksum))
+  export(checksum = false, forApi = false): string {
+    return JSON.stringify(this._export(checksum, forApi))
   }
 
   constructor(json: any, metadata?: MetadataPage[]) {
     if (!metadata) {
       this.assessmentId = json.assessmentId
       this.details = json.details
+      this.details.showExpectedAnswerOption = fixShowExpectedAnswer(this.details)
       this.metadata = {
         files: json.metadata.files,
         opened: json.metadata.opened,
@@ -270,7 +407,7 @@ export class Assessment {
         name: json.source.name,
         showName: json.source.showName,
         instructions: json.source.instructions,
-        showExpectedAnswerOption: fixShowExpectedAnswer(json),
+        showExpectedAnswerOption: fixShowExpectedAnswer(json.source),
         guidance: json.source.guidance,
         maxAttemptsCount: getMaxAttemptsCount(json)
       }
@@ -307,7 +444,10 @@ export class AssessmentParsons extends Assessment {
       initial: string
       options: string
       grader: string
-      showGuidanceAfterResponseOption: Map<string, object>
+      showGuidanceAfterResponseOption: {
+        type: string
+        passedFrom: number | undefined
+      }
     }
   }
   
@@ -319,11 +459,13 @@ export class AssessmentParsons extends Assessment {
           initial: json.source.initial,
           options: json.source.options,
           grader: json.source.grader,
-          showGuidanceAfterResponseOption: fixGuidance(json),
+          showGuidanceAfterResponseOption: fixGuidance(json.source),
         }
       }
     } else {
+      const source = json.body.parsonPuzzle
       this.body = json.body
+      this.body.parsonPuzzle.showGuidanceAfterResponseOption = fixGuidance(source)
     }
   }
 }
@@ -351,11 +493,13 @@ export class AssessmentAdvanced extends Assessment {
           command: json.source.command,
           timeoutSeconds: json.source.timeoutSeconds,
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,
-          showGuidanceAfterResponseOption: fixGuidance(json)
+          showGuidanceAfterResponseOption: fixGuidance(json.source)
         }
       }
     } else {
+      const source = json.body.codeTest
       this.body = json.body
+      this.body.codeTest.showGuidanceAfterResponseOption = fixGuidance(source)
     }
   }
 }
@@ -402,12 +546,14 @@ export class AssessmentMultipleChoice extends Assessment{
           options,
           isMultipleResponse: json.source.multipleResponse,
           isRandomized: json.source.isRandomized,
-          arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
-          showGuidanceAfterResponseOption: fixGuidance(json)
+          arePartialPointsAllowed: json.source.arePartialPointsAllowed,
+          showGuidanceAfterResponseOption: fixGuidance(json.source)
         }
       }
     } else {
+      const source = json.body.multipleChoice
       this.body = json.body
+      this.body.multipleChoice.showGuidanceAfterResponseOption = fixGuidance(source)
     }
   }
 }
@@ -432,7 +578,7 @@ export class AssessmentGradeBook extends Assessment{
     if (metadata) {
       this.body = {
         gradeBook: {
-          arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
+          arePartialPointsAllowed: json.source.arePartialPointsAllowed,
           rubrics: json.source.rubrics,
         }
       }
@@ -467,14 +613,16 @@ export class AssessmentFreeText extends Assessment{
     if (metadata) {
       this.body = {
         freeText: {
-          arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
-          showGuidanceAfterResponseOption: fixGuidance(json),
+          arePartialPointsAllowed: json.source.arePartialPointsAllowed,
+          showGuidanceAfterResponseOption: fixGuidance(json.source),
           rubrics: json.source.rubrics,
           previewType: json.source.previewType
         }
       }
     } else {
+      const source = json.body.freeText
       this.body = json.body
+      this.body.freeText.showGuidanceAfterResponseOption = fixGuidance(source)
     }
   }
 }
@@ -511,11 +659,13 @@ export class AssessmentFillInTheBlanks extends Assessment {
           blanks: json.source.tokens.blank,
           texts: _.filter(texts, _.isString),
           distractors: json.source.distractors,
-          showGuidanceAfterResponseOption: fixGuidance(json)
+          showGuidanceAfterResponseOption: fixGuidance(json.source)
         }
       }
     } else {
+      const source = json.body.fillInBlanks
       this.body = json.body
+      this.body.fillInBlanks.showGuidanceAfterResponseOption = fixGuidance(source)
     }
   }
 }
@@ -541,15 +691,17 @@ export class AssessmentFreeTextAuto extends Assessment {
     if (metadata) {
       this.body = {
         freeTextAuto: {
-          arePartialPointsAllowed: json.source.arePartialPointsAllowed,      
-          showGuidanceAfterResponseOption: fixGuidance(json),
+          arePartialPointsAllowed: json.source.arePartialPointsAllowed,
+          showGuidanceAfterResponseOption: fixGuidance(json.source),
           previewType: json.source.previewType,
           command: json.source.command,
           timeout: json.source.timeoutSeconds,
         }
       }
     } else {
+      const source = json.body.freeTextAuto
       this.body = json.body
+      this.body.freeTextAuto.showGuidanceAfterResponseOption = fixGuidance(source)
     }
   }
 }
@@ -584,14 +736,16 @@ export class AssessmentStandardCode extends Assessment {
   constructor(json: any, metadata?: MetadataPage[]) {
     super(json, metadata)
     if (!metadata) {
+      const source = json.body.codeCompare
       this.body = json.body
+      this.body.codeCompare.showGuidanceAfterResponseOption = fixGuidance(source)
     } else {
       this.body = {
         codeCompare: {
           options: json.source.options,
           command: json.source.command,
           preExecuteCommand: json.source.preExecuteCommand,
-          showGuidanceAfterResponseOption: fixGuidance(json),
+          showGuidanceAfterResponseOption: fixGuidance(json.source),
           sequence: json.source.sequence
         }
       }

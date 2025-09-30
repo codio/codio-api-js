@@ -54,6 +54,10 @@ export type AssignmentSettings = {
     forwardOnlyNavigation: boolean
     singleLogin: boolean
     authentication: boolean
+    restrictedIPRange?: {
+      enabled: boolean
+      range: string
+    }
   },
   releaseGrades?: boolean,
   isDisabled?: boolean
@@ -79,6 +83,10 @@ type AssignmentSettingsRaw = {
     forwardOnlyNavigation: boolean
     singleLogin: boolean
     authentication: boolean
+    restrictedIPRange?: {
+      enabled: boolean
+      range: string
+    }
   },
   releaseGrades?: boolean,
   isDisabled?: boolean
@@ -311,7 +319,8 @@ function fromRawSettings(res: AssignmentSettingsRaw): AssignmentSettings {
       shuffleQuestionsOrder: res.examMode?.shuffleQuestionsOrder,
       forwardOnlyNavigation: res.examMode?.forwardOnlyNavigation,
       singleLogin: res.examMode?.singleLogin,
-      authentication: res.examMode?.authentication
+      authentication: res.examMode?.authentication,
+      restrictedIPRange: res.examMode?.restrictedIPRange,
     } : undefined,
     releaseGrades: res.releaseGrades,
     isDisabled: res.isDisabled,
@@ -390,7 +399,8 @@ function toRawSettings(settings: AssignmentSettings): AssignmentSettingsRaw {
       shuffleQuestionsOrder: settings.examMode.shuffleQuestionsOrder,
       forwardOnlyNavigation: settings.examMode.forwardOnlyNavigation,
       singleLogin: settings.examMode.singleLogin,
-      authentication: settings.examMode.authentication
+      authentication: settings.examMode.authentication,
+      restrictedIPRange: settings.examMode.restrictedIPRange
     }
   }
   if (settings.releaseGrades !== undefined) {

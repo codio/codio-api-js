@@ -447,6 +447,49 @@ export async function updateStudentTimeExtension(
   }
 }
 
+export type ProjectSource = {
+  type: 'git', url: string, credentials?: {username: string, password: string}
+} | {
+  type: 'zip'
+}
+
+export type AssignmentData = {
+  unitId: string
+  settings: {
+    name: string
+    description?: string
+    imageUrl?: string
+    gigaboxSlot?: {
+      boxType: string
+    }
+  }
+  projectSource:
+    | { type: 'empty', stackVersionId: string }
+    | { type: 'existing', projectId: string }
+    | { type: 'starterPack', id: string }
+    | { type: 'import', stackVersionId: string, source: object }
+}
+
+export async function createAssignment(courseId: string, assignmentData: any): Promise<string> {
+  const api = bent(getApiV1Url(), 'POST', 'json', 200)
+  try {
+    const res = await api(`/courses/${courseId}/assignments`, assignmentData, getBearer())
+    const assignmentId = res['id']
+    if (!assignmentId) {
+      throw new Error('assignmentId not found in response')
+    }
+    return assignmentId
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      console.log(message)
+      throw new Error(message)
+    }
+    console.log(error)
+    throw error
+  }
+}
+
 const assignment = {
   publish: async (courseId: string, assignmentId: string, projectPath: string,
                   changelogOrOptions: string | PublishOptions): Promise<void> => {
@@ -459,7 +502,8 @@ const assignment = {
   reducePublish,
   updateSettings,
   getSettings,
-  updateStudentTimeExtension
+  updateStudentTimeExtension,
+  createAssignment
 }
 
 export default assignment

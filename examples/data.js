@@ -21,5 +21,31 @@ const leanersMapping = [
     ]
   }
 ]
+const moduleName = "New Module Name"
+const courseData = {
+  name: "Introduction to Programming",
+  description: "This course covers the basics of programming.",
+  start: "2024-08-29T09:32:55Z",
+  end: "2027-09-25T09:12:00Z",
+  timezone: "America/New_York",
+  tags: [
+    "programming",
+    "beginner"
+  ]
+}
+const assignmentData = {
+  unitId: "yout unit id",
+  settings: {
+    name: "My First Assignment",
+    description: "This assignment covers the basics of programming.",
+    gigaboxSlot: {
+      boxType: "standard"
+    }
+  },
+  projectSource: {
+    type: "starterPack",
+    id: "11000000-0000-0000-0000-000000000000"
+  }
+}
 
-module.exports = { courseId, courseName, assignmentId, studentId, studentEmail, studentLogin, libraryId, libraryName, projectPath, stackId, stackVersionId, archivePath, yamlMapDir, courseIdToArchive, leanersMapping }
+module.exports = { courseId, courseName, assignmentId, studentId, studentEmail, studentLogin, libraryId, libraryName, projectPath, stackId, stackVersionId, archivePath, yamlMapDir, courseIdToArchive, leanersMapping, moduleName, courseData, assignmentData }

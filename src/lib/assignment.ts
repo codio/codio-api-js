@@ -470,7 +470,7 @@ export type AssignmentData = {
     | { type: 'import', stackVersionId: string, source: object }
 }
 
-export async function createAssignment(courseId: string, assignmentData: any): Promise<string> {
+export async function createAssignment(courseId: string, assignmentData: AssignmentData): Promise<string> {
   const api = bent(getApiV1Url(), 'POST', 'json', 200)
   try {
     const res = await api(`/courses/${courseId}/assignments`, assignmentData, getBearer())

@@ -454,7 +454,7 @@ export type ProjectSource = {
 }
 
 export type AssignmentData = {
-  unitId: string
+  moduleId: string
   settings: {
     name: string
     description?: string
@@ -463,11 +463,6 @@ export type AssignmentData = {
       boxType: string
     }
   }
-  projectSource:
-    | { type: 'empty', stackVersionId: string }
-    | { type: 'existing', projectId: string }
-    | { type: 'starterPack', id: string }
-    | { type: 'import', stackVersionId: string, source: object }
 }
 
 export async function createAssignment(courseId: string, assignmentData: AssignmentData): Promise<string> {

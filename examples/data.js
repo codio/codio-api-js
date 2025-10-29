@@ -39,7 +39,7 @@ const assignmentData = {
     name: "My First Assignment",
     description: "This assignment covers the basics of programming.",
     gigaboxSlot: {
-      boxType: "standard"
+      boxType: "1gb"
     }
   }
 }

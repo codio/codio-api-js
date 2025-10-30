@@ -580,6 +580,51 @@ export async function filterLearnersForMentors(courseId: string, mapping: Filter
   }
 }
 
+export type CreateCourseRequest = {
+  name: string,
+  description?: string,
+  start?: string,
+  end?: string,
+  timezone?: string,
+  tags?: string[]
+}
+
+export async function createCourse(courseData: CreateCourseRequest): Promise<string> {
+  const api = bent(getApiV1Url(), 'POST', 'json', 200)
+  try {
+    const res = await api(`/courses`, courseData, getBearer())
+    const courseId = res['id']
+    if (!courseId) {
+      throw new Error('courseId not found in response')
+    }
+    return courseId
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export async function createModule(courseId: string, moduleName: string): Promise<string> {
+  const api = bent(getApiV1Url(), 'POST', 'json', 200)
+  try {
+    const res = await api(`/courses/${courseId}/modules`, { name: moduleName }, getBearer())
+    const moduleId = res['id']
+    if (!moduleId) {
+      throw new Error('moduleId not found in response')
+    }
+    return moduleId
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
 const course = {
   assignmentStudentsProgress,
   info,
@@ -607,7 +652,9 @@ const course = {
   archive,
   exportCoachData,
   exportLLMProxyData,
-  filterLearnersForMentors
+  filterLearnersForMentors,
+  createCourse,
+  createModule
 }
 
 export default course

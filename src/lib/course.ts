@@ -26,6 +26,9 @@ export type Course = {
   creationDate: Date
   archivedDate: Date
   archived: boolean
+  start: Date | undefined
+  timezone: string | undefined
+  tags: string[] | undefined
 }
 
 export type StudentProgress = {
@@ -93,6 +96,9 @@ function flattenAssignments(course: any) {
   }
   if (course.archivedDate) {
     course.archivedDate = new Date(course.archivedDate)
+  }
+  if (course.start) {
+    course.start = new Date(course.start)
   }
 }
 
@@ -625,6 +631,24 @@ export async function createModule(courseId: string, moduleName: string): Promis
   }
 }
 
+export async function addTeacher(courseId: string, userId: string): Promise<boolean> {
+  const api = bent(getApiV1Url(), 'POST', 'json', 200)
+  try {
+    const res = await api(`/courses/${courseId}/teachers`, { userId: userId }, getBearer())
+    const completed = res['completed']
+    if (!completed) {
+      throw new Error('Something went wrong')
+    }
+    return completed
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
 const course = {
   assignmentStudentsProgress,
   info,
@@ -654,7 +678,8 @@ const course = {
   exportLLMProxyData,
   filterLearnersForMentors,
   createCourse,
-  createModule
+  createModule,
+  addTeacher
 }
 
 export default course

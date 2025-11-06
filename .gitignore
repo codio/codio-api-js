@@ -106,3 +106,5 @@ dist
 /lib
 
 *.iml
+*.ipr
+*.iws

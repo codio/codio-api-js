@@ -43,5 +43,26 @@ const assignmentData = {
     }
   }
 }
+const userIdToAdd = "your user id"
 
-module.exports = { courseId, courseName, assignmentId, studentId, studentEmail, studentLogin, libraryId, libraryName, projectPath, stackId, stackVersionId, archivePath, yamlMapDir, courseIdToArchive, leanersMapping, moduleName, courseData, assignmentData }
+module.exports = {
+  courseId,
+  courseName,
+  assignmentId,
+  studentId,
+  studentEmail,
+  studentLogin,
+  libraryId,
+  libraryName,
+  projectPath,
+  stackId,
+  stackVersionId,
+  archivePath,
+  yamlMapDir,
+  courseIdToArchive,
+  leanersMapping,
+  moduleName,
+  courseData,
+  assignmentData,
+  userIdToAdd
+}

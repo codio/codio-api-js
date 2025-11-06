@@ -140,11 +140,16 @@ return `Course` object
 Course = {
   id: string,
   name: string,
+  description?: string,
   modules: Module[],
   assignments: Assignment[],
   creationDate: Date,
-  archivedDate?: Date,
-  archived: boolen
+  archivedDate: Date,
+  archived: boolean,
+  start?: Date,
+  end?: Date,
+  timezone?: string,
+  tags?: string[]
 }
 Module = {
   id: string,
@@ -169,8 +174,16 @@ return `Course` object
 Course = {
   id: string,
   name: string,
+  description?: string,
   modules: Module[],
-  assignments: Assignment[]
+  assignments: Assignment[],
+  creationDate: Date,
+  archivedDate: Date,
+  archived: boolean,
+  start?: Date,
+  end?: Date,
+  timezone?: string,
+  tags?: string[]
 }
 Module = {
   id: string,
@@ -270,6 +283,71 @@ Fetch course teachers
   await codio.v1.course.getTeachers(courseId)
 ```
 returns user `User[]` object
+
+Add teacher to course
+
+```
+  await codio.v1.course.addTeacher(courseId, userId, readOnly?)
+```
+- `readOnly` (optional, default `false`): when `true`, the user is added as a read‑only teacher.
+- returns `boolean` — true if the teacher was successfully added
+
+Example:
+```javascript
+// Add full teacher (default)
+await codio.v1.course.addTeacher(courseId, userId)
+
+// Add read-only teacher
+await codio.v1.course.addTeacher(courseId, userId, true)
+```
+
+#### Course management
+
+Create course
+
+```
+  await codio.v1.course.createCourse(courseData)
+```
+Parameters:
+```
+CreateCourseRequest = {
+  name: string,
+  description?: string,
+  start?: string,
+  end?: string,
+  timezone?: string,
+  tags?: string[]
+}
+```
+Notes:
+- `start` and `end` are ISO 8601 strings (e.g., `2025-09-01T13:00:00Z`).
+- `timezone` should be an IANA timezone name (e.g., `America/New_York`).
+- In responses, `Course.start` is a `Date` (or absent), while `CreateCourseRequest.start` is a string.
+returns `string` — newly created courseId
+
+Example:
+```javascript
+const courseId = await codio.v1.course.createCourse({
+  name: 'Intro to CS',
+  description: 'Fall 2025 section',
+  start: '2025-09-01T13:00:00Z', // ISO 8601 string
+  end: '2025-12-20T23:59:59Z',   // ISO 8601 string
+  timezone: 'America/New_York',
+  tags: ['CS101','Fall-2025']
+})
+```
+
+Create module
+
+```
+  await codio.v1.course.createModule(courseId, moduleName)
+```
+returns `string` — newly created moduleId
+
+Example:
+```javascript
+const moduleId = await codio.v1.course.createModule(courseId, 'Module 1: Basics')
+```
 
 
 #### Export student CSV
@@ -509,7 +587,7 @@ returns `AssignmentSettings` - Settings, missed properties won't be updated
   const settings = await codio.assignment.getSettings('<course>', '<assignments>')
 ```
 
-```javascript
+```
   enableResetAssignmentByStudent?: boolean
   disableDownloadByStudent?: boolean
   visibilityOnDisabled?: string, // "READ_ONLY", "NO_ACCESS",
@@ -575,7 +653,7 @@ Set time limits on a per-student basis
 
 ```javascript
  await codio.assignment.updateStudentTimeExtension(courseId, assignmentId, studentId, {
-  extendedDeadline: minutes
+  extendedDeadline: minutes,
   extendedTimeLimit: minutes
 })
 ```

@@ -283,9 +283,19 @@ returns user `User[]` object
 Add teacher to course
 
 ```
-  await codio.v1.course.addTeacher(courseId, userId)
+  await codio.v1.course.addTeacher(courseId, userId, readOnly?)
 ```
-returns `boolean` — true if the teacher was successfully added
+- `readOnly` (optional, default `false`): when `true`, the user is added as a read‑only teacher.
+- returns `boolean` — true if the teacher was successfully added
+
+Example:
+```javascript
+// Add full teacher (default)
+await codio.v1.course.addTeacher(courseId, userId)
+
+// Add read-only teacher
+await codio.v1.course.addTeacher(courseId, userId, true)
+```
 
 #### Course management
 

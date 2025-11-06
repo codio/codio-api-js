@@ -21,12 +21,14 @@ export type Module = {
 export type Course = {
   id: string
   name: string
+  description: string | undefined
   modules: Module[]
   assignments: Assignment[]
   creationDate: Date
   archivedDate: Date
   archived: boolean
   start: Date | undefined
+  end: Date | undefined
   timezone: string | undefined
   tags: string[] | undefined
 }
@@ -99,6 +101,9 @@ function flattenAssignments(course: any) {
   }
   if (course.start) {
     course.start = new Date(course.start)
+  }
+  if (course.end) {
+    course.end = new Date(course.end)
   }
 }
 
@@ -631,10 +636,11 @@ export async function createModule(courseId: string, moduleName: string): Promis
   }
 }
 
-export async function addTeacher(courseId: string, userId: string): Promise<boolean> {
+export async function addTeacher(courseId: string, userId: string, readOnly: boolean = false): Promise<boolean> {
   const api = bent(getApiV1Url(), 'POST', 'json', 200)
   try {
-    const res = await api(`/courses/${courseId}/teachers`, { userId: userId }, getBearer())
+    const body = { userId: userId, readOnly: readOnly }
+    const res = await api(`/courses/${courseId}/teachers`, body, getBearer())
     const completed = res['completed']
     if (!completed) {
       throw new Error('Something went wrong')

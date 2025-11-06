@@ -140,12 +140,14 @@ return `Course` object
 Course = {
   id: string,
   name: string,
+  description?: string,
   modules: Module[],
   assignments: Assignment[],
   creationDate: Date,
   archivedDate: Date,
   archived: boolean,
   start?: Date,
+  end?: Date,
   timezone?: string,
   tags?: string[]
 }
@@ -172,12 +174,14 @@ return `Course` object
 Course = {
   id: string,
   name: string,
+  description?: string,
   modules: Module[],
   assignments: Assignment[],
   creationDate: Date,
   archivedDate: Date,
   archived: boolean,
   start?: Date,
+  end?: Date,
   timezone?: string,
   tags?: string[]
 }

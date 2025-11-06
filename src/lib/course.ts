@@ -636,7 +636,7 @@ export async function createModule(courseId: string, moduleName: string): Promis
   }
 }
 
-export async function addTeacher(courseId: string, userId: string, readOnly: boolean = false): Promise<boolean> {
+export async function addTeacher(courseId: string, userId: string, readOnly = false): Promise<boolean> {
   const api = bent(getApiV1Url(), 'POST', 'json', 200)
   try {
     const body = { userId: userId, readOnly: readOnly }

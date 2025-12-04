@@ -242,9 +242,7 @@ async function updateMetadata(structure, dstDir) {
     if (item.children) {
       const filePath = path.join(dstDir, GUIDES_CONTENT_DIR, item['section_path'], INDEX_METADATA_FILE)
       const data = {
-        id: item.id,
-        title: item.title,
-        type: item.type,
+        ..._.omit(item, 'children'),
         order: _.map(item.children, child => child.name)
       }
       await fs.promises.writeFile(filePath, JSON.stringify(data, undefined, ' '))

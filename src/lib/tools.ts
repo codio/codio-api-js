@@ -22,7 +22,8 @@ export async function fixGuidesVersion(projectPath: string) {
 }
 
 export async function reduce(
-    srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[], withChildren: boolean): Promise<void> {
+  srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[], withChildren=true
+): Promise<void> {
   await fixGuidesVersion(srcDir)
   const contentDir = path.join(srcDir, GUIDES_CONTENT_DIR)
   const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)

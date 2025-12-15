@@ -23,14 +23,14 @@ export async function fixGuidesVersion(projectPath: string) {
 
 export async function reduce(
   srcDir: string, dstDir: string, yaml_sections: string[][],
-  paths: (string | PathMap)[], sectionConfig: Map<string, SectionConfig> = new Map()
+  paths: (string | PathMap)[], sectionsConfig: Map<string, SectionConfig> = new Map()
 ): Promise<void> {
   await fixGuidesVersion(srcDir)
   const contentDir = path.join(srcDir, GUIDES_CONTENT_DIR)
   const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)
   const rootMetadata = readMetadataFile(rootMetadataPath)
   const guidesStructure = getGuidesStructure(rootMetadata, srcDir, '')
-  const filter = collectFilter(guidesStructure, _.cloneDeep(yaml_sections), sectionConfig)
+  const filter = collectFilter(guidesStructure, _.cloneDeep(yaml_sections), sectionsConfig)
   const strippedStructure = stripStructure(guidesStructure, filter)
   const strippedSectionsIds = getStrippedSectionIds(strippedStructure)
   const excludePaths = getExcludedPaths(guidesStructure, strippedSectionsIds)
@@ -85,7 +85,7 @@ const DEFAULT_ALL_SECTION: Section = {
   children: {}
 }
 
-function collectFilter(guidesStructure, yaml_sections: string[][], sectionConfig: Map<string, SectionConfig>) {
+function collectFilter(guidesStructure, yaml_sections: string[][], sectionsConfig: Map<string, SectionConfig>) {
   const filterMap = {
     all: false,
     children: {}
@@ -95,7 +95,8 @@ function collectFilter(guidesStructure, yaml_sections: string[][], sectionConfig
     if (sectionPath.length === 0) {
       continue
     }
-    const withChildren = sectionConfig.has(sectionToKey(sectionPath)) ? sectionConfig.get(sectionToKey(sectionPath))?.withChildren : true
+    const key = sectionToKey(sectionPath)
+    const withChildren = sectionsConfig.has(key) ? sectionsConfig.get(key)?.withChildren : true
     const section = traverseItems(guidesStructure, sectionPath, filterMap, withChildren??true)
     if (!section) {
       throw new Error(`${section} not found`)

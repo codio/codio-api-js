@@ -60,7 +60,7 @@ GitHub Action Usage Example: https://github.com/ksimuk/codio-test-publish/blob/m
 Truncate pages from project. This method creates in the `dstDir` reduced version of the project, 
 which contains only pages specified in `sections: string[]` and files specified in `paths: string[]`
 ```
-  await codio.v1.tools.reduce(srcDir, dstDir, sections, paths, withChildren)
+  await codio.v1.tools.reduce(srcDir, dstDir, sections, paths, sectionsConfig)
 ```
 
 ## Reduce Publish

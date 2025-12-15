@@ -20,6 +20,7 @@ type YamlRaw = {
   assignmentName: string | undefined
   paths: (string | PathMap)[] | undefined
   section: string | string[]
+  withChildren: boolean | undefined
 }
 
 type Yaml = {
@@ -27,6 +28,7 @@ type Yaml = {
   assignmentName: string | undefined
   paths: (string | PathMap)[]
   section: string[][]
+  withChildren: boolean
 }
 
 export type TimeExtension = {
@@ -200,11 +202,13 @@ function validityState(ymls: YamlRaw[]): Yaml[] {
       item.section.push(section)
       item.paths = item.paths.concat(yml.paths || [])
     } else {
+      const withChildren = yml.withChildren !== false
       map.set(assignmentId, {
         assignment: yml.assignment,
         assignmentName: yml.assignmentName,
         paths: yml.paths || [],
-        section: [section]
+        section: [section],
+        withChildren: withChildren
       })
     }
   }
@@ -233,7 +237,8 @@ function validateYmlCfg(ymls: Yaml[]): Yaml[] {
         assignment: yml.assignment,
         assignmentName: yml.assignmentName,
         paths: yml.paths || [],
-        section: section
+        section: section,
+        withChildren: yml.withChildren
       })
     }
   }
@@ -296,7 +301,7 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
     if (!item.assignment) {
       throw new Error(`assignment not found with name "${item.assignmentName}"`)
     }
-    await tools.reduce(srcDir, tmpDstDir, item.section, _.compact(paths))
+    await tools.reduce(srcDir, tmpDstDir, item.section, _.compact(paths), item.withChildren)
     await assignment.publish(courseId, item.assignment, tmpDstDir, changelogOrOptions)
     fs.rmSync(tmpDstDir, {recursive: true})
   }

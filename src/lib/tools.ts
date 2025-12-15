@@ -22,13 +22,13 @@ export async function fixGuidesVersion(projectPath: string) {
 }
 
 export async function reduce(
-    srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[]): Promise<void> {
+    srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[], withChildren: boolean): Promise<void> {
   await fixGuidesVersion(srcDir)
   const contentDir = path.join(srcDir, GUIDES_CONTENT_DIR)
   const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)
   const rootMetadata = readMetadataFile(rootMetadataPath)
   const guidesStructure = getGuidesStructure(rootMetadata, srcDir, '')
-  const filter = collectFilter(guidesStructure, _.cloneDeep(yaml_sections))
+  const filter = collectFilter(guidesStructure, _.cloneDeep(yaml_sections), withChildren)
   const strippedStructure = stripStructure(guidesStructure, filter)
   const strippedSectionsIds = getStrippedSectionIds(strippedStructure)
   const excludePaths = getExcludedPaths(guidesStructure, strippedSectionsIds)
@@ -83,7 +83,7 @@ const DEFAULT_ALL_SECTION: Section = {
   children: {}
 }
 
-function collectFilter(guidesStructure, yaml_sections) {
+function collectFilter(guidesStructure, yaml_sections, withChildren: boolean) {
   const filterMap = {
     all: false,
     children: {}
@@ -93,7 +93,7 @@ function collectFilter(guidesStructure, yaml_sections) {
     if (sectionPath.length === 0) {
       continue
     }
-    const section = traverseItems(guidesStructure, sectionPath, filterMap)
+    const section = traverseItems(guidesStructure, sectionPath, filterMap, withChildren)
     if (!section) {
       throw new Error(`${section} not found`)
     }
@@ -105,7 +105,7 @@ function collectFilter(guidesStructure, yaml_sections) {
   return filterMap
 }
 
-function traverseItems(structure, sectionPath: string[], filterMap: Section) {
+function traverseItems(structure, sectionPath: string[], filterMap: Section, withChildren: boolean) {
   const sectionName = sectionPath.shift()
   if (!sectionName) {
     return
@@ -122,9 +122,9 @@ function traverseItems(structure, sectionPath: string[], filterMap: Section) {
   }
   if (sectionPath.length > 0) {
     // fill-in filterMap
-    traverseItems(section.children, sectionPath, filterMap.children[section.id])
+    traverseItems(section.children, sectionPath, filterMap.children[section.id], withChildren)
   } else {
-    filterMap.children[section.id].all = true
+    filterMap.children[section.id].all = withChildren
   }
   return section
 }

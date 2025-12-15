@@ -7,7 +7,7 @@ import {excludePaths} from './config'
 import tar from 'tar'
 import { ZSTDCompress } from 'simple-zstd'
 import config from './config'
-import { PathMap } from './assignment'
+import { PathMap, SectionConfig, sectionToKey } from './assignment'
 
 const CONVERTER_VERSION = '4ca4944ddf9d4fe4df9697bec06cbd0a6c170419'
 const GUIDES_CONTENT_DIR = '.guides/content'
@@ -22,14 +22,15 @@ export async function fixGuidesVersion(projectPath: string) {
 }
 
 export async function reduce(
-  srcDir: string, dstDir: string, yaml_sections: string[][], paths: (string | PathMap)[], withChildren=true
+  srcDir: string, dstDir: string, yaml_sections: string[][],
+  paths: (string | PathMap)[], sectionConfig: Map<string, SectionConfig> = new Map()
 ): Promise<void> {
   await fixGuidesVersion(srcDir)
   const contentDir = path.join(srcDir, GUIDES_CONTENT_DIR)
   const rootMetadataPath = path.join(contentDir, INDEX_METADATA_FILE)
   const rootMetadata = readMetadataFile(rootMetadataPath)
   const guidesStructure = getGuidesStructure(rootMetadata, srcDir, '')
-  const filter = collectFilter(guidesStructure, _.cloneDeep(yaml_sections), withChildren)
+  const filter = collectFilter(guidesStructure, _.cloneDeep(yaml_sections), sectionConfig)
   const strippedStructure = stripStructure(guidesStructure, filter)
   const strippedSectionsIds = getStrippedSectionIds(strippedStructure)
   const excludePaths = getExcludedPaths(guidesStructure, strippedSectionsIds)
@@ -84,7 +85,7 @@ const DEFAULT_ALL_SECTION: Section = {
   children: {}
 }
 
-function collectFilter(guidesStructure, yaml_sections, withChildren: boolean) {
+function collectFilter(guidesStructure, yaml_sections: string[][], sectionConfig: Map<string, SectionConfig>) {
   const filterMap = {
     all: false,
     children: {}
@@ -94,7 +95,8 @@ function collectFilter(guidesStructure, yaml_sections, withChildren: boolean) {
     if (sectionPath.length === 0) {
       continue
     }
-    const section = traverseItems(guidesStructure, sectionPath, filterMap, withChildren)
+    const withChildren = sectionConfig.has(sectionToKey(sectionPath)) ? sectionConfig.get(sectionToKey(sectionPath))?.withChildren : true
+    const section = traverseItems(guidesStructure, sectionPath, filterMap, withChildren??true)
     if (!section) {
       throw new Error(`${section} not found`)
     }

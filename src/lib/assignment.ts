@@ -20,6 +20,15 @@ type YamlRaw = {
   assignmentName: string | undefined
   paths: (string | PathMap)[] | undefined
   section: string | string[]
+  withChildren: boolean | undefined
+}
+
+export type SectionConfig = {
+  withChildren: boolean
+}
+
+export function sectionToKey(section: string[]) {
+  return section.join('\n')
 }
 
 type Yaml = {
@@ -27,6 +36,7 @@ type Yaml = {
   assignmentName: string | undefined
   paths: (string | PathMap)[]
   section: string[][]
+  sectionConfig: Map<string, SectionConfig>
 }
 
 export type TimeExtension = {
@@ -192,6 +202,7 @@ function validityState(ymls: YamlRaw[]): Yaml[] {
     if (assignmentId === undefined) {
       throw new Error('assignment and assignmentName does not exist')
     }
+      const withChildren = yml.withChildren !== false
     if (map.has(assignmentId)) {
       const item = map.get(assignmentId)
       if (!item) {
@@ -199,12 +210,16 @@ function validityState(ymls: YamlRaw[]): Yaml[] {
       }
       item.section.push(section)
       item.paths = item.paths.concat(yml.paths || [])
+      item.sectionConfig.set(sectionToKey(section), {withChildren: withChildren})
     } else {
+      const sectionConfig: Map<string, SectionConfig> = new Map()
+      sectionConfig.set(sectionToKey(section), {withChildren: withChildren})
       map.set(assignmentId, {
         assignment: yml.assignment,
         assignmentName: yml.assignmentName,
         paths: yml.paths || [],
-        section: [section]
+        section: [section],
+        sectionConfig: sectionConfig
       })
     }
   }
@@ -228,12 +243,14 @@ function validateYmlCfg(ymls: Yaml[]): Yaml[] {
       }
       item.section = item.section.concat(section)
       item.paths = item.paths.concat(yml.paths || [])
+      item.sectionConfig = yml.sectionConfig
     } else {
       map.set(assignmentId, {
         assignment: yml.assignment,
         assignmentName: yml.assignmentName,
         paths: yml.paths || [],
-        section: section
+        section: section,
+        sectionConfig: yml.sectionConfig
       })
     }
   }
@@ -296,7 +313,7 @@ async function reducePublish(courseId: string, srcDir: string, yamlDir: string, 
     if (!item.assignment) {
       throw new Error(`assignment not found with name "${item.assignmentName}"`)
     }
-    await tools.reduce(srcDir, tmpDstDir, item.section, _.compact(paths))
+    await tools.reduce(srcDir, tmpDstDir, item.section, _.compact(paths), item.sectionConfig)
     await assignment.publish(courseId, item.assignment, tmpDstDir, changelogOrOptions)
     fs.rmSync(tmpDstDir, {recursive: true})
   }

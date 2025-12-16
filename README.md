@@ -60,7 +60,7 @@ GitHub Action Usage Example: https://github.com/ksimuk/codio-test-publish/blob/m
 Truncate pages from project. This method creates in the `dstDir` reduced version of the project, 
 which contains only pages specified in `sections: string[]` and files specified in `paths: string[]`
 ```
-  await codio.v1.tools.reduce(srcDir, dstDir, sections, paths)
+  await codio.v1.tools.reduce(srcDir, dstDir, sections, paths, sectionsConfig)
 ```
 
 ## Reduce Publish
@@ -74,6 +74,7 @@ Similar to reduce but publishes generated projects as assignments.
 `assignmentName` - or name of the assignment to publish
 `section` - section name or array of paths to the section
 `paths` - an array of files that needs to be exported, `.guides` is exported fully to all assignments
+`withChildren` - boolean - preserve children structure, `true` by default
 
 ```
 - assignment: <assignment Id>
@@ -85,6 +86,10 @@ Similar to reduce but publishes generated projects as assignments.
 
 - assignmentName: <assignment name>
   section: Section 1
+
+- assignmentName: <assignment name>
+  section: Section 2
+  withChildren: false
 
 ```
 

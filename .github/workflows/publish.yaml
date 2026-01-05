@@ -1,8 +1,12 @@
 name: Publish Package to npmjs
 on:
   push:
-    branches:    
+    branches:
       - 'master'
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
 
 jobs:
   build:
@@ -16,7 +20,4 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - run: yarn && yarn build
-
-      - uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
+      - run: npm publish

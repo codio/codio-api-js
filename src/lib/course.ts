@@ -123,7 +123,7 @@ export async function info(courseId: string, withHiddenAssignments = true): Prom
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -145,7 +145,7 @@ export async function findByName(courseName: string, withHiddenAssignments: bool
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -166,7 +166,7 @@ export async function assignmentStudentsProgress(courseId: string, assignmentId:
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -187,7 +187,7 @@ export async function studentCourseProgress(courseId: string, studentIdentificat
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -211,7 +211,7 @@ export async function waitDownloadTask(taskUrl: string): Promise<string> {
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -232,7 +232,7 @@ export async function exportStudentAssignment(courseId: string, assignmentId: st
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -292,7 +292,7 @@ export async function exportStudentCSV(courseId: string, studentId: string): Pro
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -311,7 +311,7 @@ export async function exportAssignmentCSV(courseId: string, assignmentId: string
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -335,7 +335,7 @@ export async function exportAssessmentData(courseId: string, assignmentIds: stri
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -347,7 +347,7 @@ export async function getStudents(courseId: string): Promise<User[]> {
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -359,7 +359,7 @@ export async function getTeachers(courseId: string): Promise<User[]> {
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -371,7 +371,7 @@ export async function getSourceExports(courseId: string): Promise<CourseExport[]
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -385,7 +385,7 @@ export async function getSourceExportProgress(courseId: string, taskId: string):
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -421,7 +421,7 @@ export async function createSourceExport(courseId: string): Promise<CourseExport
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -441,7 +441,7 @@ export async function getWorkExports(courseId: string): Promise<CourseExport[]> 
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -455,7 +455,7 @@ export async function getWorkExportProgress(courseId: string, taskId: string): P
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -469,7 +469,7 @@ export async function createWorkExport(courseId: string): Promise<CourseExport> 
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -508,7 +508,7 @@ export async function list(nextToken: string, archived?: boolean): Promise<ListC
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -529,7 +529,7 @@ export async function archive(courseId: string): Promise<Date> {
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -550,7 +550,7 @@ export async function exportCoachData(courseId: string): Promise<string> {
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -571,7 +571,7 @@ export async function exportLLMProxyData(courseId: string): Promise<string> {
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -585,7 +585,7 @@ export async function filterLearnersForMentors(courseId: string, mapping: Filter
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -612,7 +612,7 @@ export async function createCourse(courseData: CreateCourseRequest): Promise<str
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -630,7 +630,7 @@ export async function createModule(courseId: string, moduleName: string): Promis
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -649,7 +649,7 @@ export async function addTeacher(courseId: string, userId: string, readOnly = fa
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }

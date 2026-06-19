@@ -184,7 +184,7 @@ async function publishArchive (courseId: string, assignmentId: string, archivePa
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -356,7 +356,7 @@ export async function getSettings(courseId: string, assignmentId:string): Promis
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -441,7 +441,7 @@ export async function updateSettings(courseId: string, assignmentId: string, set
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -458,7 +458,7 @@ export async function updateStudentTimeExtension(
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -495,7 +495,7 @@ export async function createAssignment(courseId: string, assignmentData: Assignm
     if (error.json) {
       const message = JSON.stringify(await error.json())
       console.log(message)
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     console.log(error)
     throw error

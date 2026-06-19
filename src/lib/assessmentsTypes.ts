@@ -286,7 +286,7 @@ export class Assessment {
     if (!_.isUndefined(option)) {
       const type = option.type
 
-      let result: any = {[SHOW_EXPECTED_ANSWER_TYPES_API.ALWAYS]: {}}
+      let result: any
       switch (type) {
         case SHOW_EXPECTED_ANSWER_TYPES.NEVER:
           result = {[SHOW_EXPECTED_ANSWER_TYPES_API.NEVER]: {}}
@@ -307,7 +307,7 @@ export class Assessment {
   private _convertGuidanceToApi(option: any): any {
     if (!_.isUndefined(option)) {
       const type = option.type
-      let result: any = {[SHOW_GUIDANCE_TYPES_API.ALWAYS]: {}}
+      let result: any 
       switch (type) {
         case SHOW_GUIDANCE_TYPES.NEVER:
           result = {[SHOW_GUIDANCE_TYPES_API.NEVER]: {}}

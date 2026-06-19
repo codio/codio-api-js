@@ -69,7 +69,7 @@ export function readMetadataFile(path) {
     const metadataJson = fs.readFileSync(path, {encoding: "utf-8"})
     return JSON.parse(metadataJson)
   } catch (error: any) {
-    throw new Error(error)
+    throw new Error(error.message, { cause: error })
   }
 }
 
@@ -308,7 +308,7 @@ export async function convertToGuidesV3(cwd: string) {
     await execShellCommand('./guides-converter-v3', cwd)
     await execShellCommand('rm guides-converter-v3', cwd)
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message, { cause: error });
   }
 }
 

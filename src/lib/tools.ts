@@ -5,7 +5,7 @@ import copy from 'recursive-copy'
 import process from 'child_process';
 import {excludePaths} from './config'
 import tar from 'tar'
-import { ZSTDCompress } from 'simple-zstd'
+import { createZstdCompress } from 'node:zlib'
 import config from './config'
 import { PathMap, SectionConfig, sectionToKey } from './assignment'
 
@@ -286,7 +286,7 @@ export async function createTar(basePath: string, paths: string[], excludePaths?
   const zst = path.join(dir, 'archive.tar.zst')
   await new Promise((resolve, reject) => {
     fs.createReadStream(file)
-      .pipe(ZSTDCompress())
+      .pipe(createZstdCompress())
       .pipe(fs.createWriteStream(path.join(dir, 'archive.tar.zst')))
       .on('finish', resolve)
       .on('error', reject)

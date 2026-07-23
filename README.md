@@ -12,8 +12,8 @@ API keys.
 - zstd
 
 ## How to build
-- Run `yarn`
-- Run `yarn build`
+- Run `npm`
+- Run `npm build`
 
 
 ## Authentication

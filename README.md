@@ -12,7 +12,7 @@ API keys.
 - zstd
 
 ## How to build
-- Run `npm`
+- Run `npm install`
 - Run `npm build`
 
 

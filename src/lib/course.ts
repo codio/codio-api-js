@@ -705,7 +705,8 @@ const course = {
   filterLearnersForMentors,
   createCourse,
   createModule,
-  addTeacher
+  addTeacher,
+  deleteCourse
 }
 
 export default course

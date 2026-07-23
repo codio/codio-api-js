@@ -525,6 +525,12 @@ Returns `Date` of archivation
 await codio.course.archive(<courseId>)
 ```
 
+#### Delete course
+
+```
+await codio.course.deleteCourse({id: "<courseId>", removeOutdatedStudents: <boolean>})
+```
+
 #### Filter Learners For Mentors
 
 Specify mentors for LTI-base course

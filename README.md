@@ -528,7 +528,7 @@ await codio.course.archive(<courseId>)
 #### Delete course
 
 ```
-await codio.course.deleteCourse({id: "<courseId>", removeOutdatedStudents: <boolean>})
+await codio.course.deleteCourse({id: <courseId>, removeOutdatedStudents: <boolean>})
 ```
 
 #### Filter Learners For Mentors

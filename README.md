@@ -13,7 +13,7 @@ API keys.
 
 ## How to build
 - Run `npm install`
-- Run `npm build`
+- Run `npm run build`
 
 
 ## Authentication

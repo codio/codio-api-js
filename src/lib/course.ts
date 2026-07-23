@@ -645,7 +645,7 @@ export async function deleteCourse(data: DeleteCourseRequest): Promise<void> {
   const api = bent(getApiV1Url(), 'DELETE', 'json', 200)
   try {
     const paramString = data.removeOutdatedStudents ? `?removeOutdatedStudents=${data.removeOutdatedStudents}` : ''
-    await api(`/courses${paramString}`, data, getBearer())
+    await api(`/courses/${data.id}${paramString}`, data, getBearer())
     return
   } catch (error: any) {
     if (error.json) {

@@ -636,16 +636,11 @@ export async function createModule(courseId: string, moduleName: string): Promis
   }
 }
 
-export type DeleteCourseRequest = {
-  id: string,
-  removeOutdatedStudents?: boolean
-}
-
-export async function deleteCourse(data: DeleteCourseRequest): Promise<void> {
+export async function deleteCourse(courseId: string, removeOutdatedStudents = false): Promise<void> {
   const api = bent(getApiV1Url(), 'DELETE', 'json', 200)
   try {
-    const paramString = data.removeOutdatedStudents ? `?removeOutdatedStudents=${data.removeOutdatedStudents}` : ''
-    await api(`/courses/${data.id}${paramString}`, data, getBearer())
+    const paramString = removeOutdatedStudents ? `?removeOutdatedStudents=${removeOutdatedStudents}` : ''
+    await api(`/courses/${courseId}${paramString}`, undefined, getBearer())
     return
   } catch (error: any) {
     if (error.json) {

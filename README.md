@@ -528,8 +528,9 @@ await codio.course.archive(<courseId>)
 #### Delete course
 
 ```
-await codio.course.deleteCourse({id: <courseId>, removeOutdatedStudents: <boolean>})
+await codio.course.deleteCourse(courseId, removeOutdatedStudents?)
 ```
+- `removeOutdatedStudents` (optional, default `false`): when `true`, the course is deleted along with all students who are no longer enrolled in any other courses. If `false`, the course is deleted but students remain in the system.
 
 #### Filter Learners For Mentors
 

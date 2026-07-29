@@ -636,6 +636,21 @@ export async function createModule(courseId: string, moduleName: string): Promis
   }
 }
 
+export async function deleteCourse(courseId: string, removeOutdatedStudents = false): Promise<void> {
+  const api = bent(getApiV1Url(), 'DELETE', 'json', 200)
+  try {
+    const paramString = removeOutdatedStudents ? `?removeOutdatedStudents=${removeOutdatedStudents}` : ''
+    await api(`/courses/${courseId}${paramString}`, undefined, getBearer())
+    return
+  } catch (error: any) {
+    if (error.json) {
+      const message = JSON.stringify(await error.json())
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
 export async function addTeacher(courseId: string, userId: string, readOnly = false): Promise<boolean> {
   const api = bent(getApiV1Url(), 'POST', 'json', 200)
   try {
@@ -685,7 +700,8 @@ const course = {
   filterLearnersForMentors,
   createCourse,
   createModule,
-  addTeacher
+  addTeacher,
+  deleteCourse
 }
 
 export default course

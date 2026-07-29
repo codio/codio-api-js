@@ -12,8 +12,8 @@ API keys.
 - zstd
 
 ## How to build
-- Run `yarn`
-- Run `yarn build`
+- Run `npm install`
+- Run `npm run build`
 
 
 ## Authentication
@@ -524,6 +524,13 @@ Returns `Date` of archivation
 ```
 await codio.course.archive(<courseId>)
 ```
+
+#### Delete course
+
+```
+await codio.course.deleteCourse(courseId, removeOutdatedStudents?)
+```
+- `removeOutdatedStudents` (optional, default `false`): when `true`, the course is deleted along with all students who are no longer enrolled in any other courses. If `false`, the course is deleted but students remain in the system.
 
 #### Filter Learners For Mentors
 

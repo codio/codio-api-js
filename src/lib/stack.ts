@@ -33,7 +33,7 @@ export async function info(stackId: string): Promise<Stack> {
     } catch (error: any) {
         if (error.json) {
             const message = JSON.stringify(await error.json())
-            throw new Error(message)
+            throw new Error(message, { cause: error })
         }
         throw error
     }
@@ -77,7 +77,7 @@ export async function publish(
     } catch (error: any) {
         if (error.json) {
             const message = JSON.stringify(await error.json())
-            throw new Error(message)
+            throw new Error(message, { cause: error })
         }
         throw error
     }
@@ -99,7 +99,7 @@ export async function waitTask(taskUrl: string): Promise<string> {
     } catch (error: any) {
         if (error.json) {
             const message = JSON.stringify(await error.json())
-            throw new Error(message)
+            throw new Error(message, { cause: error })
         }
         throw error
     }

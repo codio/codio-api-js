@@ -5,7 +5,7 @@ import copy from 'recursive-copy'
 import process from 'child_process';
 import {excludePaths} from './config'
 import tar from 'tar'
-import { ZSTDCompress } from 'simple-zstd'
+import { createZstdCompress } from 'node:zlib'
 import config from './config'
 import { PathMap, SectionConfig, sectionToKey } from './assignment'
 
@@ -69,7 +69,7 @@ export function readMetadataFile(path) {
     const metadataJson = fs.readFileSync(path, {encoding: "utf-8"})
     return JSON.parse(metadataJson)
   } catch (error: any) {
-    throw new Error(error)
+    throw new Error(error.message, { cause: error })
   }
 }
 
@@ -286,7 +286,7 @@ export async function createTar(basePath: string, paths: string[], excludePaths?
   const zst = path.join(dir, 'archive.tar.zst')
   await new Promise((resolve, reject) => {
     fs.createReadStream(file)
-      .pipe(ZSTDCompress())
+      .pipe(createZstdCompress())
       .pipe(fs.createWriteStream(path.join(dir, 'archive.tar.zst')))
       .on('finish', resolve)
       .on('error', reject)
@@ -308,7 +308,7 @@ export async function convertToGuidesV3(cwd: string) {
     await execShellCommand('./guides-converter-v3', cwd)
     await execShellCommand('rm guides-converter-v3', cwd)
   } catch (error: any) {
-    throw new Error(error);
+    throw new Error(error.message, { cause: error });
   }
 }
 

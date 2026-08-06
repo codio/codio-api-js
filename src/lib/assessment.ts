@@ -36,7 +36,7 @@ async function listLibraries(): Promise<Library[]> {
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }
@@ -115,7 +115,7 @@ async function _publishAssessment(libraryId: string, assessment: Assessment, isN
     if (error.json) {
       const message = JSON.stringify(await error.json())
       console.log(message)
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     console.log(error)
     throw error
@@ -241,7 +241,7 @@ async function find(libraryId: string, tags = new Map()): Promise<Assessment[]> 
   } catch (error: any) {
     if (error.json) {
       const message = JSON.stringify(await error.json())
-      throw new Error(message)
+      throw new Error(message, { cause: error })
     }
     throw error
   }

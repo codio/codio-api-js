@@ -163,14 +163,14 @@ type Layout = {
 }
 
 function extractLayout(json: any, metadata: MetadataPage[]): Layout {
-  if (!_.isUndefined(json.source.metadata.layout)) { 
+  if (!_.isUndefined(json.source.metadata.layout)) {
     // already has layout
     return {
       layout: json.source.metadata.layout,
       content: json.source.metadata.content,
       pageTitle: json.source.metadata.pageTitle,
       buttonText: json.source.metadata.buttonText
-    } 
+    }
   }
 
   // parse layout
@@ -184,7 +184,7 @@ function extractLayout(json: any, metadata: MetadataPage[]): Layout {
       pageTitle: undefined,
       buttonText: undefined,
     }
-  } 
+  }
   return {
     layout: data.layout,
     content: getContentForComplexAssessment(json.taskId, page),
@@ -198,7 +198,7 @@ export class Assessment {
   basePath = ''
   taskId = 'none'
   assessmentId: string | undefined
-  
+
   details: {
     name: string
     showName: boolean
@@ -422,7 +422,7 @@ export class Assessment {
       } = extractLayout(json, metadata)
       this.metadata = {
         tags,
-        layout, 
+        layout,
         content,
         pageTitle,
         buttonText,
@@ -450,7 +450,7 @@ export class AssessmentParsons extends Assessment {
       }
     }
   }
-  
+
   constructor(json: any, metadata?: MetadataPage[]) {
     super(json, metadata)
     if (metadata) {
@@ -476,6 +476,7 @@ export class AssessmentAdvanced extends Assessment {
   body: {
     codeTest: {
       command: string
+      codeEnvConfig: any
       arePartialPointsAllowed: boolean
       timeoutSeconds: number
       showGuidanceAfterResponseOption: {
@@ -491,6 +492,7 @@ export class AssessmentAdvanced extends Assessment {
       this.body = {
         codeTest: {
           command: json.source.command,
+          codeEnvConfig: json.source.codeEnvConfig,
           timeoutSeconds: json.source.timeoutSeconds,
           arePartialPointsAllowed: json.source.arePartialPointsAllowed,
           showGuidanceAfterResponseOption: fixGuidance(json.source)
@@ -518,7 +520,7 @@ export class AssessmentMultipleChoice extends Assessment{
       options: {
         id: string
         correct: boolean
-        answer: string  
+        answer: string
       }[]
       isMultipleResponse: boolean
       isRandomized: boolean
@@ -732,7 +734,7 @@ export class AssessmentStandardCode extends Assessment {
       }[]
     }
   }
- 
+
   constructor(json: any, metadata?: MetadataPage[]) {
     super(json, metadata)
     if (!metadata) {
@@ -767,13 +769,13 @@ function getMaxAttemptsCount(json: any) {
 
 export function parse(json: any, metadataPages:  MetadataPage[]): Assessment {
   switch (json.type) {
-    case 'test': 
+    case 'test':
       return new AssessmentAdvanced(json, metadataPages)
     case 'multiple-choice':
       return new AssessmentMultipleChoice(json, metadataPages)
     case 'fill-in-the-blanks':
       return new AssessmentFillInTheBlanks(json, metadataPages)
-    case 'code-output-compare': 
+    case 'code-output-compare':
       return new AssessmentStandardCode(json, metadataPages)
     case 'parsons-puzzle':
       return new AssessmentParsons(json, metadataPages)
@@ -791,13 +793,13 @@ export function parse(json: any, metadataPages:  MetadataPage[]): Assessment {
 export function parseApi(json: any): Assessment {
   const type = json.metadata.tags['Assessment Type']
   switch (type) {
-    case 'Advanced Code Test': 
+    case 'Advanced Code Test':
       return new AssessmentAdvanced(json)
     case 'Multiple Choice':
       return new AssessmentMultipleChoice(json)
     case 'Fill in the Blanks':
       return new AssessmentFillInTheBlanks(json)
-    case 'Standard Code Test': 
+    case 'Standard Code Test':
       return new AssessmentStandardCode(json)
     case 'Parsons Puzzle':
       return new AssessmentParsons(json)

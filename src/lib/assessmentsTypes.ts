@@ -720,6 +720,7 @@ export class AssessmentStandardCode extends Assessment {
         timeout: number
       }
       command: string
+      arePartialPointsAllowed: boolean
       preExecuteCommand: string
       showGuidanceAfterResponseOption: {
         type: string,
@@ -746,6 +747,7 @@ export class AssessmentStandardCode extends Assessment {
         codeCompare: {
           options: json.source.options,
           command: json.source.command,
+          arePartialPointsAllowed: json.source.arePartialPointsAllowed,
           preExecuteCommand: json.source.preExecuteCommand,
           showGuidanceAfterResponseOption: fixGuidance(json.source),
           sequence: json.source.sequence

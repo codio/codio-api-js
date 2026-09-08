@@ -1,6 +1,6 @@
 {
   "name": "codio-api-js",
-  "version": "0.19.2",
+  "version": "0.19.3",
   "description": "JS client to Codio API",
   "repository": {
     "type": "git",

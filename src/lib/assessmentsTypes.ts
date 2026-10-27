@@ -23,13 +23,15 @@ export const BLOOMS_LEVEL = {
 const SHOW_EXPECTED_ANSWER_TYPES_API = {
   ALWAYS: 'always',
   NEVER: 'never',
-  WHEN_GRADES_RELEASED: 'whenGradesReleased'
+  WHEN_GRADES_RELEASED: 'whenGradesReleased',
+  AFTER_EVERY_ATTEMPT: 'afterEveryAttempt'
 }
 
 const SHOW_EXPECTED_ANSWER_TYPES = {
   ALWAYS: 'Always',
   NEVER: 'Never',
-  WHEN_GRADES_RELEASED: 'WhenGradesReleased'
+  WHEN_GRADES_RELEASED: 'WhenGradesReleased',
+  AFTER_EVERY_ATTEMPT: 'AfterEveryAttempt'
 }
 
 const SHOW_GUIDANCE_TYPES_API = {
@@ -61,6 +63,10 @@ function convertExpectedAnswerFromApi(option: any) {
   } else if (keys.includes(SHOW_EXPECTED_ANSWER_TYPES_API.WHEN_GRADES_RELEASED)) {
     return {
       type: SHOW_EXPECTED_ANSWER_TYPES.WHEN_GRADES_RELEASED
+    }
+  } else if (keys.includes(SHOW_EXPECTED_ANSWER_TYPES_API.AFTER_EVERY_ATTEMPT)) {
+    return {
+      type: SHOW_EXPECTED_ANSWER_TYPES.AFTER_EVERY_ATTEMPT
     }
   }
   return option
@@ -293,6 +299,9 @@ export class Assessment {
           break
         case SHOW_EXPECTED_ANSWER_TYPES.WHEN_GRADES_RELEASED:
           result = {[SHOW_EXPECTED_ANSWER_TYPES_API.WHEN_GRADES_RELEASED]: {}}
+          break
+        case SHOW_EXPECTED_ANSWER_TYPES.AFTER_EVERY_ATTEMPT:
+          result = {[SHOW_EXPECTED_ANSWER_TYPES_API.AFTER_EVERY_ATTEMPT]: {}}
           break
         default:
         case SHOW_EXPECTED_ANSWER_TYPES.ALWAYS:

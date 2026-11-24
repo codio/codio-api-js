@@ -36,7 +36,7 @@ export async function loadEvents(nextToken: string, limit=50): Promise<LoadEvent
     } catch (error: any) {
         if (error.json) {
             const message = JSON.stringify(await error.json())
-            throw new Error(message)
+            throw new Error(message, { cause: error })
         }
         throw error
     }

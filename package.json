@@ -1,7 +1,10 @@
 {
   "name": "codio-api-js",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "JS client to Codio API",
+  "engines": {
+    "node": ">=22.12"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/codio/codio-api-js"
@@ -9,31 +12,30 @@
   "author": "Max Kraev <maxim.kraev@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "@types/bent": "^7.3.2",
-    "@types/lodash": "^4.14.168",
-    "@types/object-hash": "^2.1.1",
-    "@types/tar": "^4.0.4",
-    "@types/uuid": "^8.3.1",
-    "@typescript-eslint/eslint-plugin": "^5.22",
-    "@typescript-eslint/parser": "^5.00",
-    "dotenv": "^11.0.0",
-    "eslint": "^7.30.0",
-    "typescript": "^4.3.5"
+    "@types/bent": "^7.3.8",
+    "@types/lodash": "^4.17.27",
+    "@eslint/js": "^10.0.1",
+    "@types/object-hash": "^3.0.6",
+    "@typescript-eslint/eslint-plugin": "^8.74.0",
+    "@typescript-eslint/parser": "^8.74.0",
+    "dotenv": "^18.0.10",
+    "eslint": "^10.15.0",
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "bent": "^7.3.12",
-    "form-data": "^4.0.0",
-    "glob-promise": "^4.2.0",
+    "form-data": "^4.0.6",
+    "glob-promise": "^6.0.7",
     "https": "^1.0.0",
-    "lodash": "^4.17.21",
-    "object-hash": "^2.2.0",
+    "lodash": "^4.18.1",
+    "object-hash": "^3.0.0",
     "querystring": "^0.2.1",
-    "recursive-copy": "^2.0.11",
-    "simple-zstd": "^1.3.1",
-    "tar": "^6.1.0",
-    "ts-node": "^10.9.1",
-    "uuid": "^8.3.2",
-    "yaml": "^1.10.2"
+    "recursive-copy": "^2.0.14",
+    "simple-zstd": "^2.1.0",
+    "tar": "^7.5.23",
+    "ts-node": "^10.9.2",
+    "uuid": "^14.0.3",
+    "yaml": "^2.9.1"
   },
   "scripts": {
     "build": "tsc",
